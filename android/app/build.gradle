@@ -16,8 +16,8 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "com.sairatec.gep"
-    compileSdkVersion 34
-    ndkVersion = "25.1.8937393"
+    compileSdkVersion flutter.compileSdkVersion
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -31,7 +31,7 @@ android {
     defaultConfig {
         applicationId "com.sairatec.gep"
         minSdkVersion flutter.minSdkVersion
-        targetSdkVersion 34
+        targetSdkVersion flutter.targetSdkVersion
         versionCode 3
         versionName "1.0.2"
         // Uncomment if you need multidex support
