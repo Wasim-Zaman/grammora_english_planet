@@ -161,8 +161,8 @@ class _AdminAttendanceRecordsScreenState
                           final picked = await showDatePicker(
                             context: context,
                             initialDate: state.dateFilter ?? DateTime.now(),
-                            firstDate: DateTime(2024),
-                            lastDate: DateTime(2030),
+                            firstDate: DateTime(DateTime.now().year),
+                            lastDate: DateTime(DateTime.now().year + 5, 12, 31),
                           );
                           if (picked != null && context.mounted) {
                             context

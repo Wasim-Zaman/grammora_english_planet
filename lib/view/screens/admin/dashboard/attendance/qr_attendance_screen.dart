@@ -169,8 +169,8 @@ class _QrAttendanceScreenState extends State<QrAttendanceScreen> {
                 final picked = await showDatePicker(
                   context: context,
                   initialDate: _selectedDate,
-                  firstDate: DateTime(2024),
-                  lastDate: DateTime(2030),
+                  firstDate: DateTime(DateTime.now().year),
+                  lastDate: DateTime(DateTime.now().year + 5, 12, 31),
                 );
                 if (picked != null) {
                   setState(() => _selectedDate = picked);

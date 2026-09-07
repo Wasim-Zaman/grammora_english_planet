@@ -8,14 +8,15 @@ class StudentAttendanceState extends Equatable {
   final int year;
   final int month;
 
-  const StudentAttendanceState({
+  StudentAttendanceState({
     this.isLoading = false,
     this.error,
     this.summary = const {},
     this.dailyRecords = const [],
-    this.year = 0,
-    this.month = 0,
-  });
+    int? year,
+    int? month,
+  })  : year = year ?? DateTime.now().year,
+        month = month ?? DateTime.now().month;
 
   StudentAttendanceState copyWith({
     bool? isLoading,

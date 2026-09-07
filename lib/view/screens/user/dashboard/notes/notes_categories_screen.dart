@@ -6,9 +6,9 @@ import 'package:gep/cubits/notes_categories/notes_categories_state.dart';
 import 'package:gep/router/app_navigation.dart';
 import 'package:gep/router/app_routes.dart';
 import 'package:gep/view/widgets/app_scaffold.dart';
+import 'package:gep/view/widgets/app_search_field.dart';
 import 'package:gep/view/widgets/paginated_widget.dart';
 import 'package:gep/view/widgets/placeholder_widget.dart';
-import 'package:gep/view/widgets/text_field_widget.dart';
 import 'package:material_ui/material_ui.dart';
 
 class NotesCategoriesScreen extends StatefulWidget {
@@ -25,7 +25,6 @@ class _NotesCategoriesScreenState extends State<NotesCategoriesScreen> {
   void initState() {
     super.initState();
     _searchController = TextEditingController();
-    _searchController.addListener(() => setState(() {}));
     context.read<NotesCategoriesCubit>().fetchPage(0);
   }
 
@@ -102,26 +101,15 @@ class _NotesCategoriesScreenState extends State<NotesCategoriesScreen> {
                       AppConstants.defaultPadding,
                       12,
                     ),
-                    child: TextFieldWidget(
+                    child: AppSearchField(
                       controller: _searchController,
+                      query: state.searchQuery,
                       labelText: 'Search categories',
                       hintText: 'Search categories…',
-                      prefixIcon: Icons.search_rounded,
-                      suffixIcon: _searchController.text.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.close_rounded, size: 18),
-                              color: textColorSecondary,
-                              onPressed: () {
-                                _searchController.clear();
-                                context
-                                    .read<NotesCategoriesCubit>()
-                                    .clearSearch();
-                              },
-                            )
-                          : null,
-                      onChanged: (v) => context
-                          .read<NotesCategoriesCubit>()
-                          .setSearchQuery(v),
+                      onChanged: (v) =>
+                          context.read<NotesCategoriesCubit>().setSearchQuery(v),
+                      onClear: () =>
+                          context.read<NotesCategoriesCubit>().clearSearch(),
                     ),
                   ),
                 ),
