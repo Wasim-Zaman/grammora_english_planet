@@ -6,6 +6,8 @@ import 'package:gep/view/screens/admin/auth/admin_login_screen.dart';
 import 'package:gep/view/screens/admin/dashboard/about_me/manage_about_me_screen.dart';
 import 'package:gep/view/screens/admin/dashboard/admin_dashboard_screen.dart';
 import 'package:gep/view/screens/admin/dashboard/admissions/admin_admissions.dart';
+import 'package:gep/view/screens/admin/dashboard/attendance/admin_attendance_records_screen.dart';
+import 'package:gep/view/screens/admin/dashboard/attendance/qr_attendance_screen.dart';
 import 'package:gep/view/screens/admin/dashboard/banner/manage_banner_screen.dart';
 import 'package:gep/view/screens/admin/dashboard/courses_outlines/manage_courses_screen.dart';
 import 'package:gep/view/screens/admin/dashboard/enrolled_students/add_student_screen.dart';
@@ -14,16 +16,14 @@ import 'package:gep/view/screens/admin/dashboard/enrolled_students/enroll_studen
 import 'package:gep/view/screens/admin/dashboard/enrolled_students/student_details_screen.dart';
 import 'package:gep/view/screens/admin/dashboard/notes/add_notes_screen.dart';
 import 'package:gep/view/screens/admin/dashboard/notes/admin_notes_categories_screen.dart';
-import 'package:gep/view/screens/admin/dashboard/attendance/admin_attendance_records_screen.dart';
-import 'package:gep/view/screens/admin/dashboard/attendance/qr_attendance_screen.dart';
 import 'package:gep/view/screens/admin/dashboard/shifts/manage_shifts_screen.dart';
 import 'package:gep/view/screens/admin/dashboard/updates/updates_management_screen.dart';
-import 'package:gep/view/screens/user/dashboard/attendance/scan_attendance_screen.dart';
-import 'package:gep/view/screens/user/dashboard/attendance/student_attendance_screen.dart';
 import 'package:gep/view/screens/user/auth/login_screen.dart';
 import 'package:gep/view/screens/user/dashboard/about_me/about_me_screen.dart';
 import 'package:gep/view/screens/user/dashboard/about_me/full_screen_resume_screen.dart';
 import 'package:gep/view/screens/user/dashboard/admissions/admissions_screen.dart';
+import 'package:gep/view/screens/user/dashboard/attendance/scan_attendance_screen.dart';
+import 'package:gep/view/screens/user/dashboard/attendance/student_attendance_screen.dart';
 import 'package:gep/view/screens/user/dashboard/courses_outlines/courses_outlines_screen.dart';
 import 'package:gep/view/screens/user/dashboard/dashboard_screen.dart';
 import 'package:gep/view/screens/user/dashboard/enrolled_students/enrolled_students_screen.dart';
@@ -33,9 +33,9 @@ import 'package:gep/view/screens/user/dashboard/notes/pdf_viewer_screen.dart';
 import 'package:gep/view/screens/user/dashboard/terms_and_conditions_screen.dart';
 import 'package:gep/view/screens/user/dashboard/updates/updates_screen.dart';
 import 'package:gep/view/splash_screen.dart';
+import 'package:gep/view/widgets/app_scaffold.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:gep/view/widgets/app_scaffold.dart';
 
 class AppRouter {
   static final GoRouter _router = GoRouter(
@@ -299,6 +299,10 @@ class AppRouter {
         name: AppRoutes.kStudentAttendanceRoute,
         builder: (context, state) {
           final studentId = state.uri.queryParameters['studentId'] ?? '';
+
+          print(
+            'Navigating to StudentAttendanceScreen with studentId: $studentId',
+          );
           return StudentAttendanceScreen(studentId: studentId);
         },
       ),

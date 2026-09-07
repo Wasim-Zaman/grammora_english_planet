@@ -1,3 +1,4 @@
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gep/core/constants/constants.dart';
 import 'package:gep/cubits/student_attendance/student_attendance_cubit.dart';
@@ -21,9 +22,11 @@ class _StudentAttendanceScreenState extends State<StudentAttendanceScreen> {
   void initState() {
     super.initState();
     final now = DateTime.now();
-    context
-        .read<StudentAttendanceCubit>()
-        .loadMonthly(widget.studentId, now.year, now.month);
+    context.read<StudentAttendanceCubit>().loadMonthly(
+      widget.studentId,
+      now.year,
+      now.month,
+    );
   }
 
   @override
@@ -32,15 +35,31 @@ class _StudentAttendanceScreenState extends State<StudentAttendanceScreen> {
     final isDark = theme.brightness == Brightness.dark;
     final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
     final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final secondaryTextColor = isDark
+        ? AppColors.darkBodyTextSecondary
+        : AppColors.lightBodyTextSecondary;
 
     return AppScaffold(
       title: 'My Attendance',
       body: BlocBuilder<StudentAttendanceCubit, StudentAttendanceState>(
         builder: (context, state) {
           if (state.isLoading && state.dailyRecords.isEmpty) {
-            return const Center(
-              child: CircularProgressIndicator(strokeWidth: 2),
-            );
+            return const _AttendanceShimmerLoading();
+          }
+
+          final presentDays = state.summary['present_days'] ?? 0;
+          final totalDays = state.summary['total_days'] ?? 0;
+          final percentage = ((state.summary['percentage'] ?? 0) as num)
+              .toDouble();
+
+          // Calculate leading padding offset for calendar alignment (Monday = 1)
+          int leadingOffset = 0;
+          if (_viewMode == 0 && state.dailyRecords.isNotEmpty) {
+            final firstDateStr = state.dailyRecords.first['date']?.toString();
+            final firstDate = DateTime.tryParse(firstDateStr ?? '');
+            if (firstDate != null) {
+              leadingOffset = firstDate.weekday - 1;
+            }
           }
 
           return CustomScrollView(
@@ -48,121 +67,176 @@ class _StudentAttendanceScreenState extends State<StudentAttendanceScreen> {
               parent: AlwaysScrollableScrollPhysics(),
             ),
             slivers: [
-              // Summary Card
+              // Enhanced Stat Card Header
               SliverToBoxAdapter(
-                child: Container(
-                  margin: const EdgeInsets.all(AppConstants.defaultPadding),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        AppColors.primary.withValues(alpha: 0.15),
-                        AppColors.secondary.withValues(alpha: 0.15),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(
-                      color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          _StatItem(
-                            label: 'Present',
-                            value:
-                                '${state.summary['present_days'] ?? 0}',
-                            color: AppColors.success,
+                child:
+                    Container(
+                          margin: const EdgeInsets.all(
+                            AppConstants.defaultPadding,
                           ),
-                          Container(
-                            height: 40,
-                            width: 1,
-                            color: borderColor,
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: cardColor,
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(color: borderColor),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(
+                                  alpha: isDark ? 0.2 : 0.04,
+                                ),
+                                blurRadius: 16,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
                           ),
-                          _StatItem(
-                            label: 'Total',
-                            value:
-                                '${state.summary['total_days'] ?? 0}',
-                            color: AppColors.info,
+                          child: Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceAround,
+                                children: [
+                                  _StatItem(
+                                    label: 'Present',
+                                    value: '$presentDays',
+                                    color: AppColors.success,
+                                  ),
+                                  Container(
+                                    height: 36,
+                                    width: 1,
+                                    color: borderColor,
+                                  ),
+                                  _StatItem(
+                                    label: 'Total Days',
+                                    value: '$totalDays',
+                                    color: AppColors.info,
+                                  ),
+                                  Container(
+                                    height: 36,
+                                    width: 1,
+                                    color: borderColor,
+                                  ),
+                                  _StatItem(
+                                    label: 'Rate',
+                                    value: '${percentage.toStringAsFixed(0)}%',
+                                    color: AppColors.accent,
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 18),
+
+                              // Progress Bar
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        'Overall Progress',
+                                        style: theme.textTheme.labelSmall
+                                            ?.copyWith(
+                                              color: secondaryTextColor,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                      ),
+                                      Text(
+                                        '${percentage.toStringAsFixed(1)}%',
+                                        style: theme.textTheme.labelSmall
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.success,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 6),
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(999),
+                                    child: LinearProgressIndicator(
+                                      value: (percentage / 100).clamp(0.0, 1.0),
+                                      minHeight: 8,
+                                      backgroundColor: isDark
+                                          ? AppColors.darkNeutral
+                                          : AppColors.lightNeutral,
+                                      valueColor: const AlwaysStoppedAnimation(
+                                        AppColors.success,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
-                          Container(
-                            height: 40,
-                            width: 1,
-                            color: borderColor,
-                          ),
-                          _StatItem(
-                            label: 'Rate',
-                            value:
-                                '${state.summary['percentage'] ?? 0}%',
-                            color: AppColors.accent,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(999),
-                        child: LinearProgressIndicator(
-                          value: ((state.summary['percentage'] ?? 0) as num) /
-                              100,
-                          minHeight: 8,
-                          backgroundColor: isDark
-                              ? AppColors.darkBorder
-                              : AppColors.lightBorder,
-                          valueColor: AlwaysStoppedAnimation(
-                            AppColors.success,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                        )
+                        .animate()
+                        .fadeIn(duration: 300.ms)
+                        .slideY(begin: 0.04, end: 0),
               ),
 
-              // View Toggle
+              // Segmented Toggle Control
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppConstants.defaultPadding,
                   ),
-                  child: SegmentedButton<int>(
-                    segments: const [
-                      ButtonSegment(
-                        value: 0,
-                        label: Text('Monthly'),
-                        icon: Icon(Icons.calendar_month_rounded),
-                      ),
-                      ButtonSegment(
-                        value: 1,
-                        label: Text('Weekly'),
-                        icon: Icon(Icons.view_week_rounded),
-                      ),
-                    ],
-                    selected: {_viewMode},
-                    onSelectionChanged: (set) {
-                      if (set.isEmpty) return;
-                      setState(() => _viewMode = set.first);
-                      final cubit = context.read<StudentAttendanceCubit>();
-                      if (_viewMode == 0) {
-                        cubit.loadMonthly(
-                            widget.studentId, state.year, state.month);
-                      } else {
-                        final now = DateTime.now();
-                        final weekStart =
-                            now.subtract(Duration(days: now.weekday - 1));
-                        cubit.loadWeekly(widget.studentId, weekStart);
-                      }
-                    },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppColors.darkNeutral
+                          : AppColors.lightNeutral,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: borderColor),
+                    ),
+                    padding: const EdgeInsets.all(4),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: _SegmentTab(
+                            label: 'Monthly',
+                            icon: Icons.calendar_month_rounded,
+                            isSelected: _viewMode == 0,
+                            onTap: () {
+                              if (_viewMode == 0) return;
+                              setState(() => _viewMode = 0);
+                              context
+                                  .read<StudentAttendanceCubit>()
+                                  .loadMonthly(
+                                    widget.studentId,
+                                    state.year,
+                                    state.month,
+                                  );
+                            },
+                          ),
+                        ),
+                        Expanded(
+                          child: _SegmentTab(
+                            label: 'Weekly',
+                            icon: Icons.view_week_rounded,
+                            isSelected: _viewMode == 1,
+                            onTap: () {
+                              if (_viewMode == 1) return;
+                              setState(() => _viewMode = 1);
+                              final now = DateTime.now();
+                              final weekStart = now.subtract(
+                                Duration(days: now.weekday - 1),
+                              );
+                              context.read<StudentAttendanceCubit>().loadWeekly(
+                                widget.studentId,
+                                weekStart,
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
 
               const SliverToBoxAdapter(child: SizedBox(height: 12)),
 
-              // Month navigator (only for monthly view)
+              // Month Navigator Header (Monthly Mode)
               if (_viewMode == 0)
                 SliverToBoxAdapter(
                   child: Padding(
@@ -170,35 +244,54 @@ class _StudentAttendanceScreenState extends State<StudentAttendanceScreen> {
                       horizontal: AppConstants.defaultPadding,
                     ),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         IconButton(
                           icon: const Icon(Icons.chevron_left_rounded),
+                          style: IconButton.styleFrom(
+                            backgroundColor: cardColor,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              side: BorderSide(color: borderColor),
+                            ),
+                          ),
                           onPressed: () {
-                            context
-                                .read<StudentAttendanceCubit>()
-                                .previousMonth();
-                            final cubit =
-                                context.read<StudentAttendanceCubit>();
-                            cubit.loadMonthly(widget.studentId, cubit.state.year,
-                                cubit.state.month);
+                            final cubit = context
+                                .read<StudentAttendanceCubit>();
+                            cubit.previousMonth();
+                            cubit.loadMonthly(
+                              widget.studentId,
+                              cubit.state.year,
+                              cubit.state.month,
+                            );
                           },
                         ),
                         Text(
-                          DateFormat('MMMM yyyy')
-                              .format(DateTime(state.year, state.month)),
+                          DateFormat(
+                            'MMMM yyyy',
+                          ).format(DateTime(state.year, state.month)),
                           style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                         IconButton(
                           icon: const Icon(Icons.chevron_right_rounded),
+                          style: IconButton.styleFrom(
+                            backgroundColor: cardColor,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              side: BorderSide(color: borderColor),
+                            ),
+                          ),
                           onPressed: () {
-                            context.read<StudentAttendanceCubit>().nextMonth();
-                            final cubit =
-                                context.read<StudentAttendanceCubit>();
-                            cubit.loadMonthly(widget.studentId, cubit.state.year,
-                                cubit.state.month);
+                            final cubit = context
+                                .read<StudentAttendanceCubit>();
+                            cubit.nextMonth();
+                            cubit.loadMonthly(
+                              widget.studentId,
+                              cubit.state.year,
+                              cubit.state.month,
+                            );
                           },
                         ),
                       ],
@@ -206,97 +299,108 @@ class _StudentAttendanceScreenState extends State<StudentAttendanceScreen> {
                   ),
                 ),
 
-              const SliverToBoxAdapter(child: SizedBox(height: 8)),
+              const SliverToBoxAdapter(child: SizedBox(height: 12)),
 
-              // Calendar Grid
+              // Calendar Grid Header and Items
               SliverPadding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppConstants.defaultPadding,
                 ),
                 sliver: SliverGrid(
-                  gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 7,
-                    mainAxisSpacing: 6,
-                    crossAxisSpacing: 6,
+                    mainAxisSpacing: 8,
+                    crossAxisSpacing: 8,
                     childAspectRatio: 1,
                   ),
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      if (index < 7) {
-                        final days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-                        return Center(
-                          child: Text(
-                            days[index],
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              fontWeight: FontWeight.w800,
-                              color: isDark
-                                  ? AppColors.darkBodyTextSecondary
-                                  : AppColors.lightBodyTextSecondary,
-                            ),
-                          ),
-                        );
-                      }
-
-                      final dayIndex = index - 7;
-                      if (dayIndex >= state.dailyRecords.length) {
-                        return const SizedBox.shrink();
-                      }
-
-                      final record = state.dailyRecords[dayIndex];
-                      final date = DateTime.tryParse(
-                              record['date']?.toString() ?? '') ??
-                          DateTime.now();
-                      final isPresent = record['is_present'] == true;
-                      final isToday = DateTime.now().year == date.year &&
-                          DateTime.now().month == date.month &&
-                          DateTime.now().day == date.day;
-
-                      return Container(
-                        decoration: BoxDecoration(
-                          color: isPresent
-                              ? AppColors.success.withValues(alpha: 0.15)
-                              : isToday
-                                  ? AppColors.accent.withValues(alpha: 0.1)
-                                  : cardColor,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: isToday
-                                ? AppColors.accent
-                                : borderColor,
-                            width: isToday ? 1.5 : 1,
-                          ),
-                        ),
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                '${date.day}',
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: isPresent
-                                      ? AppColors.success
-                                      : null,
-                                ),
-                              ),
-                              if (isPresent)
-                                Icon(
-                                  Icons.check_rounded,
-                                  size: 10,
-                                  color: AppColors.success,
-                                ),
-                            ],
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    // Day labels (Row 1)
+                    if (index < 7) {
+                      final days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+                      return Center(
+                        child: Text(
+                          days[index],
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: secondaryTextColor,
                           ),
                         ),
                       );
-                    },
-                    childCount: 7 + state.dailyRecords.length,
-                  ),
+                    }
+
+                    final gridPosition = index - 7;
+
+                    // Leading empty slots to align day 1 to correct weekday column
+                    if (gridPosition < leadingOffset) {
+                      return const SizedBox.shrink();
+                    }
+
+                    final dayIndex = gridPosition - leadingOffset;
+                    if (dayIndex >= state.dailyRecords.length) {
+                      return const SizedBox.shrink();
+                    }
+
+                    final record = state.dailyRecords[dayIndex];
+                    final date =
+                        DateTime.tryParse(record['date']?.toString() ?? '') ??
+                        DateTime.now();
+                    final isPresent = record['is_present'] == true;
+                    final now = DateTime.now();
+                    final isToday =
+                        now.year == date.year &&
+                        now.month == date.month &&
+                        now.day == date.day;
+
+                    return Container(
+                      decoration: BoxDecoration(
+                        color: isPresent
+                            ? AppColors.success.withValues(alpha: 0.15)
+                            : isToday
+                            ? AppColors.accent.withValues(alpha: 0.12)
+                            : cardColor,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isToday
+                              ? AppColors.accent
+                              : isPresent
+                              ? AppColors.success.withValues(alpha: 0.3)
+                              : borderColor,
+                          width: isToday ? 1.5 : 1,
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            '${date.day}',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: isPresent
+                                  ? AppColors.success
+                                  : isToday
+                                  ? AppColors.accent
+                                  : null,
+                            ),
+                          ),
+                          if (isPresent) ...[
+                            const SizedBox(height: 2),
+                            Container(
+                              width: 5,
+                              height: 5,
+                              decoration: const BoxDecoration(
+                                color: AppColors.success,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    );
+                  }, childCount: 7 + leadingOffset + state.dailyRecords.length),
                 ),
               ),
 
-              const SliverToBoxAdapter(child: SizedBox(height: 24)),
+              const SliverToBoxAdapter(child: SizedBox(height: 32)),
             ],
           );
         },
@@ -319,23 +423,153 @@ class _StatItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Column(
       children: [
         Text(
           value,
-          style: theme.textTheme.headlineSmall?.copyWith(
+          style: theme.textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.w900,
             color: color,
           ),
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: 4),
         Text(
           label,
           style: theme.textTheme.labelSmall?.copyWith(
             fontWeight: FontWeight.w600,
+            color: isDark
+                ? AppColors.darkBodyTextSecondary
+                : AppColors.lightBodyTextSecondary,
           ),
         ),
       ],
+    );
+  }
+}
+
+class _SegmentTab extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _SegmentTab({
+    required this.label,
+    required this.icon,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: 200.ms,
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? (isDark ? AppColors.accent : AppColors.secondary)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 16),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: theme.textTheme.labelMedium?.copyWith(
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AttendanceShimmerLoading extends StatelessWidget {
+  const _AttendanceShimmerLoading();
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final placeholderColor = isDark
+        ? AppColors.darkCard
+        : AppColors.lightBorder.withValues(alpha: 0.4);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(AppConstants.defaultPadding),
+      child:
+          Column(
+                children: [
+                  // Stat Card Shimmer
+                  Container(
+                    height: 120,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: placeholderColor,
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Toggle Shimmer
+                  Container(
+                    height: 48,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: placeholderColor,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Month Nav Shimmer
+                  Container(
+                    height: 40,
+                    width: 180,
+                    decoration: BoxDecoration(
+                      color: placeholderColor,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // Grid Shimmer
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 7,
+                          mainAxisSpacing: 8,
+                          crossAxisSpacing: 8,
+                          childAspectRatio: 1,
+                        ),
+                    itemCount: 35,
+                    itemBuilder: (context, index) {
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: placeholderColor,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              )
+              .animate(onPlay: (controller) => controller.repeat())
+              .shimmer(
+                duration: 1200.ms,
+                color: isDark ? Colors.white10 : Colors.white60,
+              ),
     );
   }
 }

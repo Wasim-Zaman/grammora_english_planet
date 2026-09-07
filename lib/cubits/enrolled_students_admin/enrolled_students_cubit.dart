@@ -11,35 +11,36 @@ class EnrolledStudentsAdminCubit extends Cubit<EnrolledStudentsState> {
   static const int _pageSize = 10;
   Timer? _debounceTimer;
 
-  EnrolledStudentsAdminCubit(this.service) : super(const EnrolledStudentsState());
+  EnrolledStudentsAdminCubit(this.service)
+    : super(const EnrolledStudentsState());
 
   Future<void> fetchPage(int page, {bool silent = false}) async {
     if (state.isLoading) return;
-    emit(state.copyWith(
-      isLoading: !silent,
-      isRefreshing: silent,
-      error: null,
-    ));
+    emit(state.copyWith(isLoading: !silent, isRefreshing: silent, error: null));
     try {
       final result = await service.getStudentsPaginated(
         page: page,
         pageSize: _pageSize,
         searchQuery: state.searchQuery.isEmpty ? null : state.searchQuery,
       );
-      emit(state.copyWith(
-        items: result.items,
-        isLoading: false,
-        isRefreshing: false,
-        currentPage: page,
-        hasMore: result.hasMore,
-        error: null,
-      ));
+      emit(
+        state.copyWith(
+          items: result.items,
+          isLoading: false,
+          isRefreshing: false,
+          currentPage: page,
+          hasMore: result.hasMore,
+          error: null,
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(
-        isLoading: false,
-        isRefreshing: false,
-        error: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          isLoading: false,
+          isRefreshing: false,
+          error: e.toString(),
+        ),
+      );
     }
   }
 
@@ -98,6 +99,16 @@ class EnrolledStudentsAdminCubit extends Cubit<EnrolledStudentsState> {
       await refresh();
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
+    }
+  }
+
+  Future<String> getStudentIdByEmail(String email) async {
+    try {
+      final studentId = await service.getStudentIdByEmail(email);
+      return studentId;
+    } catch (e) {
+      emit(state.copyWith(error: e.toString()));
+      return '';
     }
   }
 

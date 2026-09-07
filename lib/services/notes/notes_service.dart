@@ -19,14 +19,27 @@ class NotesService {
     }
   }
 
+  /// Creates a category if it doesn't already exist.
+  ///
+  /// Uses `upsert` with `ignoreDuplicates: true` so calling this
+  /// repeatedly with the same [category] is a safe no-op instead of
+  /// throwing a duplicate-key error.
   Future<void> addCategory(String category) async {
+    final trimmedCategory = category.trim();
     try {
-      await _supabase.from(_categoriesTable).insert({
-        'id': category,
-        'created_at': DateTime.now().toIso8601String(),
-      });
+      await _supabase
+          .from(_categoriesTable)
+          .upsert(
+            {
+              'id': trimmedCategory,
+              'created_at': DateTime.now().toIso8601String(),
+            },
+            onConflict: 'id',
+            ignoreDuplicates: true,
+          );
     } catch (e) {
       log('Error adding category: $e');
+      rethrow;
     }
   }
 
@@ -89,9 +102,28 @@ class NotesService {
     }
   }
 
+  /// Inserts a note under [category].
+  ///
+  /// Ensures the category row exists first (via upsert) so this can
+  /// never fail with a foreign key violation (23503) even if the
+  /// category wasn't explicitly created beforehand, or was created
+  /// with different casing/whitespace.
   Future<void> addNote(String category, String title, String url) async {
+    final trimmedCategory = category.trim();
+
+    await _supabase
+        .from(_categoriesTable)
+        .upsert(
+          {
+            'id': trimmedCategory,
+            'created_at': DateTime.now().toIso8601String(),
+          },
+          onConflict: 'id',
+          ignoreDuplicates: true,
+        );
+
     await _supabase.from(_notesTable).insert({
-      'category_id': category,
+      'category_id': trimmedCategory,
       'title': title,
       'url': url,
       'timestamp': DateTime.now().toIso8601String(),
@@ -108,17 +140,19 @@ class NotesService {
         .stream(primaryKey: ['id'])
         .eq('category_id', category)
         .map((rows) {
-      final notes = rows
-          .map((row) => Note.fromMap(row['id'] as String, {
-                'title': row['title'],
-                'url': row['url'],
-                'timestamp': row['timestamp'],
-                'accessGranted': row['access_granted'] ?? false,
-              }))
-          .toList();
-      notes.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-      return notes;
-    });
+          final notes = rows
+              .map(
+                (row) => Note.fromMap(row['id'] as String, {
+                  'title': row['title'],
+                  'url': row['url'],
+                  'timestamp': row['timestamp'],
+                  'accessGranted': row['access_granted'] ?? false,
+                }),
+              )
+              .toList();
+          notes.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+          return notes;
+        });
   }
 
   Future<PaginatedResult<Note>> getNotesPaginated({
@@ -147,12 +181,14 @@ class NotesService {
       final hasMore = data.length > pageSize;
       final items = data
           .take(pageSize)
-          .map((row) => Note.fromMap(row['id'] as String, {
-                'title': row['title'],
-                'url': row['url'],
-                'timestamp': row['timestamp'],
-                'accessGranted': row['access_granted'] ?? false,
-              }))
+          .map(
+            (row) => Note.fromMap(row['id'] as String, {
+              'title': row['title'],
+              'url': row['url'],
+              'timestamp': row['timestamp'],
+              'accessGranted': row['access_granted'] ?? false,
+            }),
+          )
           .toList();
 
       return PaginatedResult(items: items, hasMore: hasMore);

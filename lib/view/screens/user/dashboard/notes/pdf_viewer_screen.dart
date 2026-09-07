@@ -1,6 +1,6 @@
+import 'package:gep/view/widgets/app_scaffold.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
-import 'package:gep/view/widgets/app_scaffold.dart';
 
 class PdfViewerScreen extends StatelessWidget {
   final String pdfUrl;
@@ -10,6 +10,21 @@ class PdfViewerScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (pdfUrl.trim().isEmpty) {
+      return AppScaffold(
+        title: title,
+        body: const Center(
+          child: Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Text(
+              'This document is unavailable — its link is missing or invalid.',
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      );
+    }
+
     return AppScaffold(
       title: title,
       body: SfPdfViewer.network(

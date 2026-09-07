@@ -2,14 +2,16 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/cubits/auth/auth_cubit.dart';
-import 'package:gep/cubits/theme/theme_cubit.dart';
-import 'package:gep/router/app_navigation.dart';
-import 'package:gep/router/app_routes.dart';
-import 'package:gep/services/auth/auth_service.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/constants/constants.dart';
+import '../../cubits/auth/auth_cubit.dart';
+import '../../cubits/enrolled_students_admin/enrolled_students_cubit.dart';
+import '../../cubits/theme/theme_cubit.dart';
+import '../../router/app_navigation.dart';
+import '../../router/app_routes.dart';
+import '../../services/auth/auth_service.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({
@@ -42,26 +44,12 @@ class AppDrawer extends StatelessWidget {
           index: index++,
           onTap: () {
             Navigator.pop(context);
-            AppNavigation.goAndClearStack(
-              context,
-              AppRoutes.kDashboardRoute,
-            );
+            AppNavigation.goAndClearStack(context, AppRoutes.kDashboardRoute);
           },
         ),
       );
     } else {
       tiles.add(const _SectionHeader(label: 'Account'));
-      tiles.add(
-        _DrawerTile(
-          icon: Icons.person_outline_rounded,
-          label: 'Profile',
-          index: index++,
-          onTap: () {
-            Navigator.pop(context);
-            // TODO: profile navigation
-          },
-        ),
-      );
       tiles.add(
         _DrawerTile(
           icon: Icons.admin_panel_settings_outlined,
@@ -104,11 +92,20 @@ class AppDrawer extends StatelessWidget {
           icon: Icons.fact_check_outlined,
           label: 'My Attendance',
           index: index++,
-          onTap: () {
-            Navigator.pop(context);
+          onTap: () async {
+            final email = FirebaseAuth.instance.currentUser?.email ?? '';
+
+            final studentId = await context
+                .read<EnrolledStudentsAdminCubit>()
+                .getStudentIdByEmail(email);
+
+            if (!context.mounted) return;
+
+            context.pop();
             AppNavigation.push(
               context,
               AppRoutes.kStudentAttendanceRoute,
+              queryParameters: {'studentId': studentId},
             );
           },
         ),
@@ -120,10 +117,7 @@ class AppDrawer extends StatelessWidget {
           index: index++,
           onTap: () {
             Navigator.pop(context);
-            AppNavigation.push(
-              context,
-              AppRoutes.kScanAttendanceRoute,
-            );
+            AppNavigation.push(context, AppRoutes.kScanAttendanceRoute);
           },
         ),
       );
@@ -136,10 +130,7 @@ class AppDrawer extends StatelessWidget {
           index: index++,
           onTap: () {
             Navigator.pop(context);
-            AppNavigation.push(
-              context,
-              AppRoutes.kTermsAndConditionsRoute,
-            );
+            AppNavigation.push(context, AppRoutes.kTermsAndConditionsRoute);
           },
         ),
       );
@@ -191,10 +182,7 @@ class AppDrawer extends StatelessWidget {
                   Navigator.pop(context);
                   await context.read<AuthCubit>().logout();
                   if (!context.mounted) return;
-                  AppNavigation.goAndClearStack(
-                    context,
-                    AppRoutes.kLoginRoute,
-                  );
+                  AppNavigation.goAndClearStack(context, AppRoutes.kLoginRoute);
                 },
               ),
             ),

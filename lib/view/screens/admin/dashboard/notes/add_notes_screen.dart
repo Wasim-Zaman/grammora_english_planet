@@ -1,7 +1,3 @@
-import 'dart:io';
-
-import 'package:file_picker/file_picker.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gep/core/constants/constants.dart';
 import 'package:gep/cubits/admin/admin_cubit.dart';
@@ -12,6 +8,9 @@ import 'package:gep/view/widgets/app_scaffold.dart';
 import 'package:gep/view/widgets/note_card.dart';
 import 'package:gep/view/widgets/placeholder_widget.dart';
 import 'package:gep/view/widgets/text_field_widget.dart';
+import 'package:material_ui/material_ui.dart';
+
+import '../../../../../utils/file_picker_utils.dart';
 
 class AddNotesScreen extends StatelessWidget {
   final String category;
@@ -224,20 +223,13 @@ class AddNotesScreen extends StatelessWidget {
   }
 
   Future<void> _pickAndUploadFile(BuildContext context) async {
-    final dynamic result = await FilePicker.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf'],
-    );
-
-    if (result != null && result.files?.single?.path != null) {
-      if (!context.mounted) return;
-
-      final File file = File(result.files.single.path!);
+    final file = await FilePickerUtils.pickPdfFile();
+    if (file != null && context.mounted) {
       context.read<AdminCubit>().uploadNote(
-            category,
-            _titleController.text,
-            file,
-          );
+        category,
+        _titleController.text,
+        file,
+      );
     }
   }
 
