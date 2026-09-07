@@ -14,31 +14,31 @@ class UserCoursesCubit extends Cubit<UserCoursesState> {
 
   Future<void> fetchPage(int page, {bool silent = false}) async {
     if (state.isLoading) return;
-    emit(state.copyWith(
-      isLoading: !silent,
-      isRefreshing: silent,
-      error: null,
-    ));
+    emit(state.copyWith(isLoading: !silent, isRefreshing: silent, error: null));
     try {
       final result = await _service.getCoursesPaginated(
         page: page,
         pageSize: _pageSize,
         searchQuery: state.searchQuery.isEmpty ? null : state.searchQuery,
       );
-      emit(state.copyWith(
-        items: result.items,
-        isLoading: false,
-        isRefreshing: false,
-        currentPage: page,
-        hasMore: result.hasMore,
-        error: null,
-      ));
+      emit(
+        state.copyWith(
+          items: result.items,
+          isLoading: false,
+          isRefreshing: false,
+          currentPage: page,
+          hasMore: result.hasMore,
+          error: null,
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(
-        isLoading: false,
-        isRefreshing: false,
-        error: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          isLoading: false,
+          isRefreshing: false,
+          error: e.toString(),
+        ),
+      );
     }
   }
 
@@ -71,6 +71,38 @@ class UserCoursesCubit extends Cubit<UserCoursesState> {
     _debounceTimer?.cancel();
     emit(state.copyWith(searchQuery: '', currentPage: 0));
     return fetchPage(0);
+  }
+
+  void toggleCourseExpansion(String courseId) {
+    final updated = Set<String>.from(state.expandedCourseIds);
+    if (updated.contains(courseId)) {
+      updated.remove(courseId);
+    } else {
+      updated.add(courseId);
+    }
+    emit(state.copyWith(expandedCourseIds: updated));
+  }
+
+  void toggleWeekExpansion(String weekKey) {
+    final updated = Set<String>.from(state.expandedWeekKeys);
+    if (updated.contains(weekKey)) {
+      updated.remove(weekKey);
+    } else {
+      updated.add(weekKey);
+    }
+    emit(state.copyWith(expandedWeekKeys: updated));
+  }
+
+  void toggleExpandAllCourses() {
+    if (state.expandedCourseIds.length >= state.items.length &&
+        state.items.isNotEmpty) {
+      emit(state.copyWith(expandedCourseIds: {}));
+    } else {
+      final allIds = state.items
+          .map((c) => (c.id != null && c.id!.isNotEmpty) ? c.id! : c.title)
+          .toSet();
+      emit(state.copyWith(expandedCourseIds: allIds));
+    }
   }
 
   @override
