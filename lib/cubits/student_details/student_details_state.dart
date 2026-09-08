@@ -1,4 +1,5 @@
-part of 'student_details_cubit.dart';
+import 'package:equatable/equatable.dart';
+import 'package:gep/models/shift/shift.dart';
 
 class StudentDetailsState extends Equatable {
   final Shift? shift;
@@ -19,7 +20,7 @@ class StudentDetailsState extends Equatable {
     return StudentDetailsState(
       shift: shift ?? this.shift,
       isLoading: isLoading ?? this.isLoading,
-      error: error ?? this.error,
+      error: error,
     );
   }
 

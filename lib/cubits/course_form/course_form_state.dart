@@ -1,14 +1,32 @@
-part of 'course_form_cubit.dart';
+import 'package:equatable/equatable.dart';
+import 'package:material_ui/material_ui.dart';
+
+class WeekFormData {
+  final TextEditingController titleController;
+  final List<TextEditingController> topicControllers;
+
+  WeekFormData({
+    required this.titleController,
+    required this.topicControllers,
+  });
+
+  void dispose() {
+    titleController.dispose();
+    for (final c in topicControllers) {
+      c.dispose();
+    }
+  }
+}
 
 class CourseFormState extends Equatable {
-  final List<Week> weeks;
+  final List<WeekFormData> weeks;
+  final int version;
 
-  const CourseFormState({this.weeks = const []});
-
-  CourseFormState copyWith({List<Week>? weeks}) {
-    return CourseFormState(weeks: weeks ?? this.weeks);
-  }
+  const CourseFormState({
+    required this.weeks,
+    this.version = 0,
+  });
 
   @override
-  List<Object?> get props => [weeks];
+  List<Object?> get props => [weeks, version];
 }

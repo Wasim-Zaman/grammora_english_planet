@@ -2,6 +2,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../../../../core/constants/constants.dart';
+import '../../../../../cubits/update_form/update_form_cubit.dart';
+import '../../../../../cubits/update_form/update_form_state.dart';
 import '../../../../../cubits/updates_admin/updates_admin_cubit.dart';
 import '../../../../../cubits/updates_admin/updates_admin_state.dart';
 import '../../../../../models/updates.dart';
@@ -23,36 +25,19 @@ class UpdatesManagementScreen extends StatefulWidget {
 }
 
 class _UpdatesManagementScreenState extends State<UpdatesManagementScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _descriptionController = TextEditingController();
   late final TextEditingController _searchController;
-  late DateTime _selectedDate;
-  UpdateType _selectedType = UpdateType.newCourse;
 
   @override
   void initState() {
     super.initState();
-    _selectedDate = DateTime.now();
     _searchController = TextEditingController();
     context.read<UpdatesAdminCubit>().fetchPage(0);
   }
 
   @override
   void dispose() {
-    _titleController.dispose();
-    _descriptionController.dispose();
     _searchController.dispose();
     super.dispose();
-  }
-
-  void _resetForm() {
-    _titleController.clear();
-    _descriptionController.clear();
-    setState(() {
-      _selectedDate = DateTime.now();
-      _selectedType = UpdateType.newCourse;
-    });
   }
 
   @override
@@ -129,7 +114,7 @@ class _UpdatesManagementScreenState extends State<UpdatesManagementScreen> {
                     labelText: 'Search updates',
                     hintText: 'Search updates…',
                     prefixIcon: Icons.search_rounded,
-                    suffixIcon: _searchController.text.isNotEmpty
+                    suffixIcon: state.searchQuery.isNotEmpty
                         ? IconButton(
                             icon: const Icon(Icons.close_rounded, size: 18),
                             color: textColorSecondary,
@@ -295,207 +280,25 @@ class _UpdatesManagementScreenState extends State<UpdatesManagementScreen> {
     );
   }
 
-  IconData _typeIcon(UpdateType type) {
-    switch (type) {
-      case UpdateType.newCourse:
-        return Icons.school_rounded;
-      case UpdateType.event:
-        return Icons.event_rounded;
-      case UpdateType.resourceUpdate:
-        return Icons.folder_special_rounded;
-    }
-  }
-
-  String _typeLabel(UpdateType type) {
-    switch (type) {
-      case UpdateType.newCourse:
-        return 'New Course';
-      case UpdateType.event:
-        return 'Event';
-      case UpdateType.resourceUpdate:
-        return 'Resource Update';
-    }
-  }
-
   Future<void> _showUpdateSheet(BuildContext context, Updates? update) async {
-    if (update != null) {
-      _titleController.text = update.title;
-      _descriptionController.text = update.description;
-      _selectedDate = update.date;
-      _selectedType = update.type;
-    } else {
-      _resetForm();
-    }
-
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final bg = isDark
-        ? AppColors.darkScaffoldBackground
-        : AppColors.lightScaffoldBackground;
-    final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
-    final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
-
+    final updatesAdminCubit = context.read<UpdatesAdminCubit>();
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => FractionallySizedBox(
-        heightFactor: 0.85,
-        child: StatefulBuilder(
-          builder: (context, setSheetState) {
-            return Container(
-              decoration: BoxDecoration(
-                color: bg,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(28),
-                ),
-              ),
-              margin: EdgeInsets.only(
-                top: MediaQuery.of(context).padding.top + 24,
-              ),
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(28),
-                ),
-                child: AppScaffold(
-                  title: update == null ? 'Add New Update' : 'Edit Update',
-                  body: Form(
-                    key: _formKey,
-                    child: ListView(
-                      padding: const EdgeInsets.all(
-                        AppConstants.defaultPadding,
-                      ),
-                      children: [
-                        TextFieldWidget(
-                          controller: _titleController,
-                          labelText: 'Title',
-                          validator: (value) =>
-                              value!.isEmpty ? 'Please enter a title' : null,
-                        ),
-                        const SizedBox(height: AppConstants.defaultPadding),
-                        TextFieldWidget(
-                          controller: _descriptionController,
-                          labelText: 'Description',
-                          validator: (value) => value!.isEmpty
-                              ? 'Please enter a description'
-                              : null,
-                          maxLines: 3,
-                        ),
-                        const SizedBox(height: AppConstants.defaultPadding),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: cardColor,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: borderColor),
-                          ),
-                          child: ListTile(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            leading: Icon(
-                              Icons.calendar_today_rounded,
-                              color: theme.colorScheme.primary,
-                            ),
-                            title: const Text('Date'),
-                            subtitle: Text(
-                              _selectedDate.toString().split(' ')[0],
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            trailing: const Icon(Icons.chevron_right_rounded),
-                            onTap: () async {
-                              final DateTime? picked = await showDatePicker(
-                                context: context,
-                                initialDate: _selectedDate,
-                                firstDate: DateTime(2000),
-                                lastDate: DateTime(2100),
-                              );
-                              if (picked != null && picked != _selectedDate) {
-                                setSheetState(() {
-                                  _selectedDate = picked;
-                                });
-                              }
-                            },
-                          ),
-                        ),
-                        const SizedBox(height: AppConstants.defaultPadding),
-                        DropdownButtonFormField<UpdateType>(
-                          key: ValueKey(_selectedType),
-                          initialValue: _selectedType,
-                          decoration: InputDecoration(
-                            labelText: 'Type',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: borderColor),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: borderColor),
-                            ),
-                            filled: true,
-                            fillColor: cardColor,
-                          ),
-                          items: UpdateType.values.map((UpdateType type) {
-                            return DropdownMenuItem<UpdateType>(
-                              value: type,
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    _typeIcon(type),
-                                    size: 18,
-                                    color: theme.colorScheme.primary,
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Text(_typeLabel(type)),
-                                ],
-                              ),
-                            );
-                          }).toList(),
-                          onChanged: (UpdateType? newValue) {
-                            if (newValue != null) {
-                              setSheetState(() {
-                                _selectedType = newValue;
-                              });
-                            }
-                          },
-                        ),
-                        const SizedBox(height: AppConstants.defaultPadding * 2),
-                        AppButton(
-                          label: update == null ? 'Add Update' : 'Save Changes',
-                          onPressed: () {
-                            if (_formKey.currentState!.validate()) {
-                              final newUpdate = Updates(
-                                id: update?.id ?? '',
-                                title: _titleController.text,
-                                description: _descriptionController.text,
-                                date: _selectedDate,
-                                type: _selectedType,
-                              );
-                              if (update == null) {
-                                context.read<UpdatesAdminCubit>().addUpdate(
-                                  newUpdate,
-                                );
-                              } else {
-                                context.read<UpdatesAdminCubit>().updateUpdate(
-                                  update.id,
-                                  newUpdate,
-                                );
-                              }
-                              Navigator.of(context).pop();
-                            }
-                          },
-                        ),
-                        SizedBox(
-                          height: MediaQuery.of(context).viewInsets.bottom + 24,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
+      builder: (sheetContext) => MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: updatesAdminCubit),
+          BlocProvider(
+            create: (_) => UpdateFormCubit(
+              initialDate: update?.date,
+              initialType: update?.type,
+            ),
+          ),
+        ],
+        child: FractionallySizedBox(
+          heightFactor: 0.85,
+          child: _UpdateSheet(update: update),
         ),
       ),
     );
@@ -515,3 +318,224 @@ class _UpdatesManagementScreenState extends State<UpdatesManagementScreen> {
     }
   }
 }
+
+class _UpdateSheet extends StatefulWidget {
+  final Updates? update;
+  const _UpdateSheet({this.update});
+
+  @override
+  State<_UpdateSheet> createState() => _UpdateSheetState();
+}
+
+class _UpdateSheetState extends State<_UpdateSheet> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _titleController;
+  late final TextEditingController _descriptionController;
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController = TextEditingController(text: widget.update?.title ?? '');
+    _descriptionController =
+        TextEditingController(text: widget.update?.description ?? '');
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final bg = isDark
+        ? AppColors.darkScaffoldBackground
+        : AppColors.lightScaffoldBackground;
+    final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
+    final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(28),
+        ),
+      ),
+      margin: EdgeInsets.only(
+        top: MediaQuery.of(context).padding.top + 24,
+      ),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(28),
+        ),
+        child: AppScaffold(
+          title: widget.update == null ? 'Add New Update' : 'Edit Update',
+          body: BlocBuilder<UpdateFormCubit, UpdateFormState>(
+            builder: (context, formState) {
+              return Form(
+                key: _formKey,
+                child: ListView(
+                  padding: const EdgeInsets.all(
+                    AppConstants.defaultPadding,
+                  ),
+                  children: [
+                    TextFieldWidget(
+                      controller: _titleController,
+                      labelText: 'Title',
+                      validator: (value) =>
+                          value!.isEmpty ? 'Please enter a title' : null,
+                    ),
+                    const SizedBox(height: AppConstants.defaultPadding),
+                    TextFieldWidget(
+                      controller: _descriptionController,
+                      labelText: 'Description',
+                      validator: (value) => value!.isEmpty
+                          ? 'Please enter a description'
+                          : null,
+                      maxLines: 3,
+                    ),
+                    const SizedBox(height: AppConstants.defaultPadding),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: cardColor,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: borderColor),
+                      ),
+                      child: ListTile(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        leading: Icon(
+                          Icons.calendar_today_rounded,
+                          color: theme.colorScheme.primary,
+                        ),
+                        title: const Text('Date'),
+                        subtitle: Text(
+                          formState.selectedDate.toString().split(' ')[0],
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        trailing: const Icon(Icons.chevron_right_rounded),
+                        onTap: () async {
+                          final DateTime? picked = await showDatePicker(
+                            context: context,
+                            initialDate: formState.selectedDate,
+                            firstDate: DateTime(2000),
+                            lastDate: DateTime(2100),
+                          );
+                          if (picked != null &&
+                              picked != formState.selectedDate) {
+                            if (context.mounted) {
+                              context.read<UpdateFormCubit>().setDate(picked);
+                            }
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: AppConstants.defaultPadding),
+                    DropdownButtonFormField<UpdateType>(
+                      key: ValueKey(formState.selectedType),
+                      initialValue: formState.selectedType,
+                      decoration: InputDecoration(
+                        labelText: 'Type',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: borderColor),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: borderColor),
+                        ),
+                        filled: true,
+                        fillColor: cardColor,
+                      ),
+                      items: UpdateType.values.map((UpdateType type) {
+                        return DropdownMenuItem<UpdateType>(
+                          value: type,
+                          child: Row(
+                            children: [
+                              Icon(
+                                _typeIcon(type),
+                                size: 18,
+                                color: theme.colorScheme.primary,
+                              ),
+                              const SizedBox(width: 10),
+                              Text(_typeLabel(type)),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (UpdateType? newValue) {
+                        if (newValue != null) {
+                          context.read<UpdateFormCubit>().setType(newValue);
+                        }
+                      },
+                    ),
+                    const SizedBox(height: AppConstants.defaultPadding * 2),
+                    AppButton(
+                      label: widget.update == null
+                          ? 'Add Update'
+                          : 'Save Changes',
+                      onPressed: () {
+                        if (_formKey.currentState!.validate()) {
+                          final newUpdate = Updates(
+                            id: widget.update?.id ?? '',
+                            title: _titleController.text,
+                            description: _descriptionController.text,
+                            date: formState.selectedDate,
+                            type: formState.selectedType,
+                          );
+                          if (widget.update == null) {
+                            context.read<UpdatesAdminCubit>().addUpdate(
+                              newUpdate,
+                            );
+                          } else {
+                            context.read<UpdatesAdminCubit>().updateUpdate(
+                              widget.update!.id,
+                              newUpdate,
+                            );
+                          }
+                          Navigator.of(context).pop();
+                        }
+                      },
+                    ),
+                    SizedBox(
+                      height: MediaQuery.of(context).viewInsets.bottom + 24,
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+IconData _typeIcon(UpdateType type) {
+  switch (type) {
+    case UpdateType.newCourse:
+      return Icons.school_rounded;
+    case UpdateType.event:
+      return Icons.event_rounded;
+    case UpdateType.resourceUpdate:
+      return Icons.folder_special_rounded;
+  }
+}
+
+String _typeLabel(UpdateType type) {
+  switch (type) {
+    case UpdateType.newCourse:
+      return 'New Course';
+    case UpdateType.event:
+      return 'Event';
+    case UpdateType.resourceUpdate:
+      return 'Resource Update';
+  }
+}
+

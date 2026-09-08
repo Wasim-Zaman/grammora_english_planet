@@ -1,6 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gep/core/constants/constants.dart';
 import 'package:gep/cubits/admin/admin_cubit.dart';
+import 'package:gep/cubits/admission_form/admission_form_cubit.dart';
+import 'package:gep/cubits/admission_form/admission_form_state.dart';
 import 'package:gep/cubits/admissions/admissions_cubit.dart';
 import 'package:gep/cubits/admissions/admissions_state.dart';
 import 'package:gep/models/admission_announcement.dart';
@@ -111,7 +113,7 @@ class _AdminAdmissionsScreenState extends State<AdminAdmissionsScreen> {
                     labelText: 'Search announcements',
                     hintText: 'Search announcements…',
                     prefixIcon: Icons.search_rounded,
-                    suffixIcon: _searchController.text.isNotEmpty
+                    suffixIcon: state.searchQuery.isNotEmpty
                         ? IconButton(
                             icon: const Icon(Icons.close_rounded, size: 18),
                             color: textColorSecondary,
@@ -358,8 +360,6 @@ class _AddEditAnnouncementSheetState
     extends State<AddEditAnnouncementSheet> {
   late TextEditingController _titleController;
   late TextEditingController _detailsController;
-  late DateTime _startDate;
-  late DateTime _endDate;
 
   @override
   void initState() {
@@ -368,9 +368,6 @@ class _AddEditAnnouncementSheetState
     _detailsController = TextEditingController(
       text: widget.announcement?.details,
     );
-    _startDate = widget.announcement?.startDate ?? DateTime.now();
-    _endDate = widget.announcement?.endDate ??
-        DateTime.now().add(const Duration(days: 30));
   }
 
   @override
@@ -383,97 +380,112 @@ class _AddEditAnnouncementSheetState
     final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
     final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+    return BlocProvider(
+      create: (_) => AdmissionFormCubit(
+        initialStartDate: widget.announcement?.startDate,
+        initialEndDate: widget.announcement?.endDate,
       ),
-      margin: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 24),
-      child: ClipRRect(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        child: AppScaffold(
-          title: widget.announcement == null
-              ? 'Add Announcement'
-              : 'Edit Announcement',
-          body: ListView(
-            padding: const EdgeInsets.all(AppConstants.defaultPadding),
-            children: [
-              TextFieldWidget(
-                controller: _titleController,
-                labelText: 'Title',
-              ),
-              const SizedBox(height: AppConstants.defaultPadding),
-              TextFieldWidget(
-                controller: _detailsController,
-                labelText: 'Details',
-                maxLines: 3,
-              ),
-              const SizedBox(height: AppConstants.defaultPadding),
-              Row(
-                children: [
-                  Expanded(
-                    child: _DatePickerTile(
-                      label: 'Start Date',
-                      date: _startDate,
-                      cardColor: cardColor,
-                      borderColor: borderColor,
-                      onTap: () => _selectDate(context, isStartDate: true),
+      child: Container(
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        margin: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 24),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          child: AppScaffold(
+            title: widget.announcement == null
+                ? 'Add Announcement'
+                : 'Edit Announcement',
+            body: BlocBuilder<AdmissionFormCubit, AdmissionFormState>(
+              builder: (context, formState) {
+                return ListView(
+                  padding: const EdgeInsets.all(AppConstants.defaultPadding),
+                  children: [
+                    TextFieldWidget(
+                      controller: _titleController,
+                      labelText: 'Title',
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _DatePickerTile(
-                      label: 'End Date',
-                      date: _endDate,
-                      cardColor: cardColor,
-                      borderColor: borderColor,
-                      onTap: () => _selectDate(context, isStartDate: false),
+                    const SizedBox(height: AppConstants.defaultPadding),
+                    TextFieldWidget(
+                      controller: _detailsController,
+                      labelText: 'Details',
+                      maxLines: 3,
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppConstants.defaultPadding * 2),
-              AppButton(
-                label: widget.announcement == null
-                    ? 'Add Announcement'
-                    : 'Save Changes',
-                onPressed: _saveAnnouncement,
-              ),
-              SizedBox(
-                  height: MediaQuery.of(context).viewInsets.bottom + 24),
-            ],
+                    const SizedBox(height: AppConstants.defaultPadding),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _DatePickerTile(
+                            label: 'Start Date',
+                            date: formState.startDate,
+                            cardColor: cardColor,
+                            borderColor: borderColor,
+                            onTap: () =>
+                                _selectDate(context, isStartDate: true),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _DatePickerTile(
+                            label: 'End Date',
+                            date: formState.endDate,
+                            cardColor: cardColor,
+                            borderColor: borderColor,
+                            onTap: () =>
+                                _selectDate(context, isStartDate: false),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppConstants.defaultPadding * 2),
+                    AppButton(
+                      label: widget.announcement == null
+                          ? 'Add Announcement'
+                          : 'Save Changes',
+                      onPressed: () => _saveAnnouncement(context, formState),
+                    ),
+                    SizedBox(
+                      height: MediaQuery.of(context).viewInsets.bottom + 24,
+                    ),
+                  ],
+                );
+              },
+            ),
           ),
         ),
       ),
     );
   }
 
-  Future<void> _selectDate(BuildContext context,
-      {required bool isStartDate}) async {
+  Future<void> _selectDate(
+    BuildContext context, {
+    required bool isStartDate,
+  }) async {
+    final cubit = context.read<AdmissionFormCubit>();
+    final current = isStartDate ? cubit.state.startDate : cubit.state.endDate;
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: isStartDate ? _startDate : _endDate,
+      initialDate: current,
       firstDate: DateTime(2023),
       lastDate: DateTime(2030),
     );
     if (picked != null) {
-      setState(() {
-        if (isStartDate) {
-          _startDate = picked;
-        } else {
-          _endDate = picked;
-        }
-      });
+      if (isStartDate) {
+        cubit.setStartDate(picked);
+      } else {
+        cubit.setEndDate(picked);
+      }
     }
   }
 
-  void _saveAnnouncement() {
+  void _saveAnnouncement(BuildContext context, AdmissionFormState formState) {
     final announcement = AdmissionAnnouncement(
       id: widget.announcement?.id ?? '',
       title: _titleController.text,
       details: _detailsController.text,
-      startDate: _startDate,
-      endDate: _endDate,
+      startDate: formState.startDate,
+      endDate: formState.endDate,
     );
 
     if (widget.announcement == null) {

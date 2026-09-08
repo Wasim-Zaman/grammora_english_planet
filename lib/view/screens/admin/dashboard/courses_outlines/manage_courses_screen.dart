@@ -2,6 +2,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../../../../core/constants/constants.dart';
+import '../../../../../cubits/course_form/course_form_cubit.dart';
+import '../../../../../cubits/course_form/course_form_state.dart';
 import '../../../../../cubits/courses/courses_cubit.dart';
 import '../../../../../cubits/courses/courses_state.dart';
 import '../../../../../models/course_outline.dart';
@@ -110,7 +112,7 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
                     labelText: 'Search courses',
                     hintText: 'Search courses…',
                     prefixIcon: Icons.search_rounded,
-                    suffixIcon: _searchController.text.isNotEmpty
+                    suffixIcon: state.searchQuery.isNotEmpty
                         ? IconButton(
                             icon: const Icon(Icons.close_rounded, size: 18),
                             color: textColorSecondary,
@@ -274,19 +276,23 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
   }
 
   void _showCourseSheet(BuildContext context, {Course? course}) {
+    final coursesCubit = context.read<CoursesCubit>();
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => FractionallySizedBox(
-        heightFactor: 0.9,
-        child: _CourseSheet(course: course),
+      builder: (sheetContext) => BlocProvider.value(
+        value: coursesCubit,
+        child: FractionallySizedBox(
+          heightFactor: 0.9,
+          child: _CourseSheet(course: course),
+        ),
       ),
     );
   }
 
-  void _deleteCourse(BuildContext context, Course course) {
-    AppDialog.showConfirmation(
+  void _deleteCourse(BuildContext context, Course course) async {
+    final confirmed = await AppDialog.showConfirmation(
       context: context,
       title: 'Delete Course',
       message: 'Are you sure you want to delete "${course.title}"?',
@@ -294,6 +300,9 @@ class _ManageCoursesScreenState extends State<ManageCoursesScreen> {
       confirmLabel: 'Delete',
       isDestructive: true,
     );
+    if (confirmed == true && context.mounted) {
+      context.read<CoursesCubit>().deleteCourse(course.id!);
+    }
   }
 }
 
@@ -307,36 +316,17 @@ class _CourseSheet extends StatefulWidget {
 
 class _CourseSheetState extends State<_CourseSheet> {
   final _formKey = GlobalKey<FormState>();
-  final _courseTitle = TextEditingController();
-  final List<Week> _weeks = [];
-  final List<List<TextEditingController>> _topicControllers = [];
+  late final TextEditingController _courseTitle;
 
   @override
   void initState() {
     super.initState();
-    if (widget.course != null) {
-      _courseTitle.text = widget.course!.title;
-      _weeks.addAll(widget.course!.weeks);
-      for (var week in _weeks) {
-        final controllers = <TextEditingController>[
-          TextEditingController(text: week.title),
-        ];
-        controllers.addAll(
-          week.topics.map((t) => TextEditingController(text: t)),
-        );
-        _topicControllers.add(controllers);
-      }
-    }
+    _courseTitle = TextEditingController(text: widget.course?.title ?? '');
   }
 
   @override
   void dispose() {
     _courseTitle.dispose();
-    for (var list in _topicControllers) {
-      for (var c in list) {
-        c.dispose();
-      }
-    }
     super.dispose();
   }
 
@@ -350,44 +340,61 @@ class _CourseSheetState extends State<_CourseSheet> {
     final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
     final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      margin: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 24),
-      child: ClipRRect(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        child: AppScaffold(
-          title: widget.course == null ? 'Add Course' : 'Edit Course',
-          body: Form(
-            key: _formKey,
-            child: ListView(
-              padding: const EdgeInsets.all(AppConstants.defaultPadding),
-              children: [
-                TextFieldWidget(
-                  controller: _courseTitle,
-                  labelText: 'Course Title',
-                  validator: (v) =>
-                      v == null || v.isEmpty ? 'Enter course title' : null,
-                ),
-                const SizedBox(height: AppConstants.defaultPadding),
-                ..._buildWeeksList(isDark, cardColor, borderColor),
-                const SizedBox(height: 12),
-                ActionChip(
-                  avatar: const Icon(Icons.add_rounded, size: 16),
-                  label: const Text('Add Week'),
-                  onPressed: _addWeek,
-                ),
-                const SizedBox(height: AppConstants.defaultPadding * 2),
-                AppButton(
-                  label: widget.course == null
-                      ? 'Create Course'
-                      : 'Save Changes',
-                  onPressed: _submit,
-                ),
-                SizedBox(height: MediaQuery.of(context).viewInsets.bottom + 24),
-              ],
+    return BlocProvider(
+      create: (_) => CourseFormCubit(widget.course?.weeks ?? []),
+      child: Container(
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        margin: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 24),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          child: AppScaffold(
+            title: widget.course == null ? 'Add Course' : 'Edit Course',
+            body: BlocBuilder<CourseFormCubit, CourseFormState>(
+              builder: (context, formState) {
+                return Form(
+                  key: _formKey,
+                  child: ListView(
+                    padding: const EdgeInsets.all(AppConstants.defaultPadding),
+                    children: [
+                      TextFieldWidget(
+                        controller: _courseTitle,
+                        labelText: 'Course Title',
+                        validator: (v) => v == null || v.isEmpty
+                            ? 'Enter course title'
+                            : null,
+                      ),
+                      const SizedBox(height: AppConstants.defaultPadding),
+                      ..._buildWeeksList(
+                        context,
+                        formState,
+                        isDark,
+                        cardColor,
+                        borderColor,
+                      ),
+                      const SizedBox(height: 12),
+                      ActionChip(
+                        avatar: const Icon(Icons.add_rounded, size: 16),
+                        label: const Text('Add Week'),
+                        onPressed: () =>
+                            context.read<CourseFormCubit>().addWeek(),
+                      ),
+                      const SizedBox(height: AppConstants.defaultPadding * 2),
+                      AppButton(
+                        label: widget.course == null
+                            ? 'Create Course'
+                            : 'Save Changes',
+                        onPressed: () => _submit(context),
+                      ),
+                      SizedBox(
+                        height: MediaQuery.of(context).viewInsets.bottom + 24,
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
           ),
         ),
@@ -396,13 +403,15 @@ class _CourseSheetState extends State<_CourseSheet> {
   }
 
   List<Widget> _buildWeeksList(
+    BuildContext context,
+    CourseFormState formState,
     bool isDark,
     Color cardColor,
     Color borderColor,
   ) {
-    return _weeks.asMap().entries.map((entry) {
+    return formState.weeks.asMap().entries.map((entry) {
       final idx = entry.key;
-      final week = entry.value;
+      final weekData = entry.value;
       return Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(AppConstants.defaultPadding),
@@ -423,31 +432,31 @@ class _CourseSheetState extends State<_CourseSheet> {
                     context,
                   ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
                 ),
-                if (_weeks.length > 1)
+                if (formState.weeks.length > 1)
                   IconButton(
                     icon: Icon(
                       Icons.delete_outline_rounded,
                       color: AppColors.error.withValues(alpha: 0.85),
                       size: 18,
                     ),
-                    onPressed: () => _removeWeek(idx),
+                    onPressed: () =>
+                        context.read<CourseFormCubit>().removeWeek(idx),
                   ),
               ],
             ),
             const SizedBox(height: 8),
             TextFieldWidget(
-              controller: _topicControllers[idx][0],
+              controller: weekData.titleController,
               labelText: 'Week Title',
-              onChanged: (v) =>
-                  _weeks[idx] = Week(title: v, topics: week.topics),
             ),
             const SizedBox(height: 12),
-            ..._buildTopicsList(idx),
+            ..._buildTopicsList(context, idx, weekData),
             const SizedBox(height: 8),
             ActionChip(
               avatar: const Icon(Icons.add_rounded, size: 16),
               label: const Text('Add Topic'),
-              onPressed: () => _addTopic(idx),
+              onPressed: () =>
+                  context.read<CourseFormCubit>().addTopic(idx),
             ),
           ],
         ),
@@ -455,35 +464,34 @@ class _CourseSheetState extends State<_CourseSheet> {
     }).toList();
   }
 
-  List<Widget> _buildTopicsList(int weekIndex) {
-    return _weeks[weekIndex].topics.asMap().entries.map((entry) {
+  List<Widget> _buildTopicsList(
+    BuildContext context,
+    int weekIndex,
+    WeekFormData weekData,
+  ) {
+    return weekData.topicControllers.asMap().entries.map((entry) {
       final idx = entry.key;
+      final controller = entry.value;
       return Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: Row(
           children: [
             Expanded(
               child: TextFieldWidget(
-                controller: _topicControllers[weekIndex][idx + 1],
+                controller: controller,
                 labelText: 'Topic ${idx + 1}',
-                onChanged: (v) {
-                  final updated = List<String>.from(_weeks[weekIndex].topics);
-                  updated[idx] = v;
-                  _weeks[weekIndex] = Week(
-                    title: _weeks[weekIndex].title,
-                    topics: updated,
-                  );
-                },
               ),
             ),
-            if (_weeks[weekIndex].topics.length > 1)
+            if (weekData.topicControllers.length > 1)
               IconButton(
                 icon: Icon(
                   Icons.remove_circle_outline_rounded,
                   color: AppColors.error.withValues(alpha: 0.7),
                   size: 20,
                 ),
-                onPressed: () => _removeTopic(weekIndex, idx),
+                onPressed: () => context
+                    .read<CourseFormCubit>()
+                    .removeTopic(weekIndex, idx),
               ),
           ],
         ),
@@ -491,47 +499,14 @@ class _CourseSheetState extends State<_CourseSheet> {
     }).toList();
   }
 
-  void _addWeek() {
-    setState(() {
-      _weeks.add(Week(title: '', topics: ['']));
-      _topicControllers.add([TextEditingController(), TextEditingController()]);
-    });
-  }
-
-  void _removeWeek(int index) {
-    setState(() {
-      for (var c in _topicControllers[index]) {
-        c.dispose();
-      }
-      _topicControllers.removeAt(index);
-      _weeks.removeAt(index);
-    });
-  }
-
-  void _addTopic(int weekIndex) {
-    setState(() {
-      final updated = List<String>.from(_weeks[weekIndex].topics)..add('');
-      _weeks[weekIndex] = Week(title: _weeks[weekIndex].title, topics: updated);
-      _topicControllers[weekIndex].add(TextEditingController());
-    });
-  }
-
-  void _removeTopic(int weekIndex, int topicIndex) {
-    setState(() {
-      _topicControllers[weekIndex][topicIndex + 1].dispose();
-      _topicControllers[weekIndex].removeAt(topicIndex + 1);
-      final updated = List<String>.from(_weeks[weekIndex].topics)
-        ..removeAt(topicIndex);
-      _weeks[weekIndex] = Week(title: _weeks[weekIndex].title, topics: updated);
-    });
-  }
-
-  void _submit() {
+  void _submit(BuildContext context) {
     if (!_formKey.currentState!.validate()) return;
+    final weeks = context.read<CourseFormCubit>().getWeeks();
     final course = Course(
-      id: widget.course?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+      id: widget.course?.id ??
+          DateTime.now().millisecondsSinceEpoch.toString(),
       title: _courseTitle.text,
-      weeks: _weeks,
+      weeks: weeks,
     );
     if (widget.course != null) {
       context.read<CoursesCubit>().updateCourse(course.id!, course);

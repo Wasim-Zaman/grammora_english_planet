@@ -1,4 +1,4 @@
-part of 'shift_form_cubit.dart';
+import 'package:equatable/equatable.dart';
 
 class ShiftFormState extends Equatable {
   final List<String> selectedDays;
@@ -6,7 +6,9 @@ class ShiftFormState extends Equatable {
   const ShiftFormState({this.selectedDays = const []});
 
   ShiftFormState copyWith({List<String>? selectedDays}) {
-    return ShiftFormState(selectedDays: selectedDays ?? this.selectedDays);
+    return ShiftFormState(
+      selectedDays: selectedDays ?? this.selectedDays,
+    );
   }
 
   @override

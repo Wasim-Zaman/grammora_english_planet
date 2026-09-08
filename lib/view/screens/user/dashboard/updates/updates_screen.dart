@@ -25,7 +25,6 @@ class _UpdatesScreenState extends State<UpdatesScreen> {
   void initState() {
     super.initState();
     _searchController = TextEditingController();
-    _searchController.addListener(() => setState(() {}));
     context.read<UserUpdatesCubit>().fetchPage(0);
   }
 
@@ -106,7 +105,7 @@ class _UpdatesScreenState extends State<UpdatesScreen> {
                     labelText: 'Search updates',
                     hintText: 'Search updates…',
                     prefixIcon: Icons.search_rounded,
-                    suffixIcon: _searchController.text.isNotEmpty
+                    suffixIcon: state.searchQuery.isNotEmpty
                         ? GestureDetector(
                             onTap: () {
                               _searchController.clear();

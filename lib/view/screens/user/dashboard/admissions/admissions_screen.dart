@@ -24,7 +24,6 @@ class _AdmissionsScreenState extends State<AdmissionsScreen> {
   void initState() {
     super.initState();
     _searchController = TextEditingController();
-    _searchController.addListener(() => setState(() {}));
     context.read<UserAdmissionsCubit>().fetchPage(0);
   }
 
@@ -107,7 +106,7 @@ class _AdmissionsScreenState extends State<AdmissionsScreen> {
                       labelText: 'Search announcements',
                       hintText: 'Search announcements…',
                       prefixIcon: Icons.search_rounded,
-                      suffixIcon: _searchController.text.isNotEmpty
+                      suffixIcon: state.searchQuery.isNotEmpty
                           ? IconButton(
                               icon: const Icon(Icons.close_rounded, size: 18),
                               color: textColorSecondary,

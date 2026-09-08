@@ -1,55 +1,60 @@
-part of 'student_form_cubit.dart';
+import 'package:equatable/equatable.dart';
+import 'package:gep/models/shift/shift.dart';
 
 class StudentFormState extends Equatable {
   final DateTime dateOfBirth;
   final String gender;
-  final DateTime enrollmentDate;
   final String? selectedShiftId;
+  final DateTime enrollmentDate;
   final List<Shift> shifts;
-  final bool isSaving;
+  final bool isLoading;
+  final bool isSuccess;
   final String? error;
 
-  const StudentFormState({
-    required this.dateOfBirth,
+  StudentFormState({
+    DateTime? dateOfBirth,
     this.gender = 'Male',
-    required this.enrollmentDate,
     this.selectedShiftId,
+    DateTime? enrollmentDate,
     this.shifts = const [],
-    this.isSaving = false,
+    this.isLoading = false,
+    this.isSuccess = false,
     this.error,
-  });
+  })  : dateOfBirth = dateOfBirth ?? DateTime.now(),
+        enrollmentDate = enrollmentDate ?? DateTime.now();
 
   StudentFormState copyWith({
     DateTime? dateOfBirth,
     String? gender,
+    String? Function()? selectedShiftId,
     DateTime? enrollmentDate,
-    String? selectedShiftId,
-    bool clearShift = false,
     List<Shift>? shifts,
-    bool? isSaving,
+    bool? isLoading,
+    bool? isSuccess,
     String? error,
   }) {
     return StudentFormState(
       dateOfBirth: dateOfBirth ?? this.dateOfBirth,
       gender: gender ?? this.gender,
+      selectedShiftId:
+          selectedShiftId != null ? selectedShiftId() : this.selectedShiftId,
       enrollmentDate: enrollmentDate ?? this.enrollmentDate,
-      selectedShiftId: clearShift
-          ? null
-          : (selectedShiftId ?? this.selectedShiftId),
       shifts: shifts ?? this.shifts,
-      isSaving: isSaving ?? this.isSaving,
+      isLoading: isLoading ?? this.isLoading,
+      isSuccess: isSuccess ?? this.isSuccess,
       error: error,
     );
   }
 
   @override
   List<Object?> get props => [
-    dateOfBirth,
-    gender,
-    enrollmentDate,
-    selectedShiftId,
-    shifts,
-    isSaving,
-    error,
-  ];
+        dateOfBirth,
+        gender,
+        selectedShiftId,
+        enrollmentDate,
+        shifts,
+        isLoading,
+        isSuccess,
+        error,
+      ];
 }

@@ -8,11 +8,14 @@ class StudentAttendanceState extends Equatable {
   final int year;
   final int month;
 
+  final int viewMode; // 0: monthly, 1: weekly
+
   StudentAttendanceState({
     this.isLoading = false,
     this.error,
     this.summary = const {},
     this.dailyRecords = const [],
+    this.viewMode = 0,
     int? year,
     int? month,
   })  : year = year ?? DateTime.now().year,
@@ -23,6 +26,7 @@ class StudentAttendanceState extends Equatable {
     String? error,
     Map<String, dynamic>? summary,
     List<Map<String, dynamic>>? dailyRecords,
+    int? viewMode,
     int? year,
     int? month,
   }) {
@@ -31,6 +35,7 @@ class StudentAttendanceState extends Equatable {
       error: error,
       summary: summary ?? this.summary,
       dailyRecords: dailyRecords ?? this.dailyRecords,
+      viewMode: viewMode ?? this.viewMode,
       year: year ?? this.year,
       month: month ?? this.month,
     );
@@ -38,5 +43,5 @@ class StudentAttendanceState extends Equatable {
 
   @override
   List<Object?> get props =>
-      [isLoading, error, summary, dailyRecords, year, month];
+      [isLoading, error, summary, dailyRecords, viewMode, year, month];
 }

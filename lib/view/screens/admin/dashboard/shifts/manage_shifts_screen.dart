@@ -1,5 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gep/core/constants/constants.dart';
+import 'package:gep/cubits/shift_form/shift_form_cubit.dart';
+import 'package:gep/cubits/shift_form/shift_form_state.dart';
 import 'package:gep/cubits/shifts/shifts_cubit.dart';
 import 'package:gep/models/shift/shift.dart';
 import 'package:gep/utils/snackbars.dart';
@@ -105,7 +107,7 @@ class _ManageShiftsScreenState extends State<ManageShiftsScreen> {
                     labelText: 'Search shifts',
                     hintText: 'Search shifts…',
                     prefixIcon: Icons.search_rounded,
-                    suffixIcon: _searchController.text.isNotEmpty
+                    suffixIcon: state.searchQuery.isNotEmpty
                         ? IconButton(
                             icon: const Icon(Icons.close_rounded, size: 18),
                             color: textColorSecondary,
@@ -209,11 +211,15 @@ class _ManageShiftsScreenState extends State<ManageShiftsScreen> {
   }
 
   void _showShiftSheet(BuildContext context, Shift? shift) {
+    final shiftsCubit = context.read<ShiftsCubit>();
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _ShiftFormSheet(shift: shift),
+      builder: (_) => BlocProvider.value(
+        value: shiftsCubit,
+        child: _ShiftFormSheet(shift: shift),
+      ),
     );
   }
 
@@ -243,8 +249,7 @@ class _ShiftFormSheetState extends State<_ShiftFormSheet> {
   late final TextEditingController _nameController;
   late final TextEditingController _startController;
   late final TextEditingController _endController;
-  final List<String> _selectedDays = [];
-  final _days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  static const _days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   @override
   void initState() {
@@ -255,9 +260,6 @@ class _ShiftFormSheetState extends State<_ShiftFormSheet> {
         TextEditingController(text: widget.shift?.startTime ?? '09:00');
     _endController =
         TextEditingController(text: widget.shift?.endTime ?? '11:00');
-    if (widget.shift != null) {
-      _selectedDays.addAll(widget.shift!.days);
-    }
   }
 
   @override
@@ -268,12 +270,15 @@ class _ShiftFormSheetState extends State<_ShiftFormSheet> {
     super.dispose();
   }
 
-  void _save() {
+  void _save(BuildContext context, ShiftFormState formState) {
     final name = _nameController.text.trim();
     final start = _startController.text.trim();
     final end = _endController.text.trim();
 
-    if (name.isEmpty || start.isEmpty || end.isEmpty || _selectedDays.isEmpty) {
+    if (name.isEmpty ||
+        start.isEmpty ||
+        end.isEmpty ||
+        formState.selectedDays.isEmpty) {
       TopSnackbar.error(context, 'Please fill all fields and select days');
       return;
     }
@@ -283,7 +288,7 @@ class _ShiftFormSheetState extends State<_ShiftFormSheet> {
       name: name,
       startTime: start,
       endTime: end,
-      days: List.from(_selectedDays),
+      days: List.from(formState.selectedDays),
       createdAt: widget.shift?.createdAt ?? DateTime.now(),
     );
 
@@ -303,81 +308,91 @@ class _ShiftFormSheetState extends State<_ShiftFormSheet> {
         ? AppColors.darkScaffoldBackground
         : AppColors.lightScaffoldBackground;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      margin: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 24),
-      child: ClipRRect(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        child: AppScaffold(
-          title: widget.shift == null ? 'Add Shift' : 'Edit Shift',
-          body: ListView(
-            padding: const EdgeInsets.all(AppConstants.defaultPadding),
-            children: [
-              TextFieldWidget(
-                controller: _nameController,
-                labelText: 'Shift Name',
-                prefixIcon: Icons.title_rounded,
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFieldWidget(
-                      controller: _startController,
-                      labelText: 'Start Time',
-                      prefixIcon: Icons.access_time_rounded,
-                      hintText: '09:00',
+    return BlocProvider(
+      create: (_) => ShiftFormCubit(widget.shift?.days ?? []),
+      child: Container(
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        margin: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 24),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          child: AppScaffold(
+            title: widget.shift == null ? 'Add Shift' : 'Edit Shift',
+            body: BlocBuilder<ShiftFormCubit, ShiftFormState>(
+              builder: (context, formState) {
+                return ListView(
+                  padding: const EdgeInsets.all(AppConstants.defaultPadding),
+                  children: [
+                    TextFieldWidget(
+                      controller: _nameController,
+                      labelText: 'Shift Name',
+                      prefixIcon: Icons.title_rounded,
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextFieldWidget(
-                      controller: _endController,
-                      labelText: 'End Time',
-                      prefixIcon: Icons.access_time_filled_rounded,
-                      hintText: '11:00',
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFieldWidget(
+                            controller: _startController,
+                            labelText: 'Start Time',
+                            prefixIcon: Icons.access_time_rounded,
+                            hintText: '09:00',
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: TextFieldWidget(
+                            controller: _endController,
+                            labelText: 'End Time',
+                            prefixIcon: Icons.access_time_filled_rounded,
+                            hintText: '11:00',
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Select Days',
-                style: theme.textTheme.labelLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: _days.map((day) {
-                  final selected = _selectedDays.contains(day);
-                  return ChoiceChip(
-                    label: Text(day),
-                    selected: selected,
-                    onSelected: (_) => setState(() {
-                      selected ? _selectedDays.remove(day) : _selectedDays.add(day);
-                    }),
-                    selectedColor: AppColors.accent.withValues(alpha: 0.2),
-                    labelStyle: TextStyle(
-                      color: selected ? AppColors.accent : null,
-                      fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                    const SizedBox(height: 16),
+                    Text(
+                      'Select Days',
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 24),
-              AppButton(
-                label: widget.shift == null ? 'Add Shift' : 'Save Changes',
-                onPressed: _save,
-              ),
-              SizedBox(
-                  height: MediaQuery.of(context).viewInsets.bottom + 24),
-            ],
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: _days.map((day) {
+                        final selected = formState.selectedDays.contains(day);
+                        return ChoiceChip(
+                          label: Text(day),
+                          selected: selected,
+                          onSelected: (_) =>
+                              context.read<ShiftFormCubit>().toggleDay(day),
+                          selectedColor:
+                              AppColors.accent.withValues(alpha: 0.2),
+                          labelStyle: TextStyle(
+                            color: selected ? AppColors.accent : null,
+                            fontWeight:
+                                selected ? FontWeight.w700 : FontWeight.w500,
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 24),
+                    AppButton(
+                      label:
+                          widget.shift == null ? 'Add Shift' : 'Save Changes',
+                      onPressed: () => _save(context, formState),
+                    ),
+                    SizedBox(
+                      height: MediaQuery.of(context).viewInsets.bottom + 24,
+                    ),
+                  ],
+                );
+              },
+            ),
           ),
         ),
       ),

@@ -1,23 +1,27 @@
-part of 'about_me_form_cubit.dart';
+import 'dart:io';
+import 'package:equatable/equatable.dart';
 
 class AboutMeFormState extends Equatable {
-  final File? profileImage;
-  final File? resume;
+  final File? profileImageFile;
+  final File? resumeFile;
 
-  const AboutMeFormState({this.profileImage, this.resume});
+  const AboutMeFormState({
+    this.profileImageFile,
+    this.resumeFile,
+  });
 
   AboutMeFormState copyWith({
-    File? profileImage,
-    File? resume,
-    bool clearProfileImage = false,
-    bool clearResume = false,
+    File? Function()? profileImageFile,
+    File? Function()? resumeFile,
   }) {
     return AboutMeFormState(
-      profileImage: clearProfileImage ? null : (profileImage ?? this.profileImage),
-      resume: clearResume ? null : (resume ?? this.resume),
+      profileImageFile: profileImageFile != null
+          ? profileImageFile()
+          : this.profileImageFile,
+      resumeFile: resumeFile != null ? resumeFile() : this.resumeFile,
     );
   }
 
   @override
-  List<Object?> get props => [profileImage, resume];
+  List<Object?> get props => [profileImageFile, resumeFile];
 }

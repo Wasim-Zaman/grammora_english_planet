@@ -2,15 +2,25 @@ import 'dart:async';
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gep/models/shift/shift.dart';
 import 'package:gep/services/attendance/attendance_service.dart';
+import 'package:gep/services/shifts/shifts_service.dart';
 
 part 'attendance_admin_state.dart';
 
 class AttendanceAdminCubit extends Cubit<AttendanceAdminState> {
   final AttendanceService _service;
+  final ShiftsService _shiftsService = ShiftsService();
   static const int _pageSize = 15;
 
   AttendanceAdminCubit(this._service) : super(const AttendanceAdminState());
+
+  Future<void> loadShifts() async {
+    try {
+      final shifts = await _shiftsService.getAllShifts();
+      emit(state.copyWith(shifts: shifts));
+    } catch (_) {}
+  }
 
   Future<void> fetchPage(int page, {bool silent = false}) async {
     if (state.isLoading) return;

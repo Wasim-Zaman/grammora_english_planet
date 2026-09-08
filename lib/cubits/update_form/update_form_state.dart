@@ -1,18 +1,25 @@
-part of 'update_form_cubit.dart';
+import 'package:equatable/equatable.dart';
+import 'package:gep/models/updates.dart';
 
 class UpdateFormState extends Equatable {
-  final DateTime date;
-  final UpdateType type;
+  final DateTime selectedDate;
+  final UpdateType selectedType;
 
-  const UpdateFormState({required this.date, required this.type});
+  UpdateFormState({
+    DateTime? selectedDate,
+    this.selectedType = UpdateType.newCourse,
+  }) : selectedDate = selectedDate ?? DateTime.now();
 
-  UpdateFormState copyWith({DateTime? date, UpdateType? type}) {
+  UpdateFormState copyWith({
+    DateTime? selectedDate,
+    UpdateType? selectedType,
+  }) {
     return UpdateFormState(
-      date: date ?? this.date,
-      type: type ?? this.type,
+      selectedDate: selectedDate ?? this.selectedDate,
+      selectedType: selectedType ?? this.selectedType,
     );
   }
 
   @override
-  List<Object?> get props => [date, type];
+  List<Object?> get props => [selectedDate, selectedType];
 }

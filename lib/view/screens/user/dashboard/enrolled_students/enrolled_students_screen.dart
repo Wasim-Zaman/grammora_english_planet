@@ -28,7 +28,6 @@ class _EnrolledStudentsScreenState extends State<EnrolledStudentsScreen> {
   void initState() {
     super.initState();
     _searchController = TextEditingController();
-    _searchController.addListener(() => setState(() {}));
     context.read<UserStudentsCubit>().fetchPage(0);
   }
 
@@ -109,7 +108,7 @@ class _EnrolledStudentsScreenState extends State<EnrolledStudentsScreen> {
                       labelText: 'Search students',
                       hintText: 'Search students…',
                       prefixIcon: Icons.search_rounded,
-                      suffixIcon: _searchController.text.isNotEmpty
+                      suffixIcon: state.searchQuery.isNotEmpty
                           ? IconButton(
                               icon: const Icon(Icons.close_rounded, size: 18),
                               color: textColorSecondary,

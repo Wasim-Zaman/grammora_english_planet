@@ -60,4 +60,8 @@ class StudentAttendanceCubit extends Cubit<StudentAttendanceState> {
     final newYear = newMonth > 12 ? state.year + 1 : state.year;
     emit(state.copyWith(year: newYear, month: newMonth > 12 ? 1 : newMonth));
   }
+
+  void setViewMode(int mode) {
+    emit(state.copyWith(viewMode: mode));
+  }
 }

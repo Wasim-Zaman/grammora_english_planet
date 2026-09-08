@@ -16,7 +16,6 @@ class StudentAttendanceScreen extends StatefulWidget {
 }
 
 class _StudentAttendanceScreenState extends State<StudentAttendanceScreen> {
-  int _viewMode = 0; // 0 = monthly, 1 = weekly
 
   @override
   void initState() {
@@ -54,7 +53,7 @@ class _StudentAttendanceScreenState extends State<StudentAttendanceScreen> {
 
           // Calculate leading padding offset for calendar alignment (Monday = 1)
           int leadingOffset = 0;
-          if (_viewMode == 0 && state.dailyRecords.isNotEmpty) {
+          if (state.viewMode == 0 && state.dailyRecords.isNotEmpty) {
             final firstDateStr = state.dailyRecords.first['date']?.toString();
             final firstDate = DateTime.tryParse(firstDateStr ?? '');
             if (firstDate != null) {
@@ -195,10 +194,12 @@ class _StudentAttendanceScreenState extends State<StudentAttendanceScreen> {
                           child: _SegmentTab(
                             label: 'Monthly',
                             icon: Icons.calendar_month_rounded,
-                            isSelected: _viewMode == 0,
+                            isSelected: state.viewMode == 0,
                             onTap: () {
-                              if (_viewMode == 0) return;
-                              setState(() => _viewMode = 0);
+                              if (state.viewMode == 0) return;
+                              context
+                                  .read<StudentAttendanceCubit>()
+                                  .setViewMode(0);
                               context
                                   .read<StudentAttendanceCubit>()
                                   .loadMonthly(
@@ -213,10 +214,12 @@ class _StudentAttendanceScreenState extends State<StudentAttendanceScreen> {
                           child: _SegmentTab(
                             label: 'Weekly',
                             icon: Icons.view_week_rounded,
-                            isSelected: _viewMode == 1,
+                            isSelected: state.viewMode == 1,
                             onTap: () {
-                              if (_viewMode == 1) return;
-                              setState(() => _viewMode = 1);
+                              if (state.viewMode == 1) return;
+                              context
+                                  .read<StudentAttendanceCubit>()
+                                  .setViewMode(1);
                               final now = DateTime.now();
                               final weekStart = now.subtract(
                                 Duration(days: now.weekday - 1),
@@ -237,7 +240,7 @@ class _StudentAttendanceScreenState extends State<StudentAttendanceScreen> {
               const SliverToBoxAdapter(child: SizedBox(height: 12)),
 
               // Month Navigator Header (Monthly Mode)
-              if (_viewMode == 0)
+              if (state.viewMode == 0)
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(

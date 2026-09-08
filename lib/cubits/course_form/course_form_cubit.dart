@@ -1,52 +1,78 @@
-import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../models/course_outline.dart';
-
-part 'course_form_state.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:gep/models/course_outline.dart';
+import 'course_form_state.dart';
 
 class CourseFormCubit extends Cubit<CourseFormState> {
   CourseFormCubit(List<Week> initialWeeks)
-      : super(CourseFormState(weeks: List.of(initialWeeks)));
+      : super(const CourseFormState(weeks: [])) {
+    _init(initialWeeks);
+  }
+
+  void _init(List<Week> initialWeeks) {
+    final list = <WeekFormData>[];
+    if (initialWeeks.isEmpty) {
+      list.add(WeekFormData(
+        titleController: TextEditingController(),
+        topicControllers: [TextEditingController()],
+      ));
+    } else {
+      for (final w in initialWeeks) {
+        list.add(WeekFormData(
+          titleController: TextEditingController(text: w.title),
+          topicControllers:
+              w.topics.map((t) => TextEditingController(text: t)).toList(),
+        ));
+      }
+    }
+    emit(CourseFormState(weeks: list, version: 0));
+  }
 
   void addWeek() {
-    emit(state.copyWith(weeks: [...state.weeks, Week(title: '', topics: [''])]));
+    final updated = List<WeekFormData>.from(state.weeks);
+    updated.add(WeekFormData(
+      titleController: TextEditingController(),
+      topicControllers: [TextEditingController()],
+    ));
+    emit(CourseFormState(weeks: updated, version: state.version + 1));
   }
 
   void removeWeek(int index) {
-    final weeks = List<Week>.of(state.weeks)..removeAt(index);
-    emit(state.copyWith(weeks: weeks));
-  }
-
-  void setWeekTitle(int index, String title) {
-    final weeks = List<Week>.of(state.weeks);
-    weeks[index] = Week(title: title, topics: weeks[index].topics);
-    emit(state.copyWith(weeks: weeks));
+    if (state.weeks.length <= 1) return;
+    final updated = List<WeekFormData>.from(state.weeks);
+    final removed = updated.removeAt(index);
+    removed.dispose();
+    emit(CourseFormState(weeks: updated, version: state.version + 1));
   }
 
   void addTopic(int weekIndex) {
-    final weeks = List<Week>.of(state.weeks);
-    final week = weeks[weekIndex];
-    weeks[weekIndex] = Week(title: week.title, topics: [...week.topics, '']);
-    emit(state.copyWith(weeks: weeks));
+    final updated = List<WeekFormData>.from(state.weeks);
+    updated[weekIndex].topicControllers.add(TextEditingController());
+    emit(CourseFormState(weeks: updated, version: state.version + 1));
   }
 
   void removeTopic(int weekIndex, int topicIndex) {
-    final weeks = List<Week>.of(state.weeks);
-    final week = weeks[weekIndex];
-    weeks[weekIndex] = Week(
-      title: week.title,
-      topics: List<String>.of(week.topics)..removeAt(topicIndex),
-    );
-    emit(state.copyWith(weeks: weeks));
+    final updated = List<WeekFormData>.from(state.weeks);
+    if (updated[weekIndex].topicControllers.length <= 1) return;
+    final removed = updated[weekIndex].topicControllers.removeAt(topicIndex);
+    removed.dispose();
+    emit(CourseFormState(weeks: updated, version: state.version + 1));
   }
 
-  void setTopic(int weekIndex, int topicIndex, String value) {
-    final weeks = List<Week>.of(state.weeks);
-    final week = weeks[weekIndex];
-    final topics = List<String>.of(week.topics);
-    topics[topicIndex] = value;
-    weeks[weekIndex] = Week(title: week.title, topics: topics);
-    emit(state.copyWith(weeks: weeks));
+  List<Week> getWeeks() {
+    return state.weeks.map((w) {
+      return Week(
+        title: w.titleController.text,
+        topics: w.topicControllers.map((t) => t.text).toList(),
+      );
+    }).toList();
+  }
+
+  @override
+  Future<void> close() {
+    for (final w in state.weeks) {
+      w.dispose();
+    }
+    return super.close();
   }
 }
