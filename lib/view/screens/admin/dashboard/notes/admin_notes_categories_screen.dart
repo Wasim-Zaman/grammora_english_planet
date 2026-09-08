@@ -345,6 +345,7 @@ class _AdminNotesCategoriesScreenState
                           context,
                           AppRoutes.kAddNotesRoute,
                           extra: category,
+                          queryParameters: {'category': category},
                         ),
                       );
                     },

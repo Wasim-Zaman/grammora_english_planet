@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:file_picker/file_picker.dart';
+import 'package:gep/utils/file_picker_utils.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gep/core/constants/constants.dart';
@@ -318,14 +318,10 @@ class _ManageAboutMeScreenState extends State<ManageAboutMeScreen> {
   }
 
   Future<void> _pickResume() async {
-    final dynamic result = await FilePicker.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf'],
-    );
-
-    if (result != null && result.files?.single?.path != null) {
+    final file = await FilePickerUtils.pickPdfFile();
+    if (file != null) {
       setState(() {
-        _resumeFile = File(result.files.single.path!);
+        _resumeFile = file;
       });
     }
   }

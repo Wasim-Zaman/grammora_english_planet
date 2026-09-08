@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -70,16 +71,28 @@ class AdminCubit extends Cubit<AdminState> {
   Future<void> uploadNote(String category, String title, File file) async {
     emit(AdminLoading());
     try {
+      final trimmedCategory = category.trim();
+      if (trimmedCategory.isEmpty) {
+        emit(AdminFailure('Category cannot be empty'));
+        return;
+      }
+      final trimmedTitle = title.trim();
+      if (trimmedTitle.isEmpty) {
+        emit(AdminFailure('Title cannot be empty'));
+        return;
+      }
+
       final String fileName = '${DateTime.now().millisecondsSinceEpoch}.pdf';
-      final String filePath = 'notes/$category/$fileName';
+      final String filePath = 'notes/$trimmedCategory/$fileName';
       final String downloadUrl = await _storageService.uploadFile(
         filePath,
         file,
+        contentType: 'application/pdf',
       );
-      await _notesService.addNote(category, title, downloadUrl);
+      await _notesService.addNote(trimmedCategory, trimmedTitle, downloadUrl);
       emit(AdminSuccess('Note uploaded successfully'));
     } catch (e) {
-      print('Error uploading note: $e');
+      log('Error uploading note: $e');
       emit(AdminFailure(e.toString()));
     }
   }

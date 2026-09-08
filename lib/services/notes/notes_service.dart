@@ -110,6 +110,13 @@ class NotesService {
   /// with different casing/whitespace.
   Future<void> addNote(String category, String title, String url) async {
     final trimmedCategory = category.trim();
+    if (trimmedCategory.isEmpty) {
+      throw ArgumentError('Category cannot be empty');
+    }
+    final trimmedTitle = title.trim();
+    if (trimmedTitle.isEmpty) {
+      throw ArgumentError('Title cannot be empty');
+    }
 
     await _supabase
         .from(_categoriesTable)
@@ -124,7 +131,7 @@ class NotesService {
 
     await _supabase.from(_notesTable).insert({
       'category_id': trimmedCategory,
-      'title': title,
+      'title': trimmedTitle,
       'url': url,
       'timestamp': DateTime.now().toIso8601String(),
     });

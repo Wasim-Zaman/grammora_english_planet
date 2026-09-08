@@ -76,7 +76,11 @@ class NoteCard extends StatelessWidget {
   }
 
   void _viewPdf(BuildContext context) {
-    AppNavigation.push(context, AppRoutes.kPdfViewerRoute,
-        extra: {'pdfUrl': note.url, 'title': note.title});
+    AppNavigation.push(
+      context,
+      AppRoutes.kPdfViewerRoute,
+      extra: {'pdfUrl': note.url, 'title': note.title},
+      queryParameters: {'pdfUrl': note.url, 'title': note.title},
+    );
   }
 }

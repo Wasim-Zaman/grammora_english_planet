@@ -289,8 +289,12 @@ class _CategoryCard extends StatelessWidget {
         : AppColors.lightBodyTextSecondary;
 
     return GestureDetector(
-      onTap: () =>
-          AppNavigation.push(context, AppRoutes.kNotesRoute, extra: category),
+      onTap: () => AppNavigation.push(
+        context,
+        AppRoutes.kNotesRoute,
+        extra: category,
+        queryParameters: {'category': category},
+      ),
       child: Container(
         decoration: BoxDecoration(
           color: cardColor,

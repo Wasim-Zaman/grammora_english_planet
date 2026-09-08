@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:gep/models/enrolled_students.dart';
 import 'package:gep/router/app_routes.dart';
@@ -124,7 +126,9 @@ class AppRouter {
         path: AppRoutes.kNotesRoutePath,
         name: AppRoutes.kNotesRoute,
         builder: (context, state) {
-          final category = state.uri.queryParameters['category'] ?? '';
+          final category = (state.extra as String?) ??
+              state.uri.queryParameters['category'] ??
+              '';
           return NotesScreen(category: category);
         },
       ),
@@ -146,8 +150,13 @@ class AppRouter {
         path: AppRoutes.kPdfViewerRoutePath,
         name: AppRoutes.kPdfViewerRoute,
         builder: (context, state) {
-          final pdfUrl = state.uri.queryParameters['pdfUrl'] ?? '';
-          final title = state.uri.queryParameters['title'] ?? '';
+          final extraMap = state.extra as Map<String, dynamic>?;
+          final pdfUrl = (extraMap?['pdfUrl'] as String?) ??
+              state.uri.queryParameters['pdfUrl'] ??
+              '';
+          final title = (extraMap?['title'] as String?) ??
+              state.uri.queryParameters['title'] ??
+              '';
           return PdfViewerScreen(pdfUrl: pdfUrl, title: title);
         },
       ),
@@ -157,7 +166,9 @@ class AppRouter {
         path: AppRoutes.kFullScreenResumeRoutePath,
         name: AppRoutes.kFullScreenResumeRoute,
         builder: (context, state) {
-          final resumeUrl = state.uri.queryParameters['resumeUrl'] ?? '';
+          final resumeUrl = (state.extra as String?) ??
+              state.uri.queryParameters['resumeUrl'] ??
+              '';
           return FullScreenResumeScreen(resumeUrl: resumeUrl);
         },
       ),
@@ -252,7 +263,9 @@ class AppRouter {
         path: AppRoutes.kAddNotesRoutePath,
         name: AppRoutes.kAddNotesRoute,
         builder: (context, state) {
-          final category = state.uri.queryParameters['category'] ?? '';
+          final category = (state.extra as String?) ??
+              state.uri.queryParameters['category'] ??
+              '';
           return AddNotesScreen(category: category);
         },
       ),
@@ -300,7 +313,7 @@ class AppRouter {
         builder: (context, state) {
           final studentId = state.uri.queryParameters['studentId'] ?? '';
 
-          print(
+          log(
             'Navigating to StudentAttendanceScreen with studentId: $studentId',
           );
           return StudentAttendanceScreen(studentId: studentId);

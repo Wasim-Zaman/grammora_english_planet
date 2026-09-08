@@ -29,6 +29,15 @@ class AddNotesScreen extends StatelessWidget {
         ? AppColors.darkBodyTextSecondary
         : AppColors.lightBodyTextSecondary;
 
+    if (category.trim().isEmpty) {
+      return const AppScaffold(
+        title: 'Add Note',
+        body: Center(
+          child: Text('No category specified. Please select a category first.'),
+        ),
+      );
+    }
+
     return AppScaffold(
       title: 'Add Note to $category',
       body: Padding(
@@ -223,11 +232,22 @@ class AddNotesScreen extends StatelessWidget {
   }
 
   Future<void> _pickAndUploadFile(BuildContext context) async {
+    final title = _titleController.text.trim();
+    if (title.isEmpty) {
+      TopSnackbar.info(context, 'Please enter a note title first');
+      return;
+    }
+    final trimmedCategory = category.trim();
+    if (trimmedCategory.isEmpty) {
+      TopSnackbar.error(context, 'Invalid category');
+      return;
+    }
+
     final file = await FilePickerUtils.pickPdfFile();
     if (file != null && context.mounted) {
       context.read<AdminCubit>().uploadNote(
-        category,
-        _titleController.text,
+        trimmedCategory,
+        title,
         file,
       );
     }
