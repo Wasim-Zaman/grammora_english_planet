@@ -26,119 +26,200 @@ class _StudentDetailsView extends StatelessWidget {
   const _StudentDetailsView({required this.student});
 
   String _formatDate(DateTime date) {
-    return DateFormat('yyyy-MM-dd').format(date);
+    return DateFormat('MMM dd, yyyy').format(date);
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return AppScaffold(
-      title: 'Student Details',
+      title: 'Student Profile',
       body: BlocBuilder<StudentDetailsCubit, StudentDetailsState>(
         builder: (context, state) {
           final shift = state.shift;
 
           return CustomScrollView(
+            physics: const BouncingScrollPhysics(),
             slivers: [
+              // Hero Profile Banner
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Card(
-                    elevation: 4,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Student Information',
-                            style: Theme.of(context).textTheme.headlineSmall,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            student.name,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge
-                                ?.copyWith(
-                                  color: Theme.of(context).primaryColor,
-                                ),
-                          ),
-                          const Divider(),
-                          _buildDetailRow('Email', student.email),
-                          _buildDetailRow('Level', student.level),
-                          _buildDetailRow(
-                            'Date of Birth',
-                            _formatDate(student.dateOfBirth),
-                          ),
-                          _buildDetailRow('Gender', student.gender),
-                        ],
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: theme.cardColor,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: theme.colorScheme.outline.withValues(
+                          alpha: isDark ? 0.3 : 0.6,
+                        ),
                       ),
                     ),
-                  ),
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Card(
-                    elevation: 4,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Contact Information',
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                          const SizedBox(height: 16),
-                          _buildDetailRow('Father\'s Name', student.fatherName),
-                          _buildDetailRow(
-                            'Student Contact',
-                            student.contactNumber,
-                          ),
-                          _buildDetailRow(
-                            'Father\'s Contact',
-                            student.fatherContactNumber,
-                          ),
-                          _buildDetailRow('Address', student.address),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Card(
-                    elevation: 4,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Enrollment Information',
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                          const SizedBox(height: 16),
-                          _buildDetailRow(
-                            'Enrollment Date',
-                            _formatDate(student.enrollmentDate),
-                          ),
-                          _buildDetailRow(
-                            'Assigned Shift',
-                            shift?.name ?? 'None',
-                          ),
-                          if (shift != null)
-                            _buildDetailRow(
-                              'Shift Time',
-                              shift.timeRange,
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 32,
+                          backgroundColor:
+                              theme.colorScheme.primary.withValues(alpha: 0.12),
+                          child: Text(
+                            student.name.isNotEmpty
+                                ? student.name[0].toUpperCase()
+                                : 'S',
+                            style: theme.textTheme.headlineMedium?.copyWith(
+                              color: theme.colorScheme.primary,
+                              fontWeight: FontWeight.bold,
                             ),
-                        ],
-                      ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                student.name,
+                                style: theme.textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                student.email,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.primary
+                                      .withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  student.level.toUpperCase(),
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: theme.colorScheme.primary,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.8,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
+                  ),
+                ),
+              ),
+
+              // Personal Information Section
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                  child: _buildSectionCard(
+                    context: context,
+                    icon: Icons.person_outline_rounded,
+                    title: 'Personal Information',
+                    children: [
+                      _buildDetailRow(
+                        context,
+                        'Level',
+                        student.level,
+                        Icons.school_outlined,
+                      ),
+                      _buildDetailRow(
+                        context,
+                        'Gender',
+                        student.gender,
+                        Icons.wc_outlined,
+                      ),
+                      _buildDetailRow(
+                        context,
+                        'Date of Birth',
+                        _formatDate(student.dateOfBirth),
+                        Icons.cake_outlined,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Contact Information Section
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                  child: _buildSectionCard(
+                    context: context,
+                    icon: Icons.contact_phone_outlined,
+                    title: 'Contact Information',
+                    children: [
+                      _buildDetailRow(
+                        context,
+                        "Father's Name",
+                        student.fatherName,
+                        Icons.badge_outlined,
+                      ),
+                      _buildDetailRow(
+                        context,
+                        'Student Contact',
+                        student.contactNumber,
+                        Icons.phone_outlined,
+                      ),
+                      _buildDetailRow(
+                        context,
+                        "Father's Contact",
+                        student.fatherContactNumber,
+                        Icons.phone_android_outlined,
+                      ),
+                      _buildDetailRow(
+                        context,
+                        'Address',
+                        student.address,
+                        Icons.location_on_outlined,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Enrollment Information Section
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                  child: _buildSectionCard(
+                    context: context,
+                    icon: Icons.assignment_outlined,
+                    title: 'Enrollment & Shift',
+                    children: [
+                      _buildDetailRow(
+                        context,
+                        'Enrolled On',
+                        _formatDate(student.enrollmentDate),
+                        Icons.event_outlined,
+                      ),
+                      _buildDetailRow(
+                        context,
+                        'Assigned Shift',
+                        shift?.name ?? 'None',
+                        Icons.schedule_outlined,
+                      ),
+                      if (shift != null)
+                        _buildDetailRow(
+                          context,
+                          'Shift Timing',
+                          shift.timeRange,
+                          Icons.access_time_rounded,
+                        ),
+                    ],
                   ),
                 ),
               ),
@@ -149,20 +230,97 @@ class _StudentDetailsView extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
+  Widget _buildSectionCard({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required List<Widget> children,
+  }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color:
+              theme.colorScheme.outline.withValues(alpha: isDark ? 0.3 : 0.6),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  icon,
+                  size: 18,
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                title,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          const Divider(height: 1),
+          const SizedBox(height: 10),
+          ...children,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(
+    BuildContext context,
+    String label,
+    String value,
+    IconData icon,
+  ) {
+    final theme = Theme.of(context);
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Icon(
+            icon,
+            size: 18,
+            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
+          ),
+          const SizedBox(width: 10),
           SizedBox(
-            width: 120,
+            width: 130,
             child: Text(
-              '$label:',
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              label,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
-          Expanded(child: Text(value)),
+          Expanded(
+            child: Text(
+              value.isNotEmpty ? value : 'N/A',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
         ],
       ),
     );
