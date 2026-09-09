@@ -1,11 +1,16 @@
 import 'dart:io';
 
-import 'package:file_picker/file_picker.dart';
+import 'package:gep/utils/file_picker_utils.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gep/core/constants/constants.dart';
 import 'package:gep/cubits/admin/admin_cubit.dart';
+import 'package:gep/cubits/about_me_form/about_me_form_cubit.dart';
+import 'package:gep/cubits/about_me_form/about_me_form_state.dart';
 import 'package:gep/models/about_me.dart';
 import 'package:gep/utils/snackbars.dart';
+import 'package:gep/view/widgets/app_button.dart';
+import 'package:gep/view/widgets/app_scaffold.dart';
 import 'package:gep/view/widgets/text_field_widget.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -18,157 +23,326 @@ class ManageAboutMeScreen extends StatefulWidget {
 
 class _ManageAboutMeScreenState extends State<ManageAboutMeScreen> {
   final _formKey = GlobalKey<FormState>();
-  File? _profileImageFile;
-  File? _resumeFile;
   final TextEditingController _latitudeController = TextEditingController();
   final TextEditingController _longitudeController = TextEditingController();
   final TextEditingController _youtubeChannelController =
       TextEditingController();
+  bool _initialized = false;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Manage About Me',
-            style: Theme.of(context).textTheme.headlineSmall),
-      ),
-      body: BlocConsumer<AdminCubit, AdminState>(
-        listener: (context, state) {
-          if (state is AdminSuccess) {
-            TopSnackbar.success(context, state.message);
-          } else if (state is AdminFailure) {
-            TopSnackbar.error(context, state.error);
-          }
-        },
-        builder: (context, state) {
-          return StreamBuilder<AboutMe>(
-            stream: context.read<AdminCubit>().getAboutMeStream(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (snapshot.hasError) {
-                return Center(child: Text('Error: ${snapshot.error}'));
-              }
-              final aboutMe = snapshot.data ?? AboutMe();
-              _latitudeController.text = aboutMe.latitude.toString();
-              _longitudeController.text = aboutMe.longitude.toString();
-              _youtubeChannelController.text = aboutMe.youtubeChannelLink;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
+    final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final textColorSecondary = isDark
+        ? AppColors.darkBodyTextSecondary
+        : AppColors.lightBodyTextSecondary;
 
-              return SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildProfileImageSection(aboutMe),
-                      const SizedBox(height: 16),
-                      TextFieldWidget(
-                        controller: _latitudeController,
-                        labelText: 'Latitude',
-                        keyboardType: TextInputType.number,
-                      ),
-                      const SizedBox(height: 16),
-                      TextFieldWidget(
-                        controller: _longitudeController,
-                        labelText: 'Longitude',
-                        keyboardType: TextInputType.number,
-                      ),
-                      const SizedBox(height: 16),
-                      TextFieldWidget(
-                        controller: _youtubeChannelController,
-                        labelText: 'YouTube Channel Link',
-                      ),
-                      const SizedBox(height: 16),
-                      _buildResumeSection(aboutMe),
-                      const SizedBox(height: 24),
-                      ElevatedButton(
-                        onPressed: () => _saveAboutMe(context),
-                        child: const Text('Save Changes'),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          );
-        },
-      ),
-    );
-  }
+    return BlocProvider(
+      create: (_) => AboutMeFormCubit(),
+      child: AppScaffold(
+        title: 'Manage About Me',
+        body: BlocConsumer<AdminCubit, AdminState>(
+          listener: (context, state) {
+            if (state is AdminSuccess) {
+              TopSnackbar.success(context, state.message);
+            } else if (state is AdminFailure) {
+              TopSnackbar.error(context, state.error);
+            }
+          },
+          builder: (context, adminState) {
+            final isLoading = adminState is AdminLoading;
 
-  Widget _buildProfileImageSection(AboutMe aboutMe) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Profile Picture', style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 8),
-        if (_profileImageFile != null || aboutMe.profileImageUrl != null)
-          ClipOval(
-            child: _profileImageFile != null
-                ? Image.file(
-                    _profileImageFile!,
-                    width: 100,
-                    height: 100,
-                    fit: BoxFit.cover,
-                  )
-                : Image.network(
-                    aboutMe.profileImageUrl!,
-                    width: 100,
-                    height: 100,
-                    fit: BoxFit.cover,
-                  ),
-          ),
-        ElevatedButton(
-          onPressed: _pickImage,
-          child: const Text('Pick Image'),
+            return BlocBuilder<AboutMeFormCubit, AboutMeFormState>(
+              builder: (context, formState) {
+                return StreamBuilder<AboutMe>(
+                  stream: context.read<AdminCubit>().getAboutMeStream(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.error_outline_rounded,
+                              size: 48,
+                              color: AppColors.error,
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Failed to load data',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${snapshot.error}',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: textColorSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                    final aboutMe = snapshot.data ?? AboutMe();
+                    if (!_initialized) {
+                      _latitudeController.text = aboutMe.latitude.toString();
+                      _longitudeController.text = aboutMe.longitude.toString();
+                      _youtubeChannelController.text = aboutMe.youtubeChannelLink;
+                      _initialized = true;
+                    }
+
+                    return ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.all(AppConstants.defaultPadding),
+                      children: [
+                        // Profile Image Section
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: cardColor,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: borderColor),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.image_rounded,
+                                    size: 18,
+                                    color: isDark
+                                        ? AppColors.darkIcon
+                                        : AppColors.primary,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'PROFILE PICTURE',
+                                    style: theme.textTheme.labelSmall?.copyWith(
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 1.2,
+                                      color: textColorSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              Center(
+                                child: _ProfileImage(
+                                  file: formState.profileImageFile,
+                                  url: aboutMe.profileImageUrl,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Center(
+                                child: AppButton(
+                                  label: 'Pick Image',
+                                  icon: const Icon(Icons.add_photo_alternate_rounded),
+                                  expanded: false,
+                                  onPressed: isLoading
+                                      ? null
+                                      : () => _pickImage(context),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Details Form
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: cardColor,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: borderColor),
+                          ),
+                          child: Form(
+                            key: _formKey,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.info_rounded,
+                                      size: 18,
+                                      color: isDark
+                                          ? AppColors.darkIcon
+                                          : AppColors.primary,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'INFORMATION',
+                                      style: theme.textTheme.labelSmall?.copyWith(
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: 1.2,
+                                        color: textColorSecondary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                TextFieldWidget(
+                                  controller: _latitudeController,
+                                  labelText: 'Latitude',
+                                  keyboardType: TextInputType.number,
+                                  prefixIcon: Icons.location_on_rounded,
+                                ),
+                                const SizedBox(height: 16),
+                                TextFieldWidget(
+                                  controller: _longitudeController,
+                                  labelText: 'Longitude',
+                                  keyboardType: TextInputType.number,
+                                  prefixIcon: Icons.location_on_outlined,
+                                ),
+                                const SizedBox(height: 16),
+                                TextFieldWidget(
+                                  controller: _youtubeChannelController,
+                                  labelText: 'YouTube Channel Link',
+                                  prefixIcon: Icons.video_library_rounded,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Resume Section
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: cardColor,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: borderColor),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.description_rounded,
+                                    size: 18,
+                                    color: isDark
+                                        ? AppColors.darkIcon
+                                        : AppColors.primary,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'RESUME',
+                                    style: theme.textTheme.labelSmall?.copyWith(
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 1.2,
+                                      color: textColorSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              if (formState.resumeFile != null ||
+                                  aboutMe.resumeUrl != null)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 10,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.primary
+                                        .withValues(alpha: 0.08),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.insert_drive_file_rounded,
+                                        color: theme.colorScheme.primary,
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Text(
+                                          formState.resumeFile != null
+                                              ? 'New resume selected'
+                                              : 'Resume uploaded',
+                                          style:
+                                              theme.textTheme.bodyMedium?.copyWith(
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                      if (formState.resumeFile != null)
+                                        IconButton(
+                                          icon: Icon(
+                                            Icons.close_rounded,
+                                            size: 18,
+                                            color: textColorSecondary,
+                                          ),
+                                          onPressed: () {
+                                            context
+                                                .read<AboutMeFormCubit>()
+                                                .clearResume();
+                                          },
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              const SizedBox(height: 12),
+                              AppButton(
+                                label: 'Pick Resume',
+                                icon: const Icon(Icons.upload_file_rounded),
+                                expanded: false,
+                                onPressed: isLoading
+                                    ? null
+                                    : () => _pickResume(context),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        AppButton(
+                          label: 'Save Changes',
+                          onPressed: isLoading
+                              ? null
+                              : () => _saveAboutMe(context, formState),
+                        ),
+                        const SizedBox(height: 24),
+                      ],
+                    );
+                  },
+                );
+              },
+            );
+          },
         ),
-      ],
+      ),
     );
   }
 
-  Widget _buildResumeSection(AboutMe aboutMe) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Resume', style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 8),
-        if (_resumeFile != null || aboutMe.resumeUrl != null)
-          Text(_resumeFile != null ? 'New resume selected' : 'Resume uploaded'),
-        ElevatedButton(
-          onPressed: _pickResume,
-          child: const Text('Pick Resume'),
-        ),
-      ],
-    );
-  }
-
-  Future<void> _pickImage() async {
+  Future<void> _pickImage(BuildContext context) async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() {
-        _profileImageFile = File(pickedFile.path);
-      });
+    if (pickedFile != null && context.mounted) {
+      context
+          .read<AboutMeFormCubit>()
+          .setProfileImage(File(pickedFile.path));
     }
   }
 
-  Future<void> _pickResume() async {
-    // Modern single-file API in file_picker v12+
-    final PlatformFile? file = await FilePicker.pickFile(
-      type: FileType.custom,
-      allowedExtensions: ['pdf'],
-    );
-
-    if (file != null && file.path != null) {
-      setState(() {
-        _resumeFile = File(file.path!);
-      });
+  Future<void> _pickResume(BuildContext context) async {
+    final file = await FilePickerUtils.pickPdfFile();
+    if (file != null && context.mounted) {
+      context.read<AboutMeFormCubit>().setResume(file);
     }
   }
 
-  void _saveAboutMe(BuildContext context) {
+  void _saveAboutMe(BuildContext context, AboutMeFormState formState) {
     if (_formKey.currentState!.validate()) {
       final aboutMe = AboutMe(
         latitude: double.parse(_latitudeController.text),
@@ -177,9 +351,87 @@ class _ManageAboutMeScreenState extends State<ManageAboutMeScreen> {
       );
       context.read<AdminCubit>().updateAboutMe(
             aboutMe,
-            profileImage: _profileImageFile,
-            resume: _resumeFile,
+            profileImage: formState.profileImageFile,
+            resume: formState.resumeFile,
           );
     }
+  }
+
+  @override
+  void dispose() {
+    _latitudeController.dispose();
+    _longitudeController.dispose();
+    _youtubeChannelController.dispose();
+    super.dispose();
+  }
+}
+
+class _ProfileImage extends StatelessWidget {
+  final File? file;
+  final String? url;
+
+  const _ProfileImage({this.file, this.url});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    if (file != null) {
+      return ClipOval(
+        child: Image.file(
+          file!,
+          width: 100,
+          height: 100,
+          fit: BoxFit.cover,
+        ),
+      );
+    }
+
+    if (url != null && url!.isNotEmpty) {
+      return ClipOval(
+        child: Image.network(
+          url!,
+          width: 100,
+          height: 100,
+          fit: BoxFit.cover,
+          loadingBuilder: (_, child, progress) {
+            if (progress == null) return child;
+            return Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                color: isDark ? Colors.white10 : Colors.black12,
+                shape: BoxShape.circle,
+              ),
+              child: const Center(
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            );
+          },
+          errorBuilder: (_, _, _) {
+            return Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                color: isDark ? Colors.white10 : Colors.black12,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.person_rounded, color: Colors.grey),
+            );
+          },
+        ),
+      );
+    }
+
+    return Container(
+      width: 100,
+      height: 100,
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white10 : Colors.black12,
+        shape: BoxShape.circle,
+      ),
+      child: const Icon(Icons.add_photo_alternate_rounded, color: Colors.grey),
+    );
   }
 }

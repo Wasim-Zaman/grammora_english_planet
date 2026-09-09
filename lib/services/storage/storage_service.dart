@@ -7,14 +7,32 @@ class StorageService {
   final SupabaseClient _supabase = Supabase.instance.client;
   static const String bucket = 'app-storage';
 
-  Future<String> uploadFile(String path, File file) async {
+  Future<String> uploadFile(
+    String path,
+    File file, {
+    String? contentType,
+  }) async {
+    final mimeType = contentType ?? _inferContentType(path);
     await _supabase.storage.from(bucket).upload(
           path,
           file,
-          fileOptions: const FileOptions(upsert: true),
+          fileOptions: FileOptions(
+            upsert: true,
+            contentType: mimeType,
+          ),
         );
     return _supabase.storage.from(bucket).getPublicUrl(path);
   }
+
+  static String? _inferContentType(String path) {
+    final lower = path.toLowerCase();
+    if (lower.endsWith('.pdf')) return 'application/pdf';
+    if (lower.endsWith('.png')) return 'image/png';
+    if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
+    if (lower.endsWith('.webp')) return 'image/webp';
+    return null;
+  }
+
 
   Future<void> deleteFolder(String folderPath) async {
     try {

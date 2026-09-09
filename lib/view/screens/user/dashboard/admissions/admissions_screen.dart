@@ -1,230 +1,405 @@
-import 'dart:math';
-
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/cubits/admin/admin_cubit.dart';
-import 'package:gep/models/admission_announcement.dart';
 import 'package:gep/core/constants/constants.dart';
+import 'package:gep/cubits/user_admissions/user_admissions_cubit.dart';
+import 'package:gep/cubits/user_admissions/user_admissions_state.dart';
+import 'package:gep/models/admission_announcement.dart';
+import 'package:gep/view/widgets/app_scaffold.dart';
+import 'package:gep/view/widgets/paginated_widget.dart';
 import 'package:gep/view/widgets/placeholder_widget.dart';
+import 'package:gep/view/widgets/text_field_widget.dart';
+import 'package:material_ui/material_ui.dart';
 
-class AdmissionsScreen extends StatelessWidget {
+class AdmissionsScreen extends StatefulWidget {
   const AdmissionsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final adminCubit = context.read<AdminCubit>();
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Admissions', style: theme.textTheme.headlineSmall),
-      ),
-      body: StreamBuilder<List<AdmissionAnnouncement>>(
-        stream: adminCubit.getAdmissionAnnouncementsStream(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            // placeholder
-            return PlaceholderWidgets.cardPlaceholder();
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No announcements available'));
-          }
-          return ListView.builder(
-            itemCount: snapshot.data!.length,
-            itemBuilder: (context, index) {
-              return AnnouncementCard(announcement: snapshot.data![index]);
-            },
-          );
-        },
-      ),
-    );
-  }
+  State<AdmissionsScreen> createState() => _AdmissionsScreenState();
 }
 
-class AnnouncementCardPlaceholder extends StatelessWidget {
-  const AnnouncementCardPlaceholder({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.all(16),
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Container(
-        height: 200, // Adjust the height as needed
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          color: Colors.grey[300],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 200,
-                height: 24,
-                color: Colors.grey[400],
-              ),
-              const SizedBox(height: 16),
-              Container(
-                width: 150,
-                height: 16,
-                color: Colors.grey[400],
-              ),
-              const SizedBox(height: 8),
-              Container(
-                width: 100,
-                height: 16,
-                color: Colors.grey[400],
-              ),
-              const SizedBox(height: 16),
-              Container(
-                width: double.infinity,
-                height: 40,
-                color: Colors.grey[400],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class AnnouncementCard extends StatefulWidget {
-  final AdmissionAnnouncement announcement;
-
-  const AnnouncementCard({super.key, required this.announcement});
-
-  @override
-  State<AnnouncementCard> createState() => _AnnouncementCardState();
-}
-
-class _AnnouncementCardState extends State<AnnouncementCard>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
+class _AdmissionsScreenState extends State<AdmissionsScreen> {
+  late final TextEditingController _searchController;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 500),
-      vsync: this,
-    )..repeat(reverse: true);
-    _animation = Tween<double>(begin: 0.5, end: 1.0).animate(_controller);
+    _searchController = TextEditingController();
+    context.read<UserAdmissionsCubit>().fetchPage(0);
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
-  LinearGradient _singleColorGradient() {
-    final random = Random();
-    const colors = AppColors.randomColors;
-    final baseColor = colors[random.nextInt(colors.length)];
-    return LinearGradient(
-      colors: [
-        baseColor.withValues(alpha: 0.7),
-        baseColor.withValues(alpha: 0.9),
-      ],
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
+    final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final textColorSecondary = isDark
+        ? AppColors.darkBodyTextSecondary
+        : AppColors.lightBodyTextSecondary;
+
+    return BlocBuilder<UserAdmissionsCubit, UserAdmissionsState>(
+      builder: (context, state) {
+        final items = state.items;
+        final isLoading = state.isLoading && items.isEmpty;
+
+        return AppScaffold(
+          title: 'Admissions',
+          // Bottom Navigation Bar with PaginatedWidget
+          bottomNavigationBar: items.isNotEmpty
+              ? Container(
+                  decoration: BoxDecoration(
+                    color: cardColor,
+                    border: Border(
+                      top: BorderSide(color: borderColor, width: 1),
+                    ),
+                  ),
+                  child: SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppConstants.defaultPadding,
+                        vertical: 10,
+                      ),
+                      child: PaginatedWidget(
+                        isLoading: state.isLoading || state.isRefreshing,
+                        hasPrevious: state.currentPage > 0,
+                        hasNext: state.hasMore,
+                        onPrevious: () =>
+                            context.read<UserAdmissionsCubit>().previousPage(),
+                        onNext: () =>
+                            context.read<UserAdmissionsCubit>().nextPage(),
+                        onPageSelected: (page) =>
+                            context.read<UserAdmissionsCubit>().goToPage(page),
+                        onRefresh: () =>
+                            context.read<UserAdmissionsCubit>().refresh(),
+                        currentPage: state.currentPage,
+                        pageSize: 10,
+                      ),
+                    ),
+                  ),
+                )
+              : null,
+          body: RefreshIndicator(
+            onRefresh: () async =>
+                context.read<UserAdmissionsCubit>().refresh(),
+            child: CustomScrollView(
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              ),
+              slivers: [
+                // Search
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppConstants.defaultPadding,
+                      12,
+                      AppConstants.defaultPadding,
+                      12,
+                    ),
+                    child: TextFieldWidget(
+                      controller: _searchController,
+                      labelText: 'Search announcements',
+                      hintText: 'Search announcements…',
+                      prefixIcon: Icons.search_rounded,
+                      suffixIcon: state.searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.close_rounded, size: 18),
+                              color: textColorSecondary,
+                              onPressed: () {
+                                _searchController.clear();
+                                context
+                                    .read<UserAdmissionsCubit>()
+                                    .clearSearch();
+                              },
+                            )
+                          : null,
+                      onChanged: (v) =>
+                          context.read<UserAdmissionsCubit>().setSearchQuery(v),
+                    ),
+                  ),
+                ),
+
+                // Header Label & Badge
+                if (!isLoading)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppConstants.defaultPadding,
+                        0,
+                        AppConstants.defaultPadding,
+                        12,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.campaign_rounded,
+                                size: 16,
+                                color: textColorSecondary,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                state.searchQuery.isEmpty
+                                    ? 'AVAILABLE ANNOUNCEMENTS'
+                                    : 'SEARCH RESULTS',
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 1.1,
+                                  color: textColorSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (items.isNotEmpty)
+                            Badge(
+                              label: Text('${items.length}'),
+                              backgroundColor: isDark
+                                  ? AppColors.darkNeutral
+                                  : AppColors.lightNeutral,
+                              textColor: isDark
+                                  ? AppColors.darkBodyText
+                                  : AppColors.lightBodyText,
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                if (isLoading)
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppConstants.defaultPadding,
+                    ),
+                    sliver: SliverToBoxAdapter(
+                      child: PlaceholderWidgets.listPlaceholder(),
+                    ),
+                  )
+                else if (state.error != null && items.isEmpty)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.error_outline_rounded,
+                            size: 48,
+                            color: AppColors.error,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Failed to load announcements',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            state.error!,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: textColorSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else if (items.isEmpty)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.campaign_outlined,
+                            size: 36,
+                            color: textColorSecondary,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            state.searchQuery.isEmpty
+                                ? 'No announcements available'
+                                : 'No matches for "${state.searchQuery}"',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            state.searchQuery.isEmpty
+                                ? 'Check back later for new admissions'
+                                : '',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: textColorSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppConstants.defaultPadding,
+                      0,
+                      AppConstants.defaultPadding,
+                      16,
+                    ),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: _AnnouncementCard(
+                            announcement: items[index],
+                            index: index,
+                            cardColor: cardColor,
+                            borderColor: borderColor,
+                          ),
+                        );
+                      }, childCount: items.length),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
+}
+
+class _AnnouncementCard extends StatelessWidget {
+  final AdmissionAnnouncement announcement;
+  final int index;
+  final Color cardColor;
+  final Color borderColor;
+
+  const _AnnouncementCard({
+    required this.announcement,
+    required this.index,
+    required this.cardColor,
+    required this.borderColor,
+  });
 
   bool _isNew() {
     final now = DateTime.now();
-    final difference = now.difference(widget.announcement.startDate);
+    final difference = now.difference(announcement.startDate);
     return difference.inDays <= 7;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.all(16),
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          gradient: _singleColorGradient(),
-        ),
-        child: Stack(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.announcement.title,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final textColorSecondary = isDark
+        ? AppColors.darkBodyTextSecondary
+        : AppColors.lightBodyTextSecondary;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: borderColor),
+      ),
+      child: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Application Period:',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
+                  child: Icon(
+                    Icons.campaign_rounded,
+                    color: theme.colorScheme.primary,
+                    size: 22,
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${_formatDate(widget.announcement.startDate)} - ${_formatDate(widget.announcement.endDate)}',
-                    style: const TextStyle(
-                      fontSize: 16,
-                    ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        announcement.title,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.calendar_today_rounded,
+                            size: 14,
+                            color: textColorSecondary,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            '${_formatDate(announcement.startDate)} - ${_formatDate(announcement.endDate)}',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: textColorSecondary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        announcement.details,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: textColorSecondary,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    widget.announcement.details,
-                    style: const TextStyle(
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-              ),
+                ),
+              ],
             ),
-            if (_isNew())
-              Positioned(
-                top: 0,
-                right: 0,
-                child: FadeTransition(
-                  opacity: _animation,
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: const BoxDecoration(
-                      color: Colors.red,
-                      borderRadius: BorderRadius.only(
-                        topRight: Radius.circular(12),
-                        bottomLeft: Radius.circular(12),
-                      ),
-                    ),
-                    child: const Text(
-                      'NEW',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
+          ),
+          if (_isNew())
+            Positioned(
+              top: 0,
+              right: 0,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.error,
+                  borderRadius: const BorderRadius.only(
+                    topRight: Radius.circular(20),
+                    bottomLeft: Radius.circular(12),
+                  ),
+                ),
+                child: const Text(
+                  'NEW',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 11,
                   ),
                 ),
               ),
-          ],
-        ),
+            ),
+        ],
       ),
-    );
+    ).animate().fadeIn(delay: (30 + index * 20).ms).slideY(begin: 0.05, end: 0);
   }
 
   String _formatDate(DateTime date) {

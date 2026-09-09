@@ -1,32 +1,46 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:top_snackbar_flutter/custom_snack_bar.dart';
-import 'package:top_snackbar_flutter/top_snack_bar.dart';
+import 'package:toastification/toastification.dart';
 
 class TopSnackbar {
-  static void success(context, message) {
-    showTopSnackBar(
-      Overlay.of(context),
-      CustomSnackBar.success(
-        message: message,
-      ),
+  static void success(BuildContext context, String message) {
+    toastification.show(
+      context: context,
+      title: Text(message),
+      type: ToastificationType.success,
+      style: ToastificationStyle.flatColored,
+      autoCloseDuration: const Duration(seconds: 3),
+      alignment: Alignment.topCenter,
+      animationDuration: const Duration(milliseconds: 300),
+      showProgressBar: false,
+      closeButton: ToastCloseButton(showType: CloseButtonShowType.onHover),
     );
   }
 
-  static void info(context, message) {
-    showTopSnackBar(
-      Overlay.of(context),
-      CustomSnackBar.info(
-        message: message,
-      ),
+  static void info(BuildContext context, String message) {
+    toastification.show(
+      context: context,
+      title: Text(message),
+      type: ToastificationType.info,
+      style: ToastificationStyle.flatColored,
+      autoCloseDuration: const Duration(seconds: 3),
+      alignment: Alignment.topCenter,
+      animationDuration: const Duration(milliseconds: 300),
+      showProgressBar: false,
+      closeButton: ToastCloseButton(showType: CloseButtonShowType.onHover),
     );
   }
 
-  static void error(context, message) {
-    showTopSnackBar(
-      Overlay.of(context),
-      CustomSnackBar.error(
-        message: message,
-      ),
+  static void error(BuildContext context, String message) {
+    toastification.show(
+      context: context,
+      title: Text(message),
+      type: ToastificationType.error,
+      style: ToastificationStyle.flatColored,
+      autoCloseDuration: const Duration(seconds: 4),
+      alignment: Alignment.topCenter,
+      animationDuration: const Duration(milliseconds: 300),
+      showProgressBar: false,
+      closeButton: ToastCloseButton(showType: CloseButtonShowType.onHover),
     );
   }
 }

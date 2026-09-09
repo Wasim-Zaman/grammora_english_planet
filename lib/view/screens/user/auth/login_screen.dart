@@ -1,68 +1,17 @@
-// ignore_for_file: use_build_context_synchronously
-
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/core/constants/constants.dart';
-import 'package:gep/cubits/auth/auth_cubit.dart';
-import 'package:gep/cubits/theme/theme_cubit.dart';
-import 'package:gep/router/app_navigation.dart';
-import 'package:gep/router/app_routes.dart';
-import 'package:gep/utils/snackbars.dart';
+import 'package:material_ui/material_ui.dart';
 
-class LoginScreen extends StatefulWidget {
+import '../../../../core/constants/constants.dart';
+import '../../../../cubits/auth/auth_cubit.dart';
+import '../../../../cubits/theme/theme_cubit.dart';
+import '../../../../router/app_navigation.dart';
+import '../../../../router/app_routes.dart';
+import '../../../../utils/snackbars.dart';
+import '../../../widgets/app_button.dart';
+import '../../../widgets/app_scaffold.dart';
+
+class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
-
-  @override
-  State<LoginScreen> createState() => _LoginScreenState();
-}
-
-class _LoginScreenState extends State<LoginScreen>
-    with TickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
-  late Animation<double> _scaleAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    );
-
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
-      ),
-    );
-
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.2, 0.7, curve: Curves.easeOut),
-      ),
-    );
-
-    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.2, 0.7, curve: Curves.easeOut),
-      ),
-    );
-
-    _controller.forward();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -78,126 +27,120 @@ class _LoginScreenState extends State<LoginScreen>
           TopSnackbar.error(context, state.errorMessage);
         }
       },
-      child: Scaffold(
-        backgroundColor: theme.scaffoldBackgroundColor,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          leading: const SizedBox.shrink(),
-          actions: [
-            BlocBuilder<ThemeCubit, ThemeState>(
-              builder: (context, state) {
-                return IconButton(
-                  icon: Icon(
-                    state.themeMode == ThemeMode.light
-                        ? Icons.dark_mode
-                        : Icons.light_mode,
+      child: AppScaffold(
+        leading: const SizedBox.shrink(),
+        actions: [
+          BlocBuilder<ThemeCubit, ThemeState>(
+            builder: (context, state) {
+              final isLightTheme = state.themeMode == ThemeMode.light;
+              return IconButton(
+                tooltip: 'Toggle Theme',
+                icon: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  transitionBuilder: (child, anim) => RotationTransition(
+                    turns: anim,
+                    child: FadeTransition(opacity: anim, child: child),
                   ),
-                  onPressed: () {
-                    context.read<ThemeCubit>().toggleTheme();
-                  },
-                );
-              },
-            ),
-          ],
-        ),
-        body: Center(
-          child: FadeTransition(
-            opacity: _fadeAnimation,
-            child: SlideTransition(
-              position: _slideAnimation,
-              child: ScaleTransition(
-                scale: _scaleAnimation,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                  child: Icon(
+                    isLightTheme
+                        ? Icons.dark_mode_rounded
+                        : Icons.light_mode_rounded,
+                    key: ValueKey(isLightTheme),
+                  ),
+                ),
+                onPressed: () => context.read<ThemeCubit>().toggleTheme(),
+              );
+            },
+          ),
+        ],
+        body: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 28.0,
+                vertical: 20.0,
+              ),
+              physics: const BouncingScrollPhysics(),
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0.0, end: 1.0),
+                duration: const Duration(milliseconds: 800),
+                curve: Curves.easeOut,
+                builder: (context, opacity, child) => Opacity(
+                  opacity: opacity,
+                  child: child!,
+                ),
+                child: TweenAnimationBuilder<Offset>(
+                  tween: Tween(
+                    begin: const Offset(0, 0.08),
+                    end: Offset.zero,
+                  ),
+                  duration: const Duration(milliseconds: 800),
+                  curve: Curves.easeOutCubic,
+                  builder: (context, offset, child) => FractionalTranslation(
+                    translation: offset,
+                    child: child!,
+                  ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
-                      const SizedBox(height: 80),
                       Hero(
                         tag: 'app_logo',
                         child: Image.asset(
-                          isDark ? AppIcons.gepLogoDark : AppIcons.gepLogoLight,
-                          height: 200,
-                          width: 200,
+                          AppIcons.gepLogo,
+                          height: 180,
+                          width: 180,
+                          fit: BoxFit.contain,
                         ),
                       ),
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 32),
                       Text(
                         'Welcome Back!',
                         textAlign: TextAlign.center,
-                        style: theme.textTheme.displayMedium?.copyWith(
-                          color: isDark ? Colors.white : Colors.black87,
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.onSurface,
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 8),
                       Text(
                         'Sign in to continue with your account',
                         textAlign: TextAlign.center,
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: isDark ? Colors.white70 : Colors.black54,
+                          color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
-                      const SizedBox(height: 50),
+                      const SizedBox(height: 40),
                       BlocBuilder<AuthCubit, AuthState>(
                         builder: (context, state) {
-                          return AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            transform: Matrix4.identity()
-                              ..scale(state is AuthLoading ? 0.95 : 1.0),
-                            child: ElevatedButton(
-                              onPressed: state is AuthLoading
-                                  ? null
-                                  : () async {
-                                      await context
-                                          .read<AuthCubit>()
-                                          .signInWithGoogle();
-                                    },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: theme.primaryColor,
-                                foregroundColor: theme.colorScheme.onPrimary,
-                                minimumSize: const Size(double.infinity, 50),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8.0),
-                                ),
-                                elevation: 3,
-                              ),
-                              child: state is AuthLoading
-                                  ? const SizedBox(
-                                      height: 24,
-                                      width: 24,
-                                      child: CircularProgressIndicator(),
-                                    )
-                                  : Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: <Widget>[
-                                        Image.asset(
-                                          isDark
-                                              ? AppIcons.signinDark
-                                              : AppIcons.siginLight,
-                                          height: 24.0,
-                                          width: 24.0,
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Text(
-                                          'Sign in with Google',
-                                          style: theme.textTheme.bodyLarge
-                                              ?.copyWith(
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                          final isLoading = state is AuthLoading;
+                          return AppButton(
+                            label: 'Sign in with Google',
+                            isLoading: isLoading,
+                            onPressed: isLoading
+                                ? null
+                                : () => context
+                                      .read<AuthCubit>()
+                                      .signInWithGoogle(),
+                            icon: Image.asset(
+                              isDark
+                                  ? AppIcons.signinDark
+                                  : AppIcons.siginLight,
+                              height: 22.0,
+                              width: 22.0,
                             ),
                           );
                         },
                       ),
-                      const SizedBox(height: 30),
+                      const SizedBox(height: 24),
                       Text(
                         'By continuing, you agree to our Terms of Service and Privacy Policy.',
                         textAlign: TextAlign.center,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant.withValues(
+                            alpha: 0.8,
+                          ),
+                        ),
                       ),
                     ],
                   ),

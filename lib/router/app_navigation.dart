@@ -1,5 +1,5 @@
-import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Navigation utility class using GoRouter
 class AppNavigation {
@@ -32,8 +32,17 @@ class AppNavigation {
   }
 
   /// Push a named route and keep the current route in stack
-  static void push(BuildContext context, String routeName, {Object? extra}) {
-    context.pushNamed(routeName, extra: extra);
+  static void push(
+    BuildContext context,
+    String routeName, {
+    Object? extra,
+    Map<String, String>? queryParameters,
+  }) {
+    context.pushNamed(
+      routeName,
+      extra: extra,
+      queryParameters: queryParameters ?? {},
+    );
   }
 
   /// Push a path and keep the current route in stack
@@ -56,14 +65,20 @@ class AppNavigation {
   }
 
   /// Push and replace the current route
-  static void pushReplacement(BuildContext context, String routeName,
-      {Object? extra}) {
+  static void pushReplacement(
+    BuildContext context,
+    String routeName, {
+    Object? extra,
+  }) {
     context.pushReplacementNamed(routeName, extra: extra);
   }
 
   /// Navigate and remove all previous routes (like pushAndRemoveUntil)
-  static void goAndClearStack(BuildContext context, String routeName,
-      {Object? extra}) {
+  static void goAndClearStack(
+    BuildContext context,
+    String routeName, {
+    Object? extra,
+  }) {
     context.goNamed(routeName, extra: extra);
   }
 
@@ -78,8 +93,11 @@ class AppNavigation {
   }
 
   /// Push and wait for result
-  static Future<T?> pushForResult<T>(BuildContext context, String routeName,
-      {Object? extra}) {
+  static Future<T?> pushForResult<T>(
+    BuildContext context,
+    String routeName, {
+    Object? extra,
+  }) {
     return context.pushNamed<T>(routeName, extra: extra);
   }
 

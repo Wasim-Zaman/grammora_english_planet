@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:gep/view/widgets/app_scaffold.dart';
 
 class TermsAndConditionsScreen extends StatelessWidget {
   const TermsAndConditionsScreen({super.key});
@@ -6,10 +7,8 @@ class TermsAndConditionsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Terms and Conditions'),
-      ),
+    return AppScaffold(
+      title: 'Terms and Conditions',
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(

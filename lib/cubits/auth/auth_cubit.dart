@@ -63,6 +63,11 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
+  Future<void> checkAdminStatus() async {
+    final isAdmin = await _adminAuthService.isAdminLoggedIn();
+    emit(AuthSuccess(isAdmin: isAdmin));
+  }
+
   Future<bool> isAdminLoggedIn() async {
     return await _adminAuthService.isAdminLoggedIn();
   }

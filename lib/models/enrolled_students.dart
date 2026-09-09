@@ -10,6 +10,7 @@ class EnrolledStudent {
   final DateTime dateOfBirth;
   final String gender;
   final DateTime enrollmentDate;
+  final String? shiftId;
 
   EnrolledStudent({
     required this.id,
@@ -23,6 +24,7 @@ class EnrolledStudent {
     required this.dateOfBirth,
     required this.gender,
     required this.enrollmentDate,
+    this.shiftId,
   });
 
   factory EnrolledStudent.fromMap(Map<String, dynamic> data, String id) {
@@ -38,6 +40,7 @@ class EnrolledStudent {
       dateOfBirth: _parseDate(data['date_of_birth']),
       gender: data['gender'] ?? '',
       enrollmentDate: _parseDate(data['enrollmentDate']),
+      shiftId: data['shift_id']?.toString(),
     );
   }
 
@@ -59,6 +62,7 @@ class EnrolledStudent {
       'date_of_birth': dateOfBirth.toIso8601String(),
       'gender': gender,
       'enrollmentDate': enrollmentDate.toIso8601String(),
+      if (shiftId != null && shiftId!.isNotEmpty) 'shift_id': shiftId,
     };
   }
 }

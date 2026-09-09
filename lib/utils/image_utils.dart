@@ -1,18 +1,28 @@
 import 'dart:io';
 import 'dart:ui' as ui;
-import 'package:material_ui/material_ui.dart';
+
+import 'package:flutter/material.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
 class ImageUtils {
-  ImageUtils._(); // Private constructor to prevent instantiation
+  ImageUtils._();
 
-  /// Picks an image from the specified [source] (defaults to Gallery).
+  /// Picks an image from the specified [source].
   static Future<File?> pickImage({
     ImageSource source = ImageSource.gallery,
+    double? maxWidth,
+    double? maxHeight,
+    int? imageQuality,
   }) async {
     try {
-      final pickedFile = await ImagePicker().pickImage(source: source);
+      final pickedFile = await ImagePicker().pickImage(
+        source: source,
+        maxWidth: maxWidth ?? 1920,
+        maxHeight: maxHeight ?? 1920,
+        imageQuality: imageQuality ?? 90,
+      );
       if (pickedFile == null) return null;
       return File(pickedFile.path);
     } catch (e) {
@@ -21,23 +31,103 @@ class ImageUtils {
     }
   }
 
-  /// Resizes an image [File] to target dimensions [targetWidth] x [targetHeight]
-  /// using high-quality Canvas rendering and saves it to a temp directory.
+  /// Opens the cropper UI for an image [File].
+  static Future<File?> cropImage({
+    required File imageFile,
+    required BuildContext context,
+    CropAspectRatio? aspectRatio,
+    List<CropAspectRatioPreset>? aspectRatioPresets,
+  }) async {
+    try {
+      final theme = Theme.of(context);
+      final croppedFile = await ImageCropper().cropImage(
+        sourcePath: imageFile.path,
+        aspectRatio: aspectRatio,
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Crop Image',
+            toolbarColor: theme.colorScheme.primary,
+            toolbarWidgetColor: theme.colorScheme.onPrimary,
+            activeControlsWidgetColor: theme.colorScheme.primary,
+            initAspectRatio: CropAspectRatioPreset.ratio16x9,
+            lockAspectRatio: aspectRatio != null,
+            aspectRatioPresets:
+                aspectRatioPresets ??
+                [
+                  CropAspectRatioPreset.ratio16x9,
+                  CropAspectRatioPreset.original,
+                  CropAspectRatioPreset.square,
+                ],
+          ),
+          IOSUiSettings(
+            title: 'Crop Image',
+            aspectRatioLockEnabled: aspectRatio != null,
+            aspectRatioPresets:
+                aspectRatioPresets ??
+                [
+                  CropAspectRatioPreset.ratio16x9,
+                  CropAspectRatioPreset.original,
+                  CropAspectRatioPreset.square,
+                ],
+          ),
+        ],
+      );
+
+      if (croppedFile == null) return null;
+      return File(croppedFile.path);
+    } catch (e) {
+      debugPrint('Error cropping image: $e');
+      return null;
+    }
+  }
+
+  /// Pipeline: Pick -> Crop -> Resize in a single process.
+  static Future<File?> pickCropAndResizeImage({
+    required BuildContext context,
+    ImageSource source = ImageSource.gallery,
+    required int targetWidth,
+    required int targetHeight,
+    CropAspectRatio? aspectRatio,
+  }) async {
+    final pickedFile = await pickImage(source: source);
+    if (pickedFile == null) return null;
+
+    if (!context.mounted) return null;
+
+    final croppedFile = await cropImage(
+      imageFile: pickedFile,
+      context: context,
+      aspectRatio: aspectRatio,
+    );
+    if (croppedFile == null) return null;
+
+    return await resizeImageFile(
+      imageFile: croppedFile,
+      targetWidth: targetWidth,
+      targetHeight: targetHeight,
+    );
+  }
+
+  /// Resizes an image file using high-quality hardware-accelerated Canvas rendering.
   static Future<File?> resizeImageFile({
     required File imageFile,
     required int targetWidth,
     required int targetHeight,
-    String fileNamePrefix = 'resized_banner',
+    String fileNamePrefix = 'processed_image',
   }) async {
     try {
       final rawBytes = await imageFile.readAsBytes();
       final img = await decodeImageFromList(rawBytes);
 
-      final ui.Image resizedImage =
-          await _resizeImageCanvas(img, targetWidth, targetHeight);
+      final ui.Image resizedImage = await _resizeImageCanvas(
+        img,
+        targetWidth,
+        targetHeight,
+      );
 
-      final byteData =
-          await resizedImage.toByteData(format: ui.ImageByteFormat.png);
+      final byteData = await resizedImage.toByteData(
+        format: ui.ImageByteFormat.png,
+      );
       if (byteData == null) return null;
 
       final tempDir = await getTemporaryDirectory();
@@ -59,23 +149,6 @@ class ImageUtils {
     }
   }
 
-  /// Helper pipeline: Picks an image and resizes it in a single step.
-  static Future<File?> pickAndResizeImage({
-    ImageSource source = ImageSource.gallery,
-    required int targetWidth,
-    required int targetHeight,
-  }) async {
-    final pickedFile = await pickImage(source: source);
-    if (pickedFile == null) return null;
-
-    return await resizeImageFile(
-      imageFile: pickedFile,
-      targetWidth: targetWidth,
-      targetHeight: targetHeight,
-    );
-  }
-
-  /// Internal canvas drawing helper for hardware-accelerated image scaling.
   static Future<ui.Image> _resizeImageCanvas(
     ui.Image image,
     int targetWidth,

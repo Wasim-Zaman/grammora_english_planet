@@ -5,7 +5,7 @@
 		<key>CFBundleDevelopmentRegion</key>
 		<string>$(DEVELOPMENT_LANGUAGE)</string>
 		<key>CFBundleDisplayName</key>
-		<string>Selc</string>
+		<string>GEP</string>
 		<key>CFBundleExecutable</key>
 		<string>$(EXECUTABLE_NAME)</string>
 		<key>CFBundleIdentifier</key>
@@ -56,6 +56,10 @@
 				</array>
 			</dict>
 		</array>
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>This app needs access to your photo library to upload banner images and profile pictures.</string>
+		<key>NSCameraUsageDescription</key>
+		<string>This app needs access to your camera to take photos for uploads.</string>
 		<key>UIStatusBarHidden</key>
 		<true/>
 		<key>UIViewControllerBasedStatusBarAppearance</key>

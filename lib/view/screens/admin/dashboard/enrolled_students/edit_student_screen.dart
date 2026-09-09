@@ -1,5 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:intl/intl.dart';
 import 'package:gep/models/enrolled_students.dart';
@@ -8,6 +9,11 @@ import 'package:gep/core/constants/constants.dart';
 import 'package:gep/utils/snackbars.dart';
 import 'package:gep/view/widgets/placeholder_widget.dart';
 import 'package:gep/view/widgets/text_field_widget.dart';
+import 'package:gep/view/widgets/app_scaffold.dart';
+import 'package:gep/view/widgets/app_button.dart';
+import 'package:gep/view/widgets/app_text_button.dart';
+import 'package:gep/cubits/student_form/student_form_cubit.dart';
+import 'package:gep/cubits/student_form/student_form_state.dart';
 
 class EditStudentScreen extends StatefulWidget {
   final EnrolledStudent student;
@@ -32,11 +38,7 @@ class _EditStudentScreenState extends State<EditStudentScreen> {
   late TextEditingController _contactNumberController;
   late TextEditingController _fatherContactNumberController;
   late TextEditingController _addressController;
-  late DateTime _dateOfBirth;
-  late String _gender;
-  late DateTime _enrollmentDate;
 
-  // Add these FocusNode declarations
   final _nameFocus = FocusNode();
   final _emailFocus = FocusNode();
   final _fatherNameFocus = FocusNode();
@@ -44,8 +46,6 @@ class _EditStudentScreenState extends State<EditStudentScreen> {
   final _contactNumberFocus = FocusNode();
   final _fatherContactNumberFocus = FocusNode();
   final _addressFocus = FocusNode();
-
-  bool _isLoading = false;
 
   @override
   void initState() {
@@ -60,163 +60,204 @@ class _EditStudentScreenState extends State<EditStudentScreen> {
     _fatherContactNumberController =
         TextEditingController(text: widget.student.fatherContactNumber);
     _addressController = TextEditingController(text: widget.student.address);
-    _dateOfBirth = widget.student.dateOfBirth;
-    _gender = widget.student.gender;
-    _enrollmentDate = widget.student.enrollmentDate;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Edit Student'),
-        actions: [
-          IconButton(
-            icon:
-                Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
-            onPressed: _deleteStudent,
-          ),
-        ],
-      ),
-      body: _isLoading
-          ? PlaceholderWidgets.editStudentScreenPlaceholder()
-          : Form(
-              key: _formKey,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(AppConstants.defaultPadding),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    TextFieldWidget(
-                      controller: _nameController,
-                      labelText: 'Name',
-                      validator: (value) =>
-                          value!.isEmpty ? 'Please enter a name' : null,
-                      focusNode: _nameFocus,
-                      onFieldSubmitted: (_) =>
-                          FocusScope.of(context).requestFocus(_emailFocus),
-                    ),
-                    const SizedBox(height: AppConstants.defaultPadding),
-                    TextFieldWidget(
-                      controller: _emailController,
-                      labelText: 'Email (Optional)',
-                      focusNode: _emailFocus,
-                      onFieldSubmitted: (_) =>
-                          FocusScope.of(context).requestFocus(_fatherNameFocus),
-                    ),
-                    const SizedBox(height: AppConstants.defaultPadding),
-                    TextFieldWidget(
-                      controller: _fatherNameController,
-                      labelText: 'Father\'s Name',
-                      validator: (value) =>
-                          value!.isEmpty ? 'Please enter father\'s name' : null,
-                      focusNode: _fatherNameFocus,
-                      onFieldSubmitted: (_) =>
-                          FocusScope.of(context).requestFocus(_levelFocus),
-                    ),
-                    const SizedBox(height: AppConstants.defaultPadding),
-                    TextFieldWidget(
-                      controller: _levelController,
-                      labelText: 'Level',
-                      validator: (value) =>
-                          value!.isEmpty ? 'Please enter a level' : null,
-                      focusNode: _levelFocus,
-                      onFieldSubmitted: (_) => FocusScope.of(context)
-                          .requestFocus(_contactNumberFocus),
-                    ),
-                    const SizedBox(height: AppConstants.defaultPadding),
-                    TextFieldWidget(
-                      controller: _contactNumberController,
-                      labelText: 'Contact Number (Optional)',
-                      focusNode: _contactNumberFocus,
-                      onFieldSubmitted: (_) => FocusScope.of(context)
-                          .requestFocus(_fatherContactNumberFocus),
-                    ),
-                    const SizedBox(height: AppConstants.defaultPadding),
-                    TextFieldWidget(
-                      controller: _fatherContactNumberController,
-                      labelText: 'Father\'s Contact Number (Optional)',
-                      focusNode: _fatherContactNumberFocus,
-                      onFieldSubmitted: (_) =>
-                          FocusScope.of(context).requestFocus(_addressFocus),
-                    ),
-                    const SizedBox(height: AppConstants.defaultPadding),
-                    TextFieldWidget(
-                      controller: _addressController,
-                      labelText: 'Address',
-                      validator: (value) =>
-                          value!.isEmpty ? 'Please enter an address' : null,
-                      focusNode: _addressFocus,
-                      onFieldSubmitted: (_) => _updateStudent(),
-                    ),
-                    const SizedBox(height: AppConstants.defaultPadding),
-                    ListTile(
-                      title: const Text('Date of Birth'),
-                      subtitle:
-                          Text(DateFormat('yyyy-MM-dd').format(_dateOfBirth)),
-                      trailing: const Icon(Icons.calendar_today),
-                      onTap: () async {
-                        final DateTime? picked = await showDatePicker(
-                          context: context,
-                          initialDate: _dateOfBirth,
-                          firstDate: DateTime(1900),
-                          lastDate: DateTime.now(),
-                        );
-                        if (picked != null) {
-                          setState(() => _dateOfBirth = picked);
-                        }
-                      },
-                    ),
-                    const SizedBox(height: AppConstants.defaultPadding),
-                    DropdownButtonFormField<String>(
-                      initialValue: _gender,
-                      decoration: const InputDecoration(labelText: 'Gender'),
-                      items: ['Male', 'Female', 'Other']
-                          .map((label) => DropdownMenuItem(
-                                value: label,
-                                child: Text(label),
-                              ))
-                          .toList(),
-                      onChanged: (value) {
-                        setState(() => _gender = value!);
-                      },
-                    ),
-                    const SizedBox(height: AppConstants.defaultPadding),
-                    ListTile(
-                      title: const Text('Enrollment Date'),
-                      subtitle: Text(
-                          DateFormat('yyyy-MM-dd').format(_enrollmentDate)),
-                      trailing: const Icon(Icons.calendar_today),
-                      onTap: () async {
-                        final DateTime? picked = await showDatePicker(
-                          context: context,
-                          initialDate: _enrollmentDate,
-                          firstDate: DateTime(1900),
-                          lastDate: DateTime.now(),
-                        );
-                        if (picked != null) {
-                          setState(() => _enrollmentDate = picked);
-                        }
-                      },
-                    ),
-                    const SizedBox(height: AppConstants.defaultPadding * 2),
-                    ElevatedButton(
-                      onPressed: _updateStudent,
-                      child: const Text('Update Student'),
-                    ),
-                  ],
-                ),
+    return BlocProvider(
+      create: (_) => StudentFormCubit(
+        initialDob: widget.student.dateOfBirth,
+        initialGender: widget.student.gender,
+        initialShiftId: widget.student.shiftId,
+        initialEnrollmentDate: widget.student.enrollmentDate,
+      )..loadShifts(),
+      child: BlocConsumer<StudentFormCubit, StudentFormState>(
+        listener: (context, state) {
+          if (state.error != null) {
+            TopSnackbar.error(context, state.error!);
+          }
+        },
+        builder: (context, state) {
+          return AppScaffold(
+            title: 'Edit Student',
+            actions: [
+              IconButton(
+                icon: Icon(Icons.delete,
+                    color: Theme.of(context).colorScheme.error),
+                onPressed: () => _deleteStudent(context),
               ),
-            ),
+            ],
+            body: state.isLoading
+                ? PlaceholderWidgets.editStudentScreenPlaceholder()
+                : Form(
+                    key: _formKey,
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(AppConstants.defaultPadding),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          TextFieldWidget(
+                            controller: _nameController,
+                            labelText: 'Name',
+                            validator: (value) =>
+                                value!.isEmpty ? 'Please enter a name' : null,
+                            focusNode: _nameFocus,
+                            onFieldSubmitted: (_) =>
+                                FocusScope.of(context).requestFocus(_emailFocus),
+                          ),
+                          const SizedBox(height: AppConstants.defaultPadding),
+                          TextFieldWidget(
+                            controller: _emailController,
+                            labelText: 'Email (Optional)',
+                            focusNode: _emailFocus,
+                            onFieldSubmitted: (_) => FocusScope.of(context)
+                                .requestFocus(_fatherNameFocus),
+                          ),
+                          const SizedBox(height: AppConstants.defaultPadding),
+                          TextFieldWidget(
+                            controller: _fatherNameController,
+                            labelText: 'Father\'s Name',
+                            validator: (value) => value!.isEmpty
+                                ? 'Please enter father\'s name'
+                                : null,
+                            focusNode: _fatherNameFocus,
+                            onFieldSubmitted: (_) =>
+                                FocusScope.of(context).requestFocus(_levelFocus),
+                          ),
+                          const SizedBox(height: AppConstants.defaultPadding),
+                          TextFieldWidget(
+                            controller: _levelController,
+                            labelText: 'Level',
+                            validator: (value) =>
+                                value!.isEmpty ? 'Please enter a level' : null,
+                            focusNode: _levelFocus,
+                            onFieldSubmitted: (_) => FocusScope.of(context)
+                                .requestFocus(_contactNumberFocus),
+                          ),
+                          const SizedBox(height: AppConstants.defaultPadding),
+                          TextFieldWidget(
+                            controller: _contactNumberController,
+                            labelText: 'Contact Number (Optional)',
+                            focusNode: _contactNumberFocus,
+                            onFieldSubmitted: (_) => FocusScope.of(context)
+                                .requestFocus(_fatherContactNumberFocus),
+                          ),
+                          const SizedBox(height: AppConstants.defaultPadding),
+                          TextFieldWidget(
+                            controller: _fatherContactNumberController,
+                            labelText: 'Father\'s Contact Number (Optional)',
+                            focusNode: _fatherContactNumberFocus,
+                            onFieldSubmitted: (_) => FocusScope.of(context)
+                                .requestFocus(_addressFocus),
+                          ),
+                          const SizedBox(height: AppConstants.defaultPadding),
+                          TextFieldWidget(
+                            controller: _addressController,
+                            labelText: 'Address',
+                            validator: (value) =>
+                                value!.isEmpty ? 'Please enter an address' : null,
+                            focusNode: _addressFocus,
+                            onFieldSubmitted: (_) =>
+                                _updateStudent(context, state),
+                          ),
+                          const SizedBox(height: AppConstants.defaultPadding),
+                          ListTile(
+                            title: const Text('Date of Birth'),
+                            subtitle: Text(DateFormat('yyyy-MM-dd')
+                                .format(state.dateOfBirth)),
+                            trailing: const Icon(Icons.calendar_today),
+                            onTap: () async {
+                              final DateTime? picked = await showDatePicker(
+                                context: context,
+                                initialDate: state.dateOfBirth,
+                                firstDate: DateTime(1900),
+                                lastDate: DateTime.now(),
+                              );
+                              if (picked != null) {
+                                context
+                                    .read<StudentFormCubit>()
+                                    .setDateOfBirth(picked);
+                              }
+                            },
+                          ),
+                          const SizedBox(height: AppConstants.defaultPadding),
+                          DropdownButtonFormField<String>(
+                            initialValue: state.gender,
+                            decoration: const InputDecoration(labelText: 'Gender'),
+                            items: ['Male', 'Female', 'Other']
+                                .map((label) => DropdownMenuItem(
+                                      value: label,
+                                      child: Text(label),
+                                    ))
+                                .toList(),
+                            onChanged: (value) {
+                              if (value != null) {
+                                context
+                                    .read<StudentFormCubit>()
+                                    .setGender(value);
+                              }
+                            },
+                          ),
+                          const SizedBox(height: AppConstants.defaultPadding),
+                          DropdownButtonFormField<String?>(
+                            initialValue: state.selectedShiftId,
+                            decoration: const InputDecoration(
+                              labelText: 'Assigned Shift',
+                              hintText: 'Select a shift (optional)',
+                            ),
+                            items: [
+                              const DropdownMenuItem(
+                                value: null,
+                                child: Text('None'),
+                              ),
+                              ...state.shifts.map((shift) => DropdownMenuItem(
+                                    value: shift.id,
+                                    child: Text(shift.name),
+                                  )),
+                            ],
+                            onChanged: (value) {
+                              context
+                                  .read<StudentFormCubit>()
+                                  .setSelectedShiftId(value);
+                            },
+                          ),
+                          const SizedBox(height: AppConstants.defaultPadding),
+                          ListTile(
+                            title: const Text('Enrollment Date'),
+                            subtitle: Text(DateFormat('yyyy-MM-dd')
+                                .format(state.enrollmentDate)),
+                            trailing: const Icon(Icons.calendar_today),
+                            onTap: () async {
+                              final DateTime? picked = await showDatePicker(
+                                context: context,
+                                initialDate: state.enrollmentDate,
+                                firstDate: DateTime(1900),
+                                lastDate: DateTime.now(),
+                              );
+                              if (picked != null) {
+                                context
+                                    .read<StudentFormCubit>()
+                                    .setEnrollmentDate(picked);
+                              }
+                            },
+                          ),
+                          const SizedBox(height: AppConstants.defaultPadding * 2),
+                          AppButton(
+                            onPressed: () => _updateStudent(context, state),
+                            label: 'Update Student',
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+          );
+        },
+      ),
     );
   }
 
-  void _updateStudent() async {
+  void _updateStudent(BuildContext context, StudentFormState state) async {
     if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
-
       final updatedStudent = EnrolledStudent(
         id: widget.student.id,
         name: _nameController.text,
@@ -226,64 +267,54 @@ class _EditStudentScreenState extends State<EditStudentScreen> {
         contactNumber: _contactNumberController.text,
         fatherContactNumber: _fatherContactNumberController.text,
         address: _addressController.text,
-        dateOfBirth: _dateOfBirth,
-        gender: _gender,
-        enrollmentDate: _enrollmentDate,
+        dateOfBirth: state.dateOfBirth,
+        gender: state.gender,
+        enrollmentDate: state.enrollmentDate,
+        shiftId: state.selectedShiftId,
       );
 
-      try {
-        await widget.enrolledStudentsServices.updateStudent(
-          widget.student.id,
-          updatedStudent,
-        );
+      final success = await context.read<StudentFormCubit>().saveStudent(
+            service: widget.enrolledStudentsServices,
+            student: updatedStudent,
+            isEdit: true,
+          );
+
+      if (success && mounted) {
         TopSnackbar.success(context, "Student updated successfully");
         Navigator.pop(context, true);
-      } catch (e) {
-        TopSnackbar.error(context, "Failed to update student: ${e.toString()}");
-      } finally {
-        setState(() {
-          _isLoading = false;
-        });
       }
     } else {
       TopSnackbar.error(context, "Please fill all fields");
     }
   }
 
-  void _deleteStudent() async {
+  void _deleteStudent(BuildContext context) async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         title: const Text('Confirm Deletion'),
         content: const Text('Are you sure you want to delete this student?'),
         actions: [
-          TextButton(
-            child: const Text('Cancel'),
-            onPressed: () => Navigator.of(context).pop(false),
+          AppTextButton(
+            label: 'Cancel',
+            onPressed: () => Navigator.of(ctx).pop(false),
           ),
-          TextButton(
-            child: const Text('Delete'),
-            onPressed: () => Navigator.of(context).pop(true),
+          AppTextButton(
+            label: 'Delete',
+            onPressed: () => Navigator.of(ctx).pop(true),
           ),
         ],
       ),
     );
 
-    if (confirm == true) {
-      setState(() {
-        _isLoading = true;
-      });
-
-      try {
-        await widget.enrolledStudentsServices.deleteStudent(widget.student.id);
+    if (confirm == true && mounted) {
+      final success = await context.read<StudentFormCubit>().deleteStudent(
+            service: widget.enrolledStudentsServices,
+            studentId: widget.student.id,
+          );
+      if (success && mounted) {
         TopSnackbar.success(context, "Student deleted successfully");
-        Navigator.of(context).pop(true); // Return true to indicate deletion
-      } catch (e) {
-        TopSnackbar.error(context, "Failed to delete student: ${e.toString()}");
-      } finally {
-        setState(() {
-          _isLoading = false;
-        });
+        Navigator.of(context).pop(true);
       }
     }
   }
