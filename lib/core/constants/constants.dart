@@ -131,6 +131,12 @@ class AppGradients {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
+
+  static const LinearGradient privacy = LinearGradient(
+    colors: [Color(0xFF3F51B5), Color(0xFF7B1FA2)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
 }
 
 class AppConstants {

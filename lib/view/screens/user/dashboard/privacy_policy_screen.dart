@@ -3,64 +3,64 @@ import 'package:gep/core/constants/constants.dart';
 import 'package:gep/view/widgets/app_scaffold.dart';
 import 'package:material_ui/material_ui.dart';
 
-class TermsAndConditionsScreen extends StatelessWidget {
-  const TermsAndConditionsScreen({super.key});
+class PrivacyPolicyScreen extends StatelessWidget {
+  const PrivacyPolicyScreen({super.key});
 
   static const List<_Section> _sections = [
     _Section(
-      '1. Acceptance of Terms',
-      'By downloading, installing, or using the GEP (Gramora English Planet) application, you agree to be bound by these Terms and Conditions. If you do not agree, please do not use the app.',
+      '1. Introduction',
+      'Gramora English Planet ("GEP", "we", "us", or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, store, and safeguard your information when you use the GEP mobile application.',
     ),
     _Section(
-      '2. About GEP',
-      'GEP is an English learning platform developed for Gramora English Planet. The app provides educational content, course outlines, notes, admissions information, attendance tracking, and institute updates for enrolled students and prospective learners.',
+      '2. Information We Collect',
+      'We collect information you provide when signing in via Google, including your name, email address, and profile photo. We may also collect enrollment details, attendance records, and device information necessary for app functionality.',
     ),
     _Section(
-      '3. User Accounts',
-      'You may sign in using Google Sign-In. You are responsible for maintaining the confidentiality of your account and for all activities that occur under your account. Admin accounts have additional management privileges and responsibilities.',
+      '3. How We Use Your Information',
+      'Your information is used to authenticate you, provide access to educational content, track attendance, manage admissions, communicate updates, and improve the app experience. We do not sell your personal information to third parties.',
     ),
     _Section(
-      '4. Educational Content',
-      'All content, including notes, playlists, course outlines, and updates, is provided for educational purposes only. Users may view content for personal learning but may not redistribute, reproduce, or use it for commercial purposes without written permission.',
+      '4. Google Sign-In',
+      'We use Google Sign-In to authenticate users securely. When you sign in, Google shares your basic profile information with us in accordance with Google\'s privacy policy and your account settings.',
     ),
     _Section(
-      '5. Student Information',
-      'Personal information such as name, contact details, attendance records, and enrollment data may be collected and handled in accordance with our Privacy Policy. This information is used solely for educational and administrative purposes.',
+      '5. Location Data',
+      'The app may access your device location to display the institute location and provide navigation through Google Maps. Location data is used only when needed and is not stored on our servers.',
     ),
     _Section(
-      '6. Location Services',
-      'The app may use location services to display the institute location and enable navigation through Google Maps. Location data is used only for these purposes and is not stored or tracked beyond what is necessary.',
+      '6. Third-Party Services',
+      'We use trusted third-party services including Firebase (authentication, analytics, and cloud storage), Supabase (database), Google Maps, and YouTube. These services may collect data according to their own privacy policies.',
     ),
     _Section(
-      '7. Attendance and QR Code Scanning',
-      'Students may scan QR codes to mark attendance. Any attempt to manipulate, spoof, or falsify attendance records is strictly prohibited and may result in account suspension.',
+      '7. Data Security',
+      'We implement reasonable security measures to protect your data from unauthorized access, alteration, or disclosure. However, no method of electronic storage is completely secure, and we cannot guarantee absolute security.',
     ),
     _Section(
-      '8. Third-Party Services',
-      'The app integrates with third-party services including Google Sign-In, Google Maps, YouTube, Firebase, and Supabase. Your use of these services is subject to their respective terms and privacy policies.',
+      '8. Data Retention',
+      'We retain your information for as long as your account is active or as needed to provide services, comply with legal obligations, resolve disputes, and enforce our agreements.',
     ),
     _Section(
-      '9. User Conduct',
-      'Users must not upload, share, or create inappropriate, illegal, harmful, or offensive content. Administrators reserve the right to remove content, restrict access, or terminate accounts for violations.',
+      '9. Children\'s Privacy',
+      'GEP is intended for learners of all ages. If you are under 13, please use the app under parental or guardian supervision. We do not knowingly collect personal information from children without appropriate consent.',
     ),
     _Section(
-      '10. Updates to Terms',
-      'We may update these Terms and Conditions at any time. Continued use of the app after changes constitutes acceptance of the revised terms. Please review this page periodically.',
+      '10. Your Rights',
+      'You may access, update, or request deletion of your personal information by contacting institute administration. You can also revoke app access through your Google account settings at any time.',
     ),
     _Section(
-      '11. Termination',
-      'We reserve the right to suspend or terminate access to the app for violations of these terms, fraudulent activity, or any other reason deemed necessary to protect the integrity of the platform.',
+      '11. Changes to This Policy',
+      'We may update this Privacy Policy from time to time. Any changes will be posted in the app with an updated effective date. Continued use of the app constitutes acceptance of the revised policy.',
     ),
     _Section(
       '12. Contact Us',
-      'For questions or concerns about these Terms and Conditions, please contact Gramora English Planet administration through the About Me section or institute contact channels.',
+      'If you have any questions about this Privacy Policy or how we handle your data, please contact Gramora English Planet administration through the About Me section or official institute channels.',
     ),
   ];
 
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      title: 'Terms and Conditions',
+      title: 'Privacy Policy',
       safeAreaBottom: false,
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(
@@ -113,9 +113,9 @@ class _HeaderCard extends StatelessWidget {
         12,
       ),
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: AppGradients.terms,
-        borderRadius: BorderRadius.circular(24),
+      decoration: const BoxDecoration(
+        gradient: AppGradients.privacy,
+        borderRadius: BorderRadius.all(Radius.circular(24)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -127,14 +127,14 @@ class _HeaderCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
             ),
             child: const Icon(
-              Icons.description_outlined,
+              Icons.shield_outlined,
               color: Colors.white,
               size: 26,
             ),
           ),
           const SizedBox(height: 16),
           Text(
-            'Terms and Conditions',
+            'Privacy Policy',
             style: theme.textTheme.titleLarge?.copyWith(
               color: Colors.white,
               fontWeight: FontWeight.w900,

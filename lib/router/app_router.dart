@@ -32,6 +32,7 @@ import 'package:gep/view/screens/user/dashboard/enrolled_students/enrolled_stude
 import 'package:gep/view/screens/user/dashboard/notes/notes_categories_screen.dart';
 import 'package:gep/view/screens/user/dashboard/notes/notes_screen.dart';
 import 'package:gep/view/screens/user/dashboard/notes/pdf_viewer_screen.dart';
+import 'package:gep/view/screens/user/dashboard/privacy_policy_screen.dart';
 import 'package:gep/view/screens/user/dashboard/terms_and_conditions_screen.dart';
 import 'package:gep/view/screens/user/dashboard/updates/updates_screen.dart';
 import 'package:gep/view/splash_screen.dart';
@@ -143,6 +144,12 @@ class AppRouter {
         path: AppRoutes.kTermsAndConditionsRoutePath,
         name: AppRoutes.kTermsAndConditionsRoute,
         builder: (context, state) => const TermsAndConditionsScreen(),
+      ),
+
+      GoRoute(
+        path: AppRoutes.kPrivacyPolicyRoutePath,
+        name: AppRoutes.kPrivacyPolicyRoute,
+        builder: (context, state) => const PrivacyPolicyScreen(),
       ),
 
       // PDF Viewer

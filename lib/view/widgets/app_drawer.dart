@@ -155,6 +155,20 @@ class AppDrawer extends StatelessWidget {
                         );
                       },
                     ),
+                    const SizedBox(height: 6),
+                    _DrawerTile(
+                      icon: Icons.shield_outlined,
+                      label: 'Privacy Policy',
+                      subtitle: 'How we handle your data',
+                      index: 4,
+                      onTap: () {
+                        Navigator.pop(context);
+                        AppNavigation.push(
+                          context,
+                          AppRoutes.kPrivacyPolicyRoute,
+                        );
+                      },
+                    ),
                   ],
                 ],
               ),
