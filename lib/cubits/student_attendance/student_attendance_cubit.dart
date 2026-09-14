@@ -7,7 +7,7 @@ part 'student_attendance_state.dart';
 class StudentAttendanceCubit extends Cubit<StudentAttendanceState> {
   final AttendanceService _service;
 
-  StudentAttendanceCubit(this._service) : super(const StudentAttendanceState());
+  StudentAttendanceCubit(this._service) : super(StudentAttendanceState());
 
   Future<void> loadMonthly(String studentId, int year, int month) async {
     emit(state.copyWith(isLoading: true, error: null));
@@ -59,5 +59,9 @@ class StudentAttendanceCubit extends Cubit<StudentAttendanceState> {
     final newMonth = state.month + 1;
     final newYear = newMonth > 12 ? state.year + 1 : state.year;
     emit(state.copyWith(year: newYear, month: newMonth > 12 ? 1 : newMonth));
+  }
+
+  void setViewMode(int mode) {
+    emit(state.copyWith(viewMode: mode));
   }
 }

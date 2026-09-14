@@ -129,9 +129,8 @@ class PlaceholderWidgets {
                   isDarkMode ? AppColors.darkCard : AppColors.lightCard,
               child: Card(
                 margin: const EdgeInsets.all(16),
-                elevation: 4,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                    borderRadius: BorderRadius.circular(16)),
                 child: Container(
                   height: 200,
                   decoration: BoxDecoration(
@@ -300,12 +299,14 @@ class PlaceholderWidgets {
               isDarkMode ? AppColors.darkNeutral : AppColors.lightNeutral,
           highlightColor: isDarkMode ? AppColors.darkCard : AppColors.lightCard,
           child: Card(
-            elevation: 4,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             child: Container(
               height: height,
               decoration: BoxDecoration(
                 color: isDarkMode ? AppColors.darkCard : AppColors.lightCard,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(16),
               ),
             ),
           ),

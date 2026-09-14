@@ -45,6 +45,9 @@ class AppRoutes {
   static const String kTermsAndConditionsRoute = "terms-and-conditions";
   static const String kTermsAndConditionsRoutePath = "/terms-and-conditions";
 
+  static const String kPrivacyPolicyRoute = "privacy-policy";
+  static const String kPrivacyPolicyRoutePath = "/privacy-policy";
+
   // PDF viewer
   static const String kPdfViewerRoute = "pdf-viewer";
   static const String kPdfViewerRoutePath = "/pdf-viewer";

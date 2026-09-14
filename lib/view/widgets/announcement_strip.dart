@@ -1,27 +1,18 @@
-import 'dart:async';
-
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/constants/constants.dart';
+import '../../cubits/announcement_strip/announcement_strip_cubit.dart';
+import '../../cubits/announcement_strip/announcement_strip_state.dart';
 import '../../models/updates.dart';
 import '../../router/app_navigation.dart';
 import '../../router/app_routes.dart';
-import '../../services/updates/updates_services.dart';
 
-class AnnouncementStrip extends StatefulWidget {
+class AnnouncementStrip extends StatelessWidget {
   const AnnouncementStrip({super.key});
 
-  @override
-  State<AnnouncementStrip> createState() => _AnnouncementStripState();
-}
-
-class _AnnouncementStripState extends State<AnnouncementStrip> {
-  Timer? _timer;
-  int _index = 0;
-  List<Updates> _lastUpdates = const [];
-
-  String _typeLabel(UpdateType type) {
+  static String _typeLabel(UpdateType type) {
     return switch (type) {
       UpdateType.newCourse => 'COURSE',
       UpdateType.event => 'EVENT',
@@ -29,7 +20,7 @@ class _AnnouncementStripState extends State<AnnouncementStrip> {
     };
   }
 
-  IconData _typeIcon(UpdateType type) {
+  static IconData _typeIcon(UpdateType type) {
     return switch (type) {
       UpdateType.newCourse => Icons.school_rounded,
       UpdateType.event => Icons.event_rounded,
@@ -37,42 +28,27 @@ class _AnnouncementStripState extends State<AnnouncementStrip> {
     };
   }
 
-  void _startCycling(int itemCount) {
-    _timer?.cancel();
-    if (itemCount <= 1) return;
-
-    _timer = Timer.periodic(const Duration(seconds: 4), (_) {
-      if (!mounted) return;
-      setState(() => _index = (_index + 1) % itemCount);
-    });
-  }
-
   @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => AnnouncementStripCubit(),
+      child: const _AnnouncementStripContent(),
+    );
   }
+}
+
+class _AnnouncementStripContent extends StatelessWidget {
+  const _AnnouncementStripContent();
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return StreamBuilder<List<Updates>>(
-      stream: UpdatesServices().getUpdatesStream(),
-      builder: (context, snapshot) {
-        final updates = snapshot.data ?? [];
-        if (updates.isEmpty) return const SizedBox.shrink();
-
-        // Restart the cycle timer whenever the underlying list changes
-        // (e.g. new update pushed, or first load).
-        if (!identical(updates, _lastUpdates)) {
-          _lastUpdates = updates;
-          if (_index >= updates.length) _index = 0;
-          _startCycling(updates.length);
-        }
-
-        final current = updates[_index];
+    return BlocBuilder<AnnouncementStripCubit, AnnouncementStripState>(
+      builder: (context, state) {
+        final current = state.currentUpdate;
+        if (current == null) return const SizedBox.shrink();
 
         return GestureDetector(
           onTap: () => AppNavigation.push(context, AppRoutes.kUpdatesRoute),
@@ -140,7 +116,7 @@ class _AnnouncementStripState extends State<AnnouncementStrip> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            _typeIcon(current.type),
+                            AnnouncementStrip._typeIcon(current.type),
                             size: 12,
                             color: isDark
                                 ? AppColors.accent
@@ -148,7 +124,7 @@ class _AnnouncementStripState extends State<AnnouncementStrip> {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            _typeLabel(current.type),
+                            AnnouncementStrip._typeLabel(current.type),
                             style: theme.textTheme.labelSmall?.copyWith(
                               fontSize: 10,
                               fontWeight: FontWeight.w800,
@@ -192,21 +168,34 @@ class _AnnouncementStripState extends State<AnnouncementStrip> {
   }
 }
 
-class _MarqueeText extends StatefulWidget {
+class _MarqueeText extends StatelessWidget {
   final String text;
   final TextStyle? style;
 
   const _MarqueeText({required this.text, this.style});
 
   @override
-  State<_MarqueeText> createState() => _MarqueeTextState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => MarqueeCubit(),
+      child: _MarqueeTextView(text: text, style: style),
+    );
+  }
 }
 
-class _MarqueeTextState extends State<_MarqueeText>
+class _MarqueeTextView extends StatefulWidget {
+  final String text;
+  final TextStyle? style;
+
+  const _MarqueeTextView({required this.text, this.style});
+
+  @override
+  State<_MarqueeTextView> createState() => _MarqueeTextViewState();
+}
+
+class _MarqueeTextViewState extends State<_MarqueeTextView>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
-  double _textWidth = 0;
-  bool _needsScroll = false;
 
   @override
   void initState() {
@@ -221,13 +210,18 @@ class _MarqueeTextState extends State<_MarqueeText>
   }
 
   @override
-  void didUpdateWidget(covariant _MarqueeText oldWidget) {
+  void didUpdateWidget(covariant _MarqueeTextView oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.text != widget.text || oldWidget.style != widget.style) {
       _controller.stop();
       _controller.reset();
-      _needsScroll = false;
-      WidgetsBinding.instance.addPostFrameCallback((_) => _measure());
+      if (mounted) {
+        context.read<MarqueeCubit>().updateMeasurement(
+              needsScroll: false,
+              textWidth: 0,
+            );
+        WidgetsBinding.instance.addPostFrameCallback((_) => _measure());
+      }
     }
   }
 
@@ -240,20 +234,21 @@ class _MarqueeTextState extends State<_MarqueeText>
       textDirection: TextDirection.ltr,
     );
     tp.layout();
-    _textWidth = tp.width;
+    final textWidth = tp.width;
 
     final box = context.findRenderObject() as RenderBox?;
     if (box == null) return;
     final maxWidth = box.size.width;
 
-    final needs = _textWidth > maxWidth;
-    if (needs != _needsScroll) {
-      setState(() => _needsScroll = needs);
-    }
+    final needs = textWidth > maxWidth;
+    context.read<MarqueeCubit>().updateMeasurement(
+          needsScroll: needs,
+          textWidth: textWidth,
+        );
 
     if (needs) {
       const gap = 48.0;
-      final durationMs = ((_textWidth + gap) * 18).toInt().clamp(4000, 12000);
+      final durationMs = ((textWidth + gap) * 18).toInt().clamp(4000, 12000);
       _controller.duration = Duration(milliseconds: durationMs);
       _controller.repeat();
     }
@@ -267,27 +262,34 @@ class _MarqueeTextState extends State<_MarqueeText>
 
   @override
   Widget build(BuildContext context) {
-    if (!_needsScroll) {
-      return Text(widget.text, style: widget.style, maxLines: 1);
-    }
+    return BlocBuilder<MarqueeCubit, MarqueeState>(
+      builder: (context, marqueeState) {
+        if (!marqueeState.needsScroll) {
+          return Text(widget.text, style: widget.style, maxLines: 1);
+        }
 
-    return ClipRect(
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, child) {
-          const gap = 48.0;
-          final offset = (_textWidth + gap) * _controller.value;
-          return Transform.translate(offset: Offset(-offset, 0), child: child);
-        },
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(widget.text, style: widget.style, maxLines: 1),
-            const SizedBox(width: 48),
-            Text(widget.text, style: widget.style, maxLines: 1),
-          ],
-        ),
-      ),
+        return ClipRect(
+          child: AnimatedBuilder(
+            animation: _controller,
+            builder: (context, child) {
+              const gap = 48.0;
+              final offset = (marqueeState.textWidth + gap) * _controller.value;
+              return Transform.translate(
+                offset: Offset(-offset, 0),
+                child: child,
+              );
+            },
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(widget.text, style: widget.style, maxLines: 1),
+                const SizedBox(width: 48),
+                Text(widget.text, style: widget.style, maxLines: 1),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

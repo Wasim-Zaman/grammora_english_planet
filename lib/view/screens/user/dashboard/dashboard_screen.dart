@@ -32,7 +32,6 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final AnalyticsService _analyticsService = AnalyticsService();
-  bool _isAdminLoggedIn = false;
   late final BannerCubit _bannerCubit;
 
   static const List<_Service> _services = [
@@ -100,9 +99,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> init() async {
     await _analyticsService.logScreenView('Dashboard');
     if (!mounted) return;
-    final isAdminLoggedIn = await context.read<AuthCubit>().isAdminLoggedIn();
-    if (!mounted) return;
-    setState(() => _isAdminLoggedIn = isAdminLoggedIn);
+    context.read<AuthCubit>().checkAdminStatus();
   }
 
   @override
@@ -112,26 +109,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final featured = _services.take(2).toList();
     final rest = _services.skip(2).toList();
 
-    return UpgradeAlert(
-      upgrader: Upgrader(
-        durationUntilAlertAgain: const Duration(days: 1),
-        debugDisplayAlways: true,
-        minAppVersion: '1.0.0',
-      ),
-      child: AppScaffold(
-        scaffoldKey: _scaffoldKey,
-        drawer: AppDrawer(isAdminLoggedIn: _isAdminLoggedIn),
-        backgroundColor: theme.scaffoldBackgroundColor,
-        safeAreaBottom: false,
-        body: CustomScrollView(
-          physics: const BouncingScrollPhysics(
-            parent: AlwaysScrollableScrollPhysics(),
-          ),
-          slivers: [
-            SliverToBoxAdapter(child: _buildHeader(user, theme)),
+    return BlocBuilder<AuthCubit, AuthState>(
+      builder: (context, authState) {
+        final isAdminLoggedIn =
+            authState is AuthSuccess ? authState.isAdmin : false;
 
-            // Admin Panel Access (only for admins)
-            if (_isAdminLoggedIn)
+        return UpgradeAlert(
+          upgrader: Upgrader(
+            durationUntilAlertAgain: const Duration(days: 1),
+            debugDisplayAlways: true,
+            minAppVersion: '1.0.0',
+          ),
+          child: AppScaffold(
+            scaffoldKey: _scaffoldKey,
+            drawer: AppDrawer(isAdminLoggedIn: isAdminLoggedIn),
+            backgroundColor: theme.scaffoldBackgroundColor,
+            safeAreaBottom: false,
+            body: CustomScrollView(
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              ),
+              slivers: [
+                SliverToBoxAdapter(child: _buildHeader(user, theme)),
+
+                // Admin Panel Access (only for admins)
+                if (isAdminLoggedIn)
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(
@@ -234,6 +236,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ],
         ),
       ),
+    );
+      },
     );
   }
 

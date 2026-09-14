@@ -9,6 +9,8 @@ class UserCoursesState extends Equatable {
   final int currentPage;
   final bool hasMore;
   final String searchQuery;
+  final Set<String> expandedCourseIds;
+  final Set<String> expandedWeekKeys;
 
   const UserCoursesState({
     this.items = const [],
@@ -18,6 +20,8 @@ class UserCoursesState extends Equatable {
     this.currentPage = 0,
     this.hasMore = true,
     this.searchQuery = '',
+    this.expandedCourseIds = const {},
+    this.expandedWeekKeys = const {},
   });
 
   UserCoursesState copyWith({
@@ -28,6 +32,8 @@ class UserCoursesState extends Equatable {
     int? currentPage,
     bool? hasMore,
     String? searchQuery,
+    Set<String>? expandedCourseIds,
+    Set<String>? expandedWeekKeys,
   }) {
     return UserCoursesState(
       items: items ?? this.items,
@@ -37,10 +43,21 @@ class UserCoursesState extends Equatable {
       currentPage: currentPage ?? this.currentPage,
       hasMore: hasMore ?? this.hasMore,
       searchQuery: searchQuery ?? this.searchQuery,
+      expandedCourseIds: expandedCourseIds ?? this.expandedCourseIds,
+      expandedWeekKeys: expandedWeekKeys ?? this.expandedWeekKeys,
     );
   }
 
   @override
-  List<Object?> get props =>
-      [items, isLoading, isRefreshing, error, currentPage, hasMore, searchQuery];
+  List<Object?> get props => [
+    items,
+    isLoading,
+    isRefreshing,
+    error,
+    currentPage,
+    hasMore,
+    searchQuery,
+    expandedCourseIds,
+    expandedWeekKeys,
+  ];
 }

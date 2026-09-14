@@ -6,9 +6,9 @@ import 'package:gep/cubits/notes_categories/notes_categories_state.dart';
 import 'package:gep/router/app_navigation.dart';
 import 'package:gep/router/app_routes.dart';
 import 'package:gep/view/widgets/app_scaffold.dart';
+import 'package:gep/view/widgets/app_search_field.dart';
 import 'package:gep/view/widgets/paginated_widget.dart';
 import 'package:gep/view/widgets/placeholder_widget.dart';
-import 'package:gep/view/widgets/text_field_widget.dart';
 import 'package:material_ui/material_ui.dart';
 
 class NotesCategoriesScreen extends StatefulWidget {
@@ -25,7 +25,6 @@ class _NotesCategoriesScreenState extends State<NotesCategoriesScreen> {
   void initState() {
     super.initState();
     _searchController = TextEditingController();
-    _searchController.addListener(() => setState(() {}));
     context.read<NotesCategoriesCubit>().fetchPage(0);
   }
 
@@ -51,7 +50,7 @@ class _NotesCategoriesScreenState extends State<NotesCategoriesScreen> {
         final isLoading = state.isLoading && categories.isEmpty;
 
         return AppScaffold(
-          title: 'Notes',
+          title: 'Notes & Resources',
           bottomNavigationBar: categories.isNotEmpty
               ? Container(
                   decoration: BoxDecoration(
@@ -93,47 +92,113 @@ class _NotesCategoriesScreenState extends State<NotesCategoriesScreen> {
                 parent: AlwaysScrollableScrollPhysics(),
               ),
               slivers: [
-                // Search
+                // Hero Header Banner
+                SliverToBoxAdapter(
+                  child: Container(
+                    margin: const EdgeInsets.fromLTRB(
+                      AppConstants.defaultPadding,
+                      12,
+                      AppConstants.defaultPadding,
+                      8,
+                    ),
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: cardColor,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: borderColor),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(
+                            alpha: isDark ? 0.2 : 0.04,
+                          ),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 52,
+                          height: 52,
+                          decoration: BoxDecoration(
+                            gradient: AppGradients.notes,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF6A1B9A)
+                                    .withValues(alpha: 0.3),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.auto_stories_rounded,
+                            color: Colors.white,
+                            size: 26,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Course Library',
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.2,
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                'Browse verified lecture notes & PDFs',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: textColorSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ).animate().fadeIn(duration: 250.ms).slideY(
+                        begin: -0.05,
+                        end: 0,
+                      ),
+                ),
+
+                // Search Bar
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(
                       AppConstants.defaultPadding,
-                      12,
+                      8,
                       AppConstants.defaultPadding,
                       12,
                     ),
-                    child: TextFieldWidget(
+                    child: AppSearchField(
                       controller: _searchController,
-                      labelText: 'Search categories',
-                      hintText: 'Search categories…',
-                      prefixIcon: Icons.search_rounded,
-                      suffixIcon: _searchController.text.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.close_rounded, size: 18),
-                              color: textColorSecondary,
-                              onPressed: () {
-                                _searchController.clear();
-                                context
-                                    .read<NotesCategoriesCubit>()
-                                    .clearSearch();
-                              },
-                            )
-                          : null,
-                      onChanged: (v) => context
-                          .read<NotesCategoriesCubit>()
-                          .setSearchQuery(v),
+                      query: state.searchQuery,
+                      labelText: 'Search subjects & categories',
+                      hintText: 'Search notes…',
+                      onChanged: (v) =>
+                          context.read<NotesCategoriesCubit>().setSearchQuery(v),
+                      onClear: () =>
+                          context.read<NotesCategoriesCubit>().clearSearch(),
                     ),
                   ),
                 ),
 
-                // Header Label & Badge
+                // Section Title & Badge
                 if (!isLoading)
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(
-                        AppConstants.defaultPadding,
+                        AppConstants.defaultPadding + 4,
                         0,
-                        AppConstants.defaultPadding,
+                        AppConstants.defaultPadding + 4,
                         12,
                       ),
                       child: Row(
@@ -142,14 +207,14 @@ class _NotesCategoriesScreenState extends State<NotesCategoriesScreen> {
                           Row(
                             children: [
                               Icon(
-                                Icons.folder_copy_rounded,
+                                Icons.folder_special_rounded,
                                 size: 16,
                                 color: textColorSecondary,
                               ),
                               const SizedBox(width: 6),
                               Text(
                                 state.searchQuery.isEmpty
-                                    ? 'ALL CATEGORIES'
+                                    ? 'SUBJECT CATEGORIES'
                                     : 'SEARCH RESULTS',
                                 style: theme.textTheme.labelSmall?.copyWith(
                                   fontWeight: FontWeight.w800,
@@ -174,6 +239,7 @@ class _NotesCategoriesScreenState extends State<NotesCategoriesScreen> {
                     ),
                   ),
 
+                // Body Content States
                 if (isLoading)
                   SliverPadding(
                     padding: const EdgeInsets.symmetric(
@@ -222,13 +288,13 @@ class _NotesCategoriesScreenState extends State<NotesCategoriesScreen> {
                         children: [
                           Icon(
                             Icons.folder_off_rounded,
-                            size: 36,
+                            size: 44,
                             color: textColorSecondary,
                           ),
                           const SizedBox(height: 16),
                           Text(
                             state.searchQuery.isEmpty
-                                ? 'No categories found'
+                                ? 'No Categories Found'
                                 : 'No matches for "${state.searchQuery}"',
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
@@ -237,7 +303,7 @@ class _NotesCategoriesScreenState extends State<NotesCategoriesScreen> {
                           const SizedBox(height: 4),
                           Text(
                             state.searchQuery.isEmpty
-                                ? 'Check back later for new notes'
+                                ? 'Check back soon for uploaded notes'
                                 : '',
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: textColorSecondary,
@@ -253,19 +319,23 @@ class _NotesCategoriesScreenState extends State<NotesCategoriesScreen> {
                       AppConstants.defaultPadding,
                       0,
                       AppConstants.defaultPadding,
-                      16,
+                      24,
                     ),
-                    sliver: SliverList(
+                    sliver: SliverGrid(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 12,
+                        crossAxisSpacing: 12,
+                        childAspectRatio: 1.15,
+                      ),
                       delegate: SliverChildBuilderDelegate((context, index) {
                         final category = categories[index];
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: _CategoryCard(
-                            category: category,
-                            index: index,
-                            cardColor: cardColor,
-                            borderColor: borderColor,
-                          ),
+                        return _CategoryGridCard(
+                          category: category,
+                          index: index,
+                          cardColor: cardColor,
+                          borderColor: borderColor,
                         );
                       }, childCount: categories.length),
                     ),
@@ -279,13 +349,13 @@ class _NotesCategoriesScreenState extends State<NotesCategoriesScreen> {
   }
 }
 
-class _CategoryCard extends StatelessWidget {
+class _CategoryGridCard extends StatelessWidget {
   final String category;
   final int index;
   final Color cardColor;
   final Color borderColor;
 
-  const _CategoryCard({
+  const _CategoryGridCard({
     required this.category,
     required this.index,
     required this.cardColor,
@@ -296,54 +366,110 @@ class _CategoryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final textColorSecondary = isDark
-        ? AppColors.darkBodyTextSecondary
-        : AppColors.lightBodyTextSecondary;
 
-    return GestureDetector(
-      onTap: () =>
-          AppNavigation.push(context, AppRoutes.kNotesRoute, extra: category),
-      child: Container(
-        decoration: BoxDecoration(
-          color: cardColor,
+    final accentColors = [
+      const Color(0xFF6366F1), // Indigo
+      const Color(0xFF0EA5E9), // Sky
+      const Color(0xFF10B981), // Emerald
+      const Color(0xFFF59E0B), // Amber
+      const Color(0xFFEC4899), // Pink
+      const Color(0xFF8B5CF6), // Purple
+    ];
+    final color = accentColors[index % accentColors.length];
+
+    return Container(
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: borderColor),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          onTap: () => AppNavigation.push(
+            context,
+            AppRoutes.kNotesRoute,
+            extra: category,
+            queryParameters: {'category': category},
+          ),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: borderColor),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.folder_rounded,
+                        size: 22,
+                        color: color,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.all(5),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? AppColors.darkNeutral
+                            : AppColors.lightNeutral,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.arrow_forward_rounded,
+                        size: 13,
+                        color: isDark
+                            ? AppColors.darkBodyTextSecondary
+                            : AppColors.lightBodyTextSecondary,
+                      ),
+                    ),
+                  ],
                 ),
-                child: Icon(
-                  Icons.folder_rounded,
-                  size: 22,
-                  color: theme.colorScheme.primary,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      category,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        height: 1.2,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'View Documents',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: color,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Text(
-                  category,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 14,
-                color: textColorSecondary,
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
-    ).animate().fadeIn(delay: (30 + index * 20).ms).slideY(begin: 0.05, end: 0);
+    ).animate().fadeIn(delay: (20 + index * 20).ms).slideY(begin: 0.06, end: 0);
   }
 }

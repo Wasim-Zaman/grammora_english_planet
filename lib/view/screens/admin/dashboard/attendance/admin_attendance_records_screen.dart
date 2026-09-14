@@ -1,8 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gep/core/constants/constants.dart';
 import 'package:gep/cubits/attendance_admin/attendance_admin_cubit.dart';
-import 'package:gep/models/shift/shift.dart';
-import 'package:gep/services/shifts/shifts_service.dart';
+
 import 'package:gep/utils/snackbars.dart';
 import 'package:gep/view/widgets/admin_list_tile.dart';
 import 'package:gep/view/widgets/app_scaffold.dart';
@@ -20,18 +19,11 @@ class AdminAttendanceRecordsScreen extends StatefulWidget {
 
 class _AdminAttendanceRecordsScreenState
     extends State<AdminAttendanceRecordsScreen> {
-  List<Shift> _shifts = [];
-
   @override
   void initState() {
     super.initState();
-    _loadShifts();
+    context.read<AttendanceAdminCubit>().loadShifts();
     context.read<AttendanceAdminCubit>().fetchPage(0);
-  }
-
-  Future<void> _loadShifts() async {
-    final shifts = await ShiftsService().getAllShifts();
-    setState(() => _shifts = shifts);
   }
 
   @override
@@ -122,7 +114,7 @@ class _AdminAttendanceRecordsScreenState
                                 .read<AttendanceAdminCubit>()
                                 .clearFilters(),
                           ),
-                          ..._shifts.map((shift) {
+                          ...state.shifts.map((shift) {
                             final selected = state.shiftFilter == shift.id;
                             return FilterChip(
                               label: Text(shift.name),
@@ -161,8 +153,8 @@ class _AdminAttendanceRecordsScreenState
                           final picked = await showDatePicker(
                             context: context,
                             initialDate: state.dateFilter ?? DateTime.now(),
-                            firstDate: DateTime(2024),
-                            lastDate: DateTime(2030),
+                            firstDate: DateTime(DateTime.now().year),
+                            lastDate: DateTime(DateTime.now().year + 5, 12, 31),
                           );
                           if (picked != null && context.mounted) {
                             context

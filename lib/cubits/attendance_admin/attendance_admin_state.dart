@@ -9,6 +9,7 @@ class AttendanceAdminState extends Equatable {
   final bool hasMore;
   final String? shiftFilter;
   final DateTime? dateFilter;
+  final List<Shift> shifts;
 
   const AttendanceAdminState({
     this.items = const [],
@@ -19,6 +20,7 @@ class AttendanceAdminState extends Equatable {
     this.hasMore = true,
     this.shiftFilter,
     this.dateFilter,
+    this.shifts = const [],
   });
 
   AttendanceAdminState copyWith({
@@ -30,6 +32,7 @@ class AttendanceAdminState extends Equatable {
     bool? hasMore,
     String? shiftFilter,
     DateTime? dateFilter,
+    List<Shift>? shifts,
   }) {
     return AttendanceAdminState(
       items: items ?? this.items,
@@ -40,10 +43,11 @@ class AttendanceAdminState extends Equatable {
       hasMore: hasMore ?? this.hasMore,
       shiftFilter: shiftFilter ?? this.shiftFilter,
       dateFilter: dateFilter ?? this.dateFilter,
+      shifts: shifts ?? this.shifts,
     );
   }
 
   @override
   List<Object?> get props =>
-      [items, isLoading, isRefreshing, error, currentPage, hasMore, shiftFilter, dateFilter];
+      [items, isLoading, isRefreshing, error, currentPage, hasMore, shiftFilter, dateFilter, shifts];
 }
