@@ -63,10 +63,11 @@ class AdminLoginScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 50),
                       TextFieldWidget(
-                        controller: authCubit.phoneController,
-                        labelText: 'Phone Number',
-                        prefixIcon: Icons.phone,
-                        keyboardType: TextInputType.phone,
+                        controller: authCubit.identifierController,
+                        labelText: 'Email or Phone Number',
+                        hintText: 'Enter your email or phone number',
+                        prefixIcon: Icons.person,
+                        keyboardType: TextInputType.emailAddress,
                       ),
                       const SizedBox(height: 16),
                       TextFieldWidget(
