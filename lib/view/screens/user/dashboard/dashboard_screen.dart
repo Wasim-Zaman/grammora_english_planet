@@ -118,7 +118,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           upgrader: Upgrader(
             durationUntilAlertAgain: const Duration(days: 1),
             debugDisplayAlways: true,
-            minAppVersion: '1.0.0',
+            minAppVersion: '2.0.0',
           ),
           child: AppScaffold(
             scaffoldKey: _scaffoldKey,

@@ -43,7 +43,7 @@ class AdminLoginScreen extends StatelessWidget {
                     children: <Widget>[
                       const SizedBox(height: 80),
                       Image.asset(
-                        isDark ? AppIcons.gepLogoDark : AppIcons.gepLogoLight,
+                        isDark ? AppIcons.gepLogoDark : AppIcons.gepLogo,
                         height: 200,
                         width: 200,
                       ),
@@ -109,10 +109,6 @@ class AdminLoginScreen extends StatelessWidget {
                             onPressed: state is AuthLoading
                                 ? null
                                 : () => authCubit.loginAdmin(),
-                            isLoading: state is AuthLoading,
-                            backgroundColor: theme.primaryColor,
-                            foregroundColor: theme.colorScheme.onPrimary,
-                            borderRadius: 8,
                           );
                         },
                       ),

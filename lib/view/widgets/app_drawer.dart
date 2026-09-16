@@ -195,7 +195,7 @@ class AppDrawer extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'GEP Portal • v1.0.0',
+                        'GEP Portal • v2.0.0',
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: isDark
                               ? Colors.white38
