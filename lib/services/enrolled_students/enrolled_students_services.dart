@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:gep/models/enrolled_students.dart';
+import 'package:gep/models/paginated_result.dart';
 import 'package:gep/services/analytics/analytics_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -22,13 +23,39 @@ class EnrolledStudentsServices {
     });
   }
 
+  Future<PaginatedResult<EnrolledStudent>> getStudentsPaginated({
+    required int page,
+    required int pageSize,
+    String? searchQuery,
+  }) async {
+    final from = page * pageSize;
+    final to = from + pageSize;
+
+    var query = _supabase.from(_table).select();
+    if (searchQuery != null && searchQuery.isNotEmpty) {
+      query = query.or('name.ilike.%$searchQuery%,email.ilike.%$searchQuery%');
+    }
+
+    final data = await query.order('name', ascending: true).range(from, to);
+
+    final hasMore = data.length > pageSize;
+    final items = data
+        .take(pageSize)
+        .map((row) => _fromRow(row, row['id']?.toString() ?? ''))
+        .toList();
+
+    return PaginatedResult(items: items, hasMore: hasMore);
+  }
+
   Future<void> addStudent(EnrolledStudent student) async {
     try {
       await _supabase.from(_table).insert(_toRow(student));
 
       // Log the student enrollment
       await _analyticsService.logStudentEnrollment(
-          student.name, student.fatherName);
+        student.name,
+        student.fatherName,
+      );
     } catch (e) {
       log('Error adding student: $e');
       rethrow;
@@ -41,7 +68,9 @@ class EnrolledStudentsServices {
 
       // Log the student update
       await _analyticsService.logStudentUpdate(
-          student.name, student.fatherName);
+        student.name,
+        student.fatherName,
+      );
     } catch (e) {
       log('Error updating student: $e');
       rethrow;
@@ -62,7 +91,9 @@ class EnrolledStudentsServices {
 
       // Log the student deletion
       await _analyticsService.logStudentDeletion(
-          studentData['name'] as String, studentData['father_name'] as String);
+        studentData['name'] as String,
+        studentData['father_name'] as String,
+      );
     } catch (e) {
       log('Error deleting student: $e');
       rethrow;
@@ -70,12 +101,20 @@ class EnrolledStudentsServices {
   }
 
   Future<EnrolledStudent?> getStudentById(String studentId) async {
-    final data =
-        await _supabase.from(_table).select().eq('id', studentId).maybeSingle();
+    final data = await _supabase
+        .from(_table)
+        .select()
+        .eq('id', studentId)
+        .maybeSingle();
     if (data != null) {
       return _fromRow(data, data['id'] as String);
     }
     return null;
+  }
+
+  Future<List<EnrolledStudent>> getEnrolledStudentsByEmail(String email) async {
+    final data = await _supabase.from(_table).select().eq('email', email);
+    return data.map((row) => _fromRow(row, row['id'] as String)).toList();
   }
 
   Future<List<EnrolledStudent>> getStudentsByLevel(String level) async {
@@ -84,8 +123,10 @@ class EnrolledStudentsServices {
   }
 
   Future<int> getTotalStudents() async {
-    final response =
-        await _supabase.from(_table).select().count(CountOption.exact);
+    final response = await _supabase
+        .from(_table)
+        .select()
+        .count(CountOption.exact);
     return response.count;
   }
 
@@ -108,18 +149,31 @@ class EnrolledStudentsServices {
     return response.count;
   }
 
+  Future<String> getStudentIdByEmail(String email) async {
+    final data = await _supabase
+        .from(_table)
+        .select()
+        .eq('email', email)
+        .maybeSingle();
+    if (data != null) {
+      return data['id'] as String;
+    }
+    return '';
+  }
+
   Map<String, dynamic> _toRow(EnrolledStudent student) => {
-        'name': student.name,
-        'email': student.email,
-        'father_name': student.fatherName,
-        'level': student.level,
-        'contact_number': student.contactNumber,
-        'father_contact_number': student.fatherContactNumber,
-        'address': student.address,
-        'date_of_birth': student.dateOfBirth.toIso8601String(),
-        'gender': student.gender,
-        'enrollment_date': student.enrollmentDate.toIso8601String(),
-      };
+    'name': student.name,
+    'email': student.email,
+    'father_name': student.fatherName,
+    'level': student.level,
+    'contact_number': student.contactNumber,
+    'father_contact_number': student.fatherContactNumber,
+    'address': student.address,
+    'date_of_birth': student.dateOfBirth.toIso8601String(),
+    'gender': student.gender,
+    'enrollment_date': student.enrollmentDate.toIso8601String(),
+    'shift_id': student.shiftId,
+  };
 
   EnrolledStudent _fromRow(Map<String, dynamic> row, String id) =>
       EnrolledStudent.fromMap({
@@ -133,5 +187,6 @@ class EnrolledStudentsServices {
         'date_of_birth': row['date_of_birth'],
         'gender': row['gender'],
         'enrollmentDate': row['enrollment_date'],
+        'shift_id': row['shift_id'],
       }, id);
 }

@@ -11,7 +11,9 @@ class AdminAuthService {
 
   static const String _isAdminLoggedInKey = 'isAdminLoggedIn';
 
-  Future<bool> signInAdmin(String phoneNumber, String password) async {
+  /// Signs in admin using email or phone number along with password.
+  /// The [identifier] can be either an email address or a phone number.
+  Future<bool> signInAdmin(String identifier, String password) async {
     try {
       var adminData = await _supabase
           .from(_table)
@@ -23,6 +25,7 @@ class AdminAuthService {
       if (adminData == null) {
         await _supabase.from(_table).insert({
           'id': _adminId,
+          'email': dotenv.env['ADMIN_EMAIL'],
           'phone_number': dotenv.env['ADMIN_PHONE_NUMBER'],
           'password': dotenv.env['ADMIN_PASSWORD'],
         });
@@ -33,7 +36,11 @@ class AdminAuthService {
             .single();
       }
 
-      return adminData['phone_number'] == phoneNumber &&
+      final trimmedIdentifier = identifier.trim();
+      final matchesEmail = adminData['email'] == trimmedIdentifier;
+      final matchesPhone = adminData['phone_number'] == trimmedIdentifier;
+
+      return (matchesEmail || matchesPhone) &&
           adminData['password'] == password;
     } catch (e) {
       log('Error signing in admin: $e');

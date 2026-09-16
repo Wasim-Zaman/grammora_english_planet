@@ -1,11 +1,13 @@
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gep/core/constants/constants.dart';
 import 'package:gep/cubits/auth/auth_cubit.dart';
 import 'package:gep/router/app_navigation.dart';
 import 'package:gep/router/app_routes.dart';
-import 'package:gep/core/constants/constants.dart';
 import 'package:gep/utils/snackbars.dart';
+import 'package:gep/view/widgets/app_button.dart';
+import 'package:gep/view/widgets/app_scaffold.dart';
 import 'package:gep/view/widgets/text_field_widget.dart';
+import 'package:material_ui/material_ui.dart';
 
 class AdminLoginScreen extends StatelessWidget {
   const AdminLoginScreen({super.key});
@@ -22,15 +24,15 @@ class AdminLoginScreen extends StatelessWidget {
             if (state is AuthSuccess && state.isAdmin) {
               TopSnackbar.success(context, 'Login successful');
               AppNavigation.goAndClearStack(
-                  context, AppRoutes.kAdminDashboardRoute);
+                context,
+                AppRoutes.kAdminDashboardRoute,
+              );
             } else if (state is AuthFailure) {
               TopSnackbar.error(context, state.errorMessage);
             }
           },
-          child: Scaffold(
-            appBar: AppBar(
-              title: Text('Admin Login', style: theme.textTheme.headlineSmall),
-            ),
+          child: AppScaffold(
+            title: 'Admin Login',
             body: SafeArea(
               child: SingleChildScrollView(
                 child: Padding(
@@ -41,7 +43,7 @@ class AdminLoginScreen extends StatelessWidget {
                     children: <Widget>[
                       const SizedBox(height: 80),
                       Image.asset(
-                        isDark ? AppIcons.gepLogoDark : AppIcons.gepLogoLight,
+                        isDark ? AppIcons.gepLogoDark : AppIcons.gepLogo,
                         height: 200,
                         width: 200,
                       ),
@@ -61,10 +63,11 @@ class AdminLoginScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 50),
                       TextFieldWidget(
-                        controller: authCubit.phoneController,
-                        labelText: 'Phone Number',
-                        prefixIcon: Icons.phone,
-                        keyboardType: TextInputType.phone,
+                        controller: authCubit.identifierController,
+                        labelText: 'Email or Phone Number',
+                        hintText: 'Enter your email or phone number',
+                        prefixIcon: Icons.person,
+                        keyboardType: TextInputType.emailAddress,
                       ),
                       const SizedBox(height: 16),
                       TextFieldWidget(
@@ -78,7 +81,9 @@ class AdminLoginScreen extends StatelessWidget {
                         listener: (context, state) {
                           if (state is AuthSuccess) {
                             AppNavigation.push(
-                                context, AppRoutes.kAdminDashboardRoute);
+                              context,
+                              AppRoutes.kAdminDashboardRoute,
+                            );
                           }
                         },
                         builder: (context, state) {
@@ -87,8 +92,9 @@ class AdminLoginScreen extends StatelessWidget {
                               padding: const EdgeInsets.only(bottom: 16.0),
                               child: Text(
                                 state.errorMessage,
-                                style:
-                                    TextStyle(color: theme.colorScheme.error),
+                                style: TextStyle(
+                                  color: theme.colorScheme.error,
+                                ),
                                 textAlign: TextAlign.center,
                               ),
                             );
@@ -98,22 +104,11 @@ class AdminLoginScreen extends StatelessWidget {
                       ),
                       BlocBuilder<AuthCubit, AuthState>(
                         builder: (context, state) {
-                          return ElevatedButton(
+                          return AppButton(
+                            label: 'Login',
                             onPressed: state is AuthLoading
                                 ? null
                                 : () => authCubit.loginAdmin(),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: theme.primaryColor,
-                              foregroundColor: theme.colorScheme.onPrimary,
-                              minimumSize: const Size(double.infinity, 50),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8.0),
-                              ),
-                              elevation: 3,
-                            ),
-                            child: state is AuthLoading
-                                ? const CircularProgressIndicator()
-                                : const Text('Login'),
                           );
                         },
                       ),

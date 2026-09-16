@@ -1,4 +1,5 @@
 import 'package:gep/models/banner.dart';
+import 'package:gep/models/paginated_result.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class BannerService {
@@ -11,6 +12,30 @@ class BannerService {
           .map((row) => BannerModel.fromMap(_mapRow(row), row['id'] as String))
           .toList();
     });
+  }
+
+  Future<PaginatedResult<BannerModel>> getBannersPaginated({
+    required int page,
+    required int pageSize,
+    String? searchQuery,
+  }) async {
+    final from = page * pageSize;
+    final to = from + pageSize;
+
+    var query = _supabase.from(_table).select();
+    if (searchQuery != null && searchQuery.isNotEmpty) {
+      query = query.ilike('title', '%$searchQuery%');
+    }
+
+    final data = await query.order('id', ascending: false).range(from, to);
+
+    final hasMore = data.length > pageSize;
+    final items = data
+        .take(pageSize)
+        .map((row) => BannerModel.fromMap(_mapRow(row), row['id'] as String))
+        .toList();
+
+    return PaginatedResult(items: items, hasMore: hasMore);
   }
 
   Future<void> addBanner(BannerModel banner) async {

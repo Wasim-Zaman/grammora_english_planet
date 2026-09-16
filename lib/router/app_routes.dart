@@ -45,6 +45,9 @@ class AppRoutes {
   static const String kTermsAndConditionsRoute = "terms-and-conditions";
   static const String kTermsAndConditionsRoutePath = "/terms-and-conditions";
 
+  static const String kPrivacyPolicyRoute = "privacy-policy";
+  static const String kPrivacyPolicyRoutePath = "/privacy-policy";
+
   // PDF viewer
   static const String kPdfViewerRoute = "pdf-viewer";
   static const String kPdfViewerRoutePath = "/pdf-viewer";
@@ -72,9 +75,6 @@ class AppRoutes {
 
   static const String kManageCoursesRoute = "manage-courses";
   static const String kManageCoursesRoutePath = "/admin/manage-courses";
-
-  static const String kAddCourseOutlineRoute = "add-course-outline";
-  static const String kAddCourseOutlineRoutePath = "/admin/add-course-outline";
 
   static const String kEnrollStudentsManagementRoute =
       "enroll-students-management";
@@ -106,4 +106,20 @@ class AppRoutes {
 
   static const String kAdminAdmissionsRoute = "admin-admissions";
   static const String kAdminAdmissionsRoutePath = "/admin/admissions";
+
+  // Attendance module routes
+  static const String kManageShiftsRoute = "manage-shifts";
+  static const String kManageShiftsRoutePath = "/admin/manage-shifts";
+
+  static const String kQrAttendanceRoute = "qr-attendance";
+  static const String kQrAttendanceRoutePath = "/admin/qr-attendance";
+
+  static const String kAdminAttendanceRecordsRoute = "admin-attendance-records";
+  static const String kAdminAttendanceRecordsRoutePath = "/admin/attendance-records";
+
+  static const String kScanAttendanceRoute = "scan-attendance";
+  static const String kScanAttendanceRoutePath = "/scan-attendance";
+
+  static const String kStudentAttendanceRoute = "student-attendance";
+  static const String kStudentAttendanceRoutePath = "/student-attendance";
 }

@@ -9,7 +9,7 @@ package="com.sairatec.gep"
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" /> 
     
     <application
-        android:label="SELC"
+        android:label="GEP"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
         <activity
@@ -52,6 +52,13 @@ package="com.sairatec.gep"
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
+        </intent>
+        <!-- Required for Google Sign-In on Android 11+ (API 30+) -->
+        <package android:name="com.google.android.gms" />
+        <package android:name="com.android.vending" />
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
         </intent>
     </queries>
 </manifest>

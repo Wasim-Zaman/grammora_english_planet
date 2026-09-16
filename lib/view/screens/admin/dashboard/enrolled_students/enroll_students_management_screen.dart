@@ -1,35 +1,27 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:gep/services/analytics/analytics_service.dart';
-import 'package:gep/services/enrolled_students/enrolled_students_services.dart';
 import 'package:gep/view/screens/admin/dashboard/enrolled_students/students_list_tab_screen.dart';
 import 'package:gep/view/screens/admin/dashboard/enrolled_students/students_states_tab.dart';
+import 'package:gep/view/widgets/app_scaffold.dart';
 
 class EnrollStudentsManagementScreen extends StatelessWidget {
-  final EnrolledStudentsServices _enrolledStudentsServices =
-      EnrolledStudentsServices(AnalyticsService());
-
-  EnrollStudentsManagementScreen({super.key});
+  const EnrollStudentsManagementScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
       length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Enrolled Students'),
-          bottom: const TabBar(
-            tabs: [
-              Tab(text: 'Students List'),
-              Tab(text: 'Statistics'),
-            ],
-          ),
+      child: AppScaffold(
+        title: 'Enrolled Students',
+        bottom: const TabBar(
+          tabs: [
+            Tab(text: 'Students List'),
+            Tab(text: 'Statistics'),
+          ],
         ),
-        body: TabBarView(
+        body: const TabBarView(
           children: [
-            StudentsListTab(
-                enrolledStudentsServices: _enrolledStudentsServices),
-            StudentsStatsTab(
-                enrolledStudentsServices: _enrolledStudentsServices),
+            StudentsListTab(),
+            StudentsStatsTab(),
           ],
         ),
       ),

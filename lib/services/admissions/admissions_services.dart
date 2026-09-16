@@ -1,4 +1,5 @@
 import 'package:gep/models/admission_announcement.dart';
+import 'package:gep/models/paginated_result.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AdmissionsService {
@@ -27,6 +28,36 @@ class AdmissionsService {
               }))
           .toList();
     });
+  }
+
+  Future<PaginatedResult<AdmissionAnnouncement>> getAnnouncementsPaginated({
+    required int page,
+    required int pageSize,
+    String? searchQuery,
+  }) async {
+    final from = page * pageSize;
+    final to = from + pageSize;
+
+    var query = _supabase.from(_table).select();
+    if (searchQuery != null && searchQuery.isNotEmpty) {
+      query = query.ilike('title', '%$searchQuery%');
+    }
+
+    final data = await query.order('start_date', ascending: false).range(from, to);
+
+    final hasMore = data.length > pageSize;
+    final items = data
+        .take(pageSize)
+        .map((row) => AdmissionAnnouncement.fromMap({
+              'id': row['id'],
+              'title': row['title'],
+              'startDate': row['start_date'],
+              'endDate': row['end_date'],
+              'details': row['details'],
+            }))
+        .toList();
+
+    return PaginatedResult(items: items, hasMore: hasMore);
   }
 
   // Update

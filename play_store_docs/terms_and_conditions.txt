@@ -1,0 +1,38 @@
+Terms and Conditions for GEP (Gramora English Planet)
+Last updated: September 14, 2026
+
+1. Acceptance of Terms
+By downloading, installing, or using the GEP (Gramora English Planet) application, you agree to be bound by these Terms and Conditions. If you do not agree, please do not use the app.
+
+2. About GEP
+GEP is an English learning platform developed for Gramora English Planet. The app provides educational content, course outlines, notes, admissions information, attendance tracking, and institute updates for enrolled students and prospective learners.
+
+3. User Accounts
+You may sign in using Google Sign-In. You are responsible for maintaining the confidentiality of your account and for all activities that occur under your account. Admin accounts have additional management privileges and responsibilities.
+
+4. Educational Content
+All content, including notes, playlists, course outlines, and updates, is provided for educational purposes only. Users may view content for personal learning but may not redistribute, reproduce, or use it for commercial purposes without written permission.
+
+5. Student Information
+Personal information such as name, contact details, attendance records, and enrollment data may be collected and handled in accordance with our Privacy Policy. This information is used solely for educational and administrative purposes.
+
+6. Location Services
+The app may use location services to display the institute location and enable navigation through Google Maps. Location data is used only for these purposes and is not stored or tracked beyond what is necessary.
+
+7. Attendance and QR Code Scanning
+Students may scan QR codes to mark attendance. Any attempt to manipulate, spoof, or falsify attendance records is strictly prohibited and may result in account suspension.
+
+8. Third-Party Services
+The app integrates with third-party services including Google Sign-In, Google Maps, YouTube, Firebase, and Supabase. Your use of these services is subject to their respective terms and privacy policies.
+
+9. User Conduct
+Users must not upload, share, or create inappropriate, illegal, harmful, or offensive content. Administrators reserve the right to remove content, restrict access, or terminate accounts for violations.
+
+10. Updates to Terms
+We may update these Terms and Conditions at any time. Continued use of the app after changes constitutes acceptance of the revised terms. Please review this page periodically.
+
+11. Termination
+We reserve the right to suspend or terminate access to the app for violations of these terms, fraudulent activity, or any other reason deemed necessary to protect the integrity of the platform.
+
+12. Contact Us
+For questions or concerns about these Terms and Conditions, please contact Gramora English Planet administration through the About Me section or institute contact channels.
