@@ -32,7 +32,7 @@ android {
         applicationId "com.sairatec.gep"
         minSdkVersion flutter.minSdkVersion
         targetSdkVersion flutter.targetSdkVersion
-        versionCode 10
+        versionCode 11
         versionName "2.0.0"
         // Uncomment if you need multidex support
         multiDexEnabled true
