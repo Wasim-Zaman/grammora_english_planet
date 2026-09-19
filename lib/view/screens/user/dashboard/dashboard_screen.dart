@@ -3,6 +3,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gep/view/widgets/app_scaffold.dart';
+import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:upgrader/upgrader.dart';
@@ -111,8 +112,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return BlocBuilder<AuthCubit, AuthState>(
       builder: (context, authState) {
-        final isAdminLoggedIn =
-            authState is AuthSuccess ? authState.isAdmin : false;
+        final isAdminLoggedIn = authState is AuthSuccess
+            ? authState.isAdmin
+            : false;
 
         return UpgradeAlert(
           upgrader: Upgrader(
@@ -134,109 +136,137 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                 // Admin Panel Access (only for admins)
                 if (isAdminLoggedIn)
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppConstants.defaultPadding,
-                    4,
-                    AppConstants.defaultPadding,
-                    8,
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppConstants.defaultPadding,
+                        4,
+                        AppConstants.defaultPadding,
+                        8,
+                      ),
+                      child: _AdminAccessCard(),
+                    ),
                   ),
-                  child: _AdminAccessCard(),
+
+                // Banner Slider
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: BlocProvider.value(
+                      value: _bannerCubit,
+                      child: const BannerSlider(),
+                    ).animate().fadeIn(duration: 350.ms),
+                  ),
                 ),
-              ),
 
-            // Banner Slider
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: BlocProvider.value(
-                  value: _bannerCubit,
-                  child: const BannerSlider(),
-                ).animate().fadeIn(duration: 350.ms),
-              ),
-            ),
+                // Announcement Strip
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 2, bottom: 8),
+                    child: AnnouncementStrip(),
+                  ),
+                ),
 
-            // Announcement Strip
-            const SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.only(top: 2, bottom: 8),
-                child: AnnouncementStrip(),
-              ),
-            ),
+                // Quick Actions
+                const SliverToBoxAdapter(
+                  child: _SectionHeader(
+                    icon: Icons.bolt_rounded,
+                    title: 'QUICK ACTIONS',
+                  ),
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppConstants.defaultPadding,
+                  ),
+                  sliver: SliverToBoxAdapter(
+                    child: Row(
+                      children: [
+                        for (var i = 0; i < featured.length; i++) ...[
+                          if (i > 0) const SizedBox(width: 12),
+                          Expanded(
+                            child: _FeaturedActionCard(
+                              service: featured[i],
+                              index: i,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
 
-            // Quick Actions
-            const SliverToBoxAdapter(
-              child: _SectionHeader(
-                icon: Icons.bolt_rounded,
-                title: 'QUICK ACTIONS',
-              ),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppConstants.defaultPadding,
-              ),
-              sliver: SliverToBoxAdapter(
-                child: Row(
-                  children: [
-                    for (var i = 0; i < featured.length; i++) ...[
-                      if (i > 0) const SizedBox(width: 12),
-                      Expanded(
-                        child: _FeaturedActionCard(
-                          service: featured[i],
-                          index: i,
+                // Explore — remaining services
+                const SliverToBoxAdapter(
+                  child: _SectionHeader(
+                    icon: Icons.grid_view_rounded,
+                    title: 'EXPLORE',
+                  ),
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppConstants.defaultPadding,
+                  ),
+                  sliver: SliverGrid(
+                    gridDelegate:
+                        const SliverGridDelegateWithMaxCrossAxisExtent(
+                          maxCrossAxisExtent: 100,
+                          mainAxisSpacing: 10,
+                          crossAxisSpacing: 10,
+                          childAspectRatio: 1.0,
+                        ),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) =>
+                          _ServiceTile(service: rest[index], index: index),
+                      childCount: rest.length,
+                    ),
+                  ),
+                ),
+
+                // Enrollment Insights
+                SliverToBoxAdapter(
+                  child: _SectionHeader(
+                    icon: Icons.analytics_rounded,
+                    title: 'ENROLLMENT INSIGHTS',
+                    trailing: GestureDetector(
+                      onTap: () => AppNavigation.push(
+                        context,
+                        AppRoutes.kEnrolledStudentsRoute,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'View All',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: AppColors.secondary,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(width: 2),
+                            const Icon(
+                              Icons.chevron_right_rounded,
+                              size: 16,
+                              color: AppColors.secondary,
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ],
+                    ),
+                  ),
                 ),
-              ),
-            ),
-
-            // Explore — remaining services
-            const SliverToBoxAdapter(
-              child: _SectionHeader(
-                icon: Icons.grid_view_rounded,
-                title: 'EXPLORE',
-              ),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppConstants.defaultPadding,
-              ),
-              sliver: SliverGrid(
-                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                  maxCrossAxisExtent: 100,
-                  mainAxisSpacing: 10,
-                  crossAxisSpacing: 10,
-                  childAspectRatio: 1.0,
+                SliverToBoxAdapter(
+                  child: const _InsightCard()
+                      .animate()
+                      .fadeIn(delay: 200.ms)
+                      .slideY(begin: 0.05, end: 0),
                 ),
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) =>
-                      _ServiceTile(service: rest[index], index: index),
-                  childCount: rest.length,
-                ),
-              ),
+                const SliverToBoxAdapter(child: SizedBox(height: 24)),
+              ],
             ),
-
-            // Enrollment Insight
-            const SliverToBoxAdapter(
-              child: _SectionHeader(
-                icon: Icons.analytics_rounded,
-                title: 'ENROLLMENT INSIGHT',
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: const _InsightCard()
-                  .animate()
-                  .fadeIn(delay: 200.ms)
-                  .slideY(begin: 0.05, end: 0),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 24)),
-          ],
-        ),
-      ),
-    );
+          ),
+        );
       },
     );
   }
@@ -517,10 +547,15 @@ class _Service {
 }
 
 class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.icon, required this.title});
+  const _SectionHeader({
+    required this.icon,
+    required this.title,
+    this.trailing,
+  });
 
   final IconData icon;
   final String title;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -547,6 +582,7 @@ class _SectionHeader extends StatelessWidget {
                   : AppColors.lightBodyTextSecondary,
             ),
           ),
+          if (trailing != null) ...[const Spacer(), trailing!],
         ],
       ),
     );
@@ -709,6 +745,24 @@ class _ServiceTile extends StatelessWidget {
   }
 }
 
+enum _EnrollmentTimeRange { rolling6Months, thisYear }
+
+class _MonthEnrollmentSlot {
+  final String label;
+  final String fullLabel;
+  final int year;
+  final int month;
+  final int count;
+
+  const _MonthEnrollmentSlot({
+    required this.label,
+    required this.fullLabel,
+    required this.year,
+    required this.month,
+    required this.count,
+  });
+}
+
 class _InsightCard extends StatefulWidget {
   const _InsightCard();
 
@@ -717,15 +771,7 @@ class _InsightCard extends StatefulWidget {
 }
 
 class _InsightCardState extends State<_InsightCard> {
-  static const List<String> _months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-  ];
-
+  _EnrollmentTimeRange _timeRange = _EnrollmentTimeRange.rolling6Months;
   late final Stream<List<EnrolledStudent>> _stream;
 
   @override
@@ -746,101 +792,233 @@ class _InsightCardState extends State<_InsightCard> {
       ),
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkCard : AppColors.lightCard,
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(18.0),
         child: StreamBuilder<List<EnrolledStudent>>(
           stream: _stream,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const SizedBox(
-                height: 140,
-                child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-              );
+              return _buildLoadingSkeleton(isDark);
             }
 
             if (snapshot.hasError) {
-              return const SizedBox(
-                height: 140,
-                child: Center(child: Text('Unable to load enrollment data.')),
-              );
-            }
-
-            final students = snapshot.data ?? [];
-            final now = DateTime.now();
-            final counts = List.filled(6, 0);
-            for (final student in students) {
-              if (student.enrollmentDate.year == now.year &&
-                  student.enrollmentDate.month <= 6) {
-                counts[student.enrollmentDate.month - 1]++;
-              }
-            }
-            final spots = List.generate(
-              6,
-              (i) => FlSpot(i.toDouble(), counts[i].toDouble()),
-            );
-            final maxCount = counts.reduce((a, b) => a > b ? a : b);
-            final maxY = (maxCount + 1).toDouble();
-
-            final thisMonthIndex = now.month - 1;
-            final thisMonthCount = (thisMonthIndex >= 0 && thisMonthIndex < 6)
-                ? counts[thisMonthIndex]
-                : 0;
-            final lastMonthIndex = thisMonthIndex - 1;
-            final lastMonthCount = (lastMonthIndex >= 0 && lastMonthIndex < 6)
-                ? counts[lastMonthIndex]
-                : 0;
-            final change = lastMonthCount == 0
-                ? (thisMonthCount == 0 ? 0.0 : 100.0)
-                : ((thisMonthCount - lastMonthCount) / lastMonthCount) * 100;
-            final monthsElapsed = now.month.clamp(1, 6);
-            final avgPerMonth =
-                counts.take(monthsElapsed).fold<int>(0, (a, b) => a + b) /
-                monthsElapsed;
-
-            if (students.isEmpty) {
               return SizedBox(
-                height: 140,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.insights_rounded,
-                      size: 36,
-                      color: isDark
-                          ? AppColors.darkBodyTextSecondary
-                          : AppColors.lightBodyTextSecondary,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'No enrollments yet',
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
+                height: 160,
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.error_outline_rounded,
+                        color: AppColors.error,
+                        size: 32,
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Student data will appear here',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: isDark
-                            ? AppColors.darkBodyTextSecondary
-                            : AppColors.lightBodyTextSecondary,
+                      const SizedBox(height: 8),
+                      Text(
+                        'Unable to load enrollment data.',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: isDark
+                              ? AppColors.darkBodyTextSecondary
+                              : AppColors.lightBodyTextSecondary,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               );
             }
 
+            final students = snapshot.data ?? [];
+            if (students.isEmpty) {
+              return _buildEmptyState(theme, isDark);
+            }
+
+            final now = DateTime.now();
+            final currentYear = now.year;
+            final currentMonth = now.month;
+
+            // Accurate Month-over-Month (MoM) metrics
+            final thisMonthCount = students
+                .where(
+                  (s) =>
+                      s.enrollmentDate.year == currentYear &&
+                      s.enrollmentDate.month == currentMonth,
+                )
+                .length;
+
+            final lastMonthNum = currentMonth == 1 ? 12 : currentMonth - 1;
+            final lastMonthYear = currentMonth == 1
+                ? currentYear - 1
+                : currentYear;
+            final lastMonthCount = students
+                .where(
+                  (s) =>
+                      s.enrollmentDate.year == lastMonthYear &&
+                      s.enrollmentDate.month == lastMonthNum,
+                )
+                .length;
+
+            final String momText;
+            final IconData momIcon;
+            final Color momColor;
+            if (lastMonthCount == 0 && thisMonthCount == 0) {
+              momText = '0%';
+              momIcon = Icons.remove_rounded;
+              momColor = isDark
+                  ? AppColors.darkBodyTextSecondary
+                  : AppColors.lightBodyTextSecondary;
+            } else if (lastMonthCount == 0) {
+              momText = '+$thisMonthCount new';
+              momIcon = Icons.arrow_upward_rounded;
+              momColor = AppColors.success;
+            } else {
+              final diff = thisMonthCount - lastMonthCount;
+              final pct = (diff / lastMonthCount) * 100;
+              if (pct > 0) {
+                momText = '+${pct.toStringAsFixed(0)}%';
+                momIcon = Icons.arrow_upward_rounded;
+                momColor = AppColors.success;
+              } else if (pct < 0) {
+                momText = '${pct.toStringAsFixed(0)}%';
+                momIcon = Icons.arrow_downward_rounded;
+                momColor = AppColors.error;
+              } else {
+                momText = '0%';
+                momIcon = Icons.remove_rounded;
+                momColor = isDark
+                    ? AppColors.darkBodyTextSecondary
+                    : AppColors.lightBodyTextSecondary;
+              }
+            }
+
+            // Current year to date total
+            final thisYearCount = students
+                .where((s) => s.enrollmentDate.year == currentYear)
+                .length;
+
+            // Generate slots for selected time range
+            final List<_MonthEnrollmentSlot> slots = [];
+            if (_timeRange == _EnrollmentTimeRange.rolling6Months) {
+              for (int i = 0; i < 6; i++) {
+                final offset = 5 - i;
+                var m = currentMonth - offset;
+                var y = currentYear;
+                while (m <= 0) {
+                  m += 12;
+                  y -= 1;
+                }
+                final dt = DateTime(y, m, 1);
+                final count = students
+                    .where(
+                      (s) =>
+                          s.enrollmentDate.year == y &&
+                          s.enrollmentDate.month == m,
+                    )
+                    .length;
+                slots.add(
+                  _MonthEnrollmentSlot(
+                    label: DateFormat.MMM().format(dt),
+                    fullLabel: DateFormat('MMM yyyy').format(dt),
+                    year: y,
+                    month: m,
+                    count: count,
+                  ),
+                );
+              }
+            } else {
+              for (int m = 1; m <= 12; m++) {
+                final dt = DateTime(currentYear, m, 1);
+                final count = students
+                    .where(
+                      (s) =>
+                          s.enrollmentDate.year == currentYear &&
+                          s.enrollmentDate.month == m,
+                    )
+                    .length;
+                slots.add(
+                  _MonthEnrollmentSlot(
+                    label: DateFormat.MMM().format(dt),
+                    fullLabel: DateFormat('MMM yyyy').format(dt),
+                    year: currentYear,
+                    month: m,
+                    count: count,
+                  ),
+                );
+              }
+            }
+
+            final spots = List.generate(
+              slots.length,
+              (i) => FlSpot(i.toDouble(), slots[i].count.toDouble()),
+            );
+
+            final maxCountInWindow = slots
+                .map((s) => s.count)
+                .fold<int>(0, (a, b) => a > b ? a : b);
+            final peakSlot = slots.reduce((a, b) => a.count >= b.count ? a : b);
+            final maxY = maxCountInWindow <= 0
+                ? 5.0
+                : (maxCountInWindow * 1.3).ceilToDouble();
+
+            // Monthly Average in range
+            final double avgPerMonth;
+            if (_timeRange == _EnrollmentTimeRange.rolling6Months) {
+              final totalInWindow = slots.fold<int>(
+                0,
+                (sum, s) => sum + s.count,
+              );
+              avgPerMonth = totalInWindow / 6.0;
+            } else {
+              final elapsedMonths = currentMonth.clamp(1, 12);
+              final totalElapsed = slots
+                  .take(elapsedMonths)
+                  .fold<int>(0, (sum, s) => sum + s.count);
+              avgPerMonth = totalElapsed / elapsedMonths;
+            }
+
+            // Demographics & Level Insights
+            int maleCount = 0;
+            int femaleCount = 0;
+            final levelCounts = <String, int>{};
+            for (final s in students) {
+              final g = s.gender.trim().toLowerCase();
+              if (g == 'male' || g == 'm') {
+                maleCount++;
+              } else if (g == 'female' || g == 'f') {
+                femaleCount++;
+              }
+              final lvl = s.level.trim();
+              if (lvl.isNotEmpty) {
+                levelCounts[lvl] = (levelCounts[lvl] ?? 0) + 1;
+              }
+            }
+            String? topLevelName;
+            int topLevelCount = 0;
+            levelCounts.forEach((lvl, count) {
+              if (count > topLevelCount) {
+                topLevelCount = count;
+                topLevelName = lvl;
+              }
+            });
+
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Top Header Row
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
                       child: Column(
@@ -858,14 +1036,14 @@ class _InsightCardState extends State<_InsightCard> {
                           ),
                           const SizedBox(height: 4),
                           Row(
-                            crossAxisAlignment: CrossAxisAlignment.baseline,
-                            textBaseline: TextBaseline.alphabetic,
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Text(
                                 '${students.length}',
                                 style: theme.textTheme.headlineMedium?.copyWith(
                                   fontWeight: FontWeight.w900,
                                   fontSize: 32,
+                                  letterSpacing: -0.5,
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -875,34 +1053,25 @@ class _InsightCardState extends State<_InsightCard> {
                                   vertical: 3,
                                 ),
                                 decoration: BoxDecoration(
-                                  color:
-                                      (change >= 0
-                                              ? AppColors.success
-                                              : AppColors.error)
-                                          .withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(20),
+                                  color: momColor.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: momColor.withValues(alpha: 0.25),
+                                    width: 1,
+                                  ),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Icon(
-                                      change >= 0
-                                          ? Icons.arrow_upward_rounded
-                                          : Icons.arrow_downward_rounded,
-                                      size: 12,
-                                      color: change >= 0
-                                          ? AppColors.success
-                                          : AppColors.error,
-                                    ),
-                                    const SizedBox(width: 2),
+                                    Icon(momIcon, size: 13, color: momColor),
+                                    const SizedBox(width: 3),
                                     Text(
-                                      '${change.abs().toStringAsFixed(0)}%',
+                                      momText,
                                       style: theme.textTheme.labelSmall
                                           ?.copyWith(
-                                            color: change >= 0
-                                                ? AppColors.success
-                                                : AppColors.error,
-                                            fontWeight: FontWeight.bold,
+                                            color: momColor,
+                                            fontWeight: FontWeight.w700,
+                                            fontSize: 11,
                                           ),
                                     ),
                                   ],
@@ -910,109 +1079,493 @@ class _InsightCardState extends State<_InsightCard> {
                               ),
                             ],
                           ),
+                          Text(
+                            'Active Student Database',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: isDark
+                                  ? AppColors.darkBodyTextSecondary
+                                  : AppColors.lightBodyTextSecondary,
+                              fontSize: 11,
+                            ),
+                          ),
                         ],
                       ),
                     ),
-                    SizedBox(
-                      width: 110,
-                      height: 50,
-                      child: LineChart(
-                        LineChartData(
-                          gridData: const FlGridData(show: false),
-                          titlesData: const FlTitlesData(show: false),
-                          borderData: FlBorderData(show: false),
-                          minX: 0,
-                          maxX: 5,
-                          minY: 0,
-                          maxY: maxY,
-                          lineTouchData: const LineTouchData(enabled: false),
-                          lineBarsData: [
-                            LineChartBarData(
-                              spots: spots,
-                              isCurved: true,
-                              color: accentColor,
-                              barWidth: 3,
-                              dotData: const FlDotData(show: false),
-                              belowBarData: BarAreaData(
-                                show: true,
-                                gradient: LinearGradient(
-                                  colors: [
-                                    accentColor.withValues(alpha: 0.35),
-                                    accentColor.withValues(alpha: 0.0),
-                                  ],
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                    // Time Range Selector Pill
+                    _buildRangeSelector(isDark),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 18),
+
+                // Interactive Chart Section
+                SizedBox(
+                  height: 140,
+                  child: LineChart(
+                    LineChartData(
+                      lineTouchData: LineTouchData(
+                        enabled: true,
+                        handleBuiltInTouches: true,
+                        touchTooltipData: LineTouchTooltipData(
+                          getTooltipColor: (_) =>
+                              isDark ? AppColors.darkCard : AppColors.lightCard,
+                          tooltipBorder: BorderSide(
+                            color: isDark
+                                ? AppColors.darkBorder
+                                : AppColors.lightBorder,
+                          ),
+                          tooltipBorderRadius: BorderRadius.circular(8),
+                          fitInsideHorizontally: true,
+                          fitInsideVertically: true,
+                          getTooltipItems: (touchedSpots) {
+                            return touchedSpots.map((spot) {
+                              final index = spot.spotIndex;
+                              if (index < 0 || index >= slots.length) {
+                                return null;
+                              }
+                              final slot = slots[index];
+                              return LineTooltipItem(
+                                '${slot.fullLabel}\n',
+                                TextStyle(
+                                  color: isDark
+                                      ? AppColors.darkBodyTextSecondary
+                                      : AppColors.lightBodyTextSecondary,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                children: [
+                                  TextSpan(
+                                    text: '${spot.y.toInt()} enrolled',
+                                    style: TextStyle(
+                                      color: accentColor,
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }).toList();
+                          },
+                        ),
+                      ),
+                      gridData: FlGridData(
+                        show: true,
+                        drawVerticalLine: false,
+                        horizontalInterval: maxY <= 5
+                            ? 1
+                            : (maxY / 4).ceilToDouble(),
+                        getDrawingHorizontalLine: (value) => FlLine(
+                          color:
+                              (isDark
+                                      ? AppColors.darkBorder
+                                      : AppColors.lightBorder)
+                                  .withValues(alpha: 0.5),
+                          strokeWidth: 1,
+                          dashArray: const [4, 4],
+                        ),
+                      ),
+                      titlesData: FlTitlesData(
+                        show: true,
+                        rightTitles: const AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
+                        topTitles: const AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
+                        leftTitles: const AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
+                        bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 22,
+                            interval: 1,
+                            getTitlesWidget: (value, meta) {
+                              final index = value.toInt();
+                              if (index < 0 || index >= slots.length) {
+                                return const SizedBox.shrink();
+                              }
+                              final slot = slots[index];
+                              final isCurrentMonth =
+                                  slot.year == currentYear &&
+                                  slot.month == currentMonth;
+
+                              return Padding(
+                                padding: const EdgeInsets.only(top: 6.0),
+                                child: Text(
+                                  slot.label,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize:
+                                        _timeRange ==
+                                            _EnrollmentTimeRange.thisYear
+                                        ? 9.0
+                                        : 11.0,
+                                    fontWeight: isCurrentMonth
+                                        ? FontWeight.w800
+                                        : FontWeight.w500,
+                                    color: isCurrentMonth
+                                        ? accentColor
+                                        : (isDark
+                                              ? AppColors.darkBodyTextSecondary
+                                              : AppColors
+                                                    .lightBodyTextSecondary),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                      borderData: FlBorderData(show: false),
+                      minX: 0,
+                      maxX: (slots.length - 1).toDouble(),
+                      minY: 0,
+                      maxY: maxY,
+                      lineBarsData: [
+                        LineChartBarData(
+                          spots: spots,
+                          isCurved: true,
+                          curveSmoothness: 0.35,
+                          color: accentColor,
+                          barWidth: 3,
+                          isStrokeCapRound: true,
+                          dotData: FlDotData(
+                            show: true,
+                            getDotPainter: (spot, percent, barData, index) {
+                              final isCurrent =
+                                  index < slots.length &&
+                                  slots[index].year == currentYear &&
+                                  slots[index].month == currentMonth;
+                              return FlDotCirclePainter(
+                                radius: isCurrent ? 4.5 : 3,
+                                color: isCurrent
+                                    ? accentColor
+                                    : (isDark
+                                          ? AppColors.darkCard
+                                          : AppColors.lightCard),
+                                strokeWidth: 2,
+                                strokeColor: accentColor,
+                              );
+                            },
+                          ),
+                          belowBarData: BarAreaData(
+                            show: true,
+                            gradient: LinearGradient(
+                              colors: [
+                                accentColor.withValues(alpha: 0.28),
+                                accentColor.withValues(alpha: 0.0),
+                              ],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 18),
+
+                // KPI Metrics 2x2 Grid for optimal readability & no overflow
                 Row(
                   children: [
                     Expanded(
                       child: _StatChip(
+                        icon: Icons.calendar_today_rounded,
                         label: 'This Month',
                         value: '$thisMonthCount',
-                        progress: maxCount == 0 ? 0 : thisMonthCount / maxCount,
+                        subtitle: DateFormat('MMMM').format(now),
+                        progress: maxCountInWindow == 0
+                            ? 0
+                            : (thisMonthCount / maxCountInWindow).clamp(
+                                0.0,
+                                1.0,
+                              ),
                         color: accentColor,
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: _StatChip(
-                        label: 'Avg / Month',
-                        value: avgPerMonth.toStringAsFixed(1),
-                        progress: maxCount == 0 ? 0 : avgPerMonth / maxCount,
+                        icon: Icons.event_available_rounded,
+                        label: 'This Year ($currentYear)',
+                        value: '$thisYearCount',
+                        subtitle: students.isEmpty
+                            ? '0%'
+                            : '${((thisYearCount / students.length) * 100).toStringAsFixed(0)}% of total',
+                        progress: students.isEmpty
+                            ? 0
+                            : (thisYearCount / students.length).clamp(0.0, 1.0),
                         color: AppColors.info,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _StatChip(
-                        label: 'Peak Month',
-                        value: maxCount == 0
-                            ? '—'
-                            : _months[counts.indexOf(maxCount)],
-                        progress: 1,
-                        color: AppColors.accent,
-                        showBar: false,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 Row(
-                  children: List.generate(_months.length, (i) {
-                    final isCurrent = i == thisMonthIndex;
-                    return Expanded(
-                      child: Text(
-                        _months[i],
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: isCurrent
-                              ? (isDark
-                                    ? AppColors.darkBodyText
-                                    : AppColors.primary)
-                              : (isDark
-                                    ? AppColors.darkBodyTextSecondary
-                                    : AppColors.lightBodyTextSecondary),
-                          fontWeight: isCurrent
-                              ? FontWeight.w800
-                              : FontWeight.w500,
-                        ),
+                  children: [
+                    Expanded(
+                      child: _StatChip(
+                        icon: Icons.speed_rounded,
+                        label: 'Avg / Month',
+                        value: avgPerMonth.toStringAsFixed(1),
+                        subtitle:
+                            _timeRange == _EnrollmentTimeRange.rolling6Months
+                            ? 'Past 6 months'
+                            : 'YTD average',
+                        progress: maxCountInWindow == 0
+                            ? 0
+                            : (avgPerMonth / maxCountInWindow).clamp(0.0, 1.0),
+                        color: AppColors.warning,
                       ),
-                    );
-                  }),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _StatChip(
+                        icon: Icons.emoji_events_rounded,
+                        label: 'Peak Month',
+                        value: peakSlot.count == 0 ? '—' : peakSlot.label,
+                        subtitle: peakSlot.count > 0
+                            ? '${peakSlot.count} students'
+                            : 'No peaks yet',
+                        progress: 1.0,
+                        color: AppColors.accent,
+                        showBar: false,
+                        badge: peakSlot.count > 0 ? '${peakSlot.count}' : null,
+                      ),
+                    ),
+                  ],
                 ),
+
+                // Secondary Demographic / Level highlights
+                if (maleCount > 0 ||
+                    femaleCount > 0 ||
+                    topLevelName != null) ...[
+                  const SizedBox(height: 14),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 9,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppColors.darkNeutral.withValues(alpha: 0.4)
+                          : AppColors.lightNeutral.withValues(alpha: 0.8),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isDark
+                            ? AppColors.darkBorder.withValues(alpha: 0.4)
+                            : AppColors.lightBorder.withValues(alpha: 0.6),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.pie_chart_outline_rounded,
+                          size: 16,
+                          color: accentColor,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            [
+                              if (maleCount > 0 || femaleCount > 0)
+                                'Gender: ${(maleCount / (maleCount + femaleCount) * 100).round()}% M • ${(femaleCount / (maleCount + femaleCount) * 100).round()}% F',
+                              if (topLevelName != null)
+                                'Top: $topLevelName ($topLevelCount)',
+                            ].join('   •   '),
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: isDark
+                                  ? AppColors.darkBodyTextSecondary
+                                  : AppColors.lightBodyTextSecondary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             );
           },
         ),
+      ),
+    );
+  }
+
+  Widget _buildRangeSelector(bool isDark) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkNeutral : AppColors.lightNeutral,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      padding: const EdgeInsets.all(3),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildRangeTab(
+            title: '6M',
+            isSelected: _timeRange == _EnrollmentTimeRange.rolling6Months,
+            isDark: isDark,
+            onTap: () => setState(() {
+              _timeRange = _EnrollmentTimeRange.rolling6Months;
+            }),
+          ),
+          _buildRangeTab(
+            title: 'Year',
+            isSelected: _timeRange == _EnrollmentTimeRange.thisYear,
+            isDark: isDark,
+            onTap: () => setState(() {
+              _timeRange = _EnrollmentTimeRange.thisYear;
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRangeTab({
+    required String title,
+    required bool isSelected,
+    required bool isDark,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? (isDark ? AppColors.darkCard : AppColors.lightCard)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.06),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
+                  ),
+                ]
+              : null,
+        ),
+        child: Text(
+          title,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+            color: isSelected
+                ? AppColors.secondary
+                : (isDark
+                      ? AppColors.darkBodyTextSecondary
+                      : AppColors.lightBodyTextSecondary),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingSkeleton(bool isDark) {
+    return SizedBox(
+      height: 220,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                width: 120,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? AppColors.darkNeutral
+                      : AppColors.lightNeutral,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              Container(
+                width: 70,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? AppColors.darkNeutral
+                      : AppColors.lightNeutral,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkNeutral : AppColors.lightNeutral,
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: List.generate(
+              2,
+              (i) => Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(right: i == 0 ? 8.0 : 0),
+                  child: Container(
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppColors.darkNeutral
+                          : AppColors.lightNeutral,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(ThemeData theme, bool isDark) {
+    return SizedBox(
+      height: 180,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.insights_rounded,
+            size: 40,
+            color: isDark
+                ? AppColors.darkBodyTextSecondary
+                : AppColors.lightBodyTextSecondary,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'No enrollments yet',
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Student enrollment trends and metrics will appear here',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: isDark
+                  ? AppColors.darkBodyTextSecondary
+                  : AppColors.lightBodyTextSecondary,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1024,14 +1577,20 @@ class _StatChip extends StatelessWidget {
     required this.value,
     required this.progress,
     required this.color,
+    this.icon,
+    this.subtitle,
     this.showBar = true,
+    this.badge,
   });
 
   final String label;
   final String value;
   final double progress;
   final Color color;
+  final IconData? icon;
+  final String? subtitle;
   final bool showBar;
+  final String? badge;
 
   @override
   Widget build(BuildContext context) {
@@ -1039,37 +1598,92 @@ class _StatChip extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkNeutral : AppColors.lightNeutral,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark
+              ? AppColors.darkBorder.withValues(alpha: 0.5)
+              : AppColors.lightBorder.withValues(alpha: 0.7),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            value,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                label,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: isDark
+                      ? AppColors.darkBodyTextSecondary
+                      : AppColors.lightBodyTextSecondary,
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (icon != null) Icon(icon, size: 14, color: color),
+            ],
           ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: isDark
-                  ? AppColors.darkBodyTextSecondary
-                  : AppColors.lightBodyTextSecondary,
-              fontSize: 10,
-            ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Text(
+                value,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 18,
+                ),
+              ),
+              if (badge != null) ...[
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    badge!,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      color: color,
+                    ),
+                  ),
+                ),
+              ],
+            ],
           ),
+          if (subtitle != null) ...[
+            const SizedBox(height: 2),
+            Text(
+              subtitle!,
+              style: TextStyle(
+                fontSize: 10,
+                color: isDark
+                    ? AppColors.darkBodyTextSecondary.withValues(alpha: 0.8)
+                    : AppColors.lightBodyTextSecondary.withValues(alpha: 0.8),
+                fontWeight: FontWeight.w500,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
           if (showBar) ...[
             const SizedBox(height: 8),
             ClipRRect(
               borderRadius: BorderRadius.circular(999),
               child: LinearProgressIndicator(
-                value: progress.clamp(0, 1).toDouble(),
-                minHeight: 3,
+                value: progress.clamp(0.0, 1.0),
+                minHeight: 3.5,
                 backgroundColor: isDark
                     ? AppColors.darkBorder
                     : AppColors.lightBorder,
