@@ -262,7 +262,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       .fadeIn(delay: 200.ms)
                       .slideY(begin: 0.05, end: 0),
                 ),
-                const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                const SliverToBoxAdapter(child: SizedBox(height: 16)),
               ],
             ),
           ),
@@ -563,7 +563,7 @@ class _SectionHeader extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 14, 20, 8),
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 6),
       child: Row(
         children: [
           Icon(
@@ -730,12 +730,14 @@ class _ServiceTile extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 6),
-            Text(
-              service.title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.labelMedium?.copyWith(
-                fontWeight: FontWeight.w700,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                service.title,
+                maxLines: 1,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
           ],
@@ -792,20 +794,20 @@ class _InsightCardState extends State<_InsightCard> {
       ),
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkCard : AppColors.lightCard,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: isDark ? 0.16 : 0.03),
+            blurRadius: 12,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(18.0),
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
         child: StreamBuilder<List<EnrolledStudent>>(
           stream: _stream,
           builder: (context, snapshot) {
@@ -815,26 +817,15 @@ class _InsightCardState extends State<_InsightCard> {
 
             if (snapshot.hasError) {
               return SizedBox(
-                height: 160,
+                height: 90,
                 child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.error_outline_rounded,
-                        color: AppColors.error,
-                        size: 32,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Unable to load enrollment data.',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: isDark
-                              ? AppColors.darkBodyTextSecondary
-                              : AppColors.lightBodyTextSecondary,
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    'Unable to load enrollment data.',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: isDark
+                          ? AppColors.darkBodyTextSecondary
+                          : AppColors.lightBodyTextSecondary,
+                    ),
                   ),
                 ),
               );
@@ -851,23 +842,18 @@ class _InsightCardState extends State<_InsightCard> {
 
             // Accurate Month-over-Month (MoM) metrics
             final thisMonthCount = students
-                .where(
-                  (s) =>
-                      s.enrollmentDate.year == currentYear &&
-                      s.enrollmentDate.month == currentMonth,
-                )
+                .where((s) =>
+                    s.enrollmentDate.year == currentYear &&
+                    s.enrollmentDate.month == currentMonth)
                 .length;
 
             final lastMonthNum = currentMonth == 1 ? 12 : currentMonth - 1;
-            final lastMonthYear = currentMonth == 1
-                ? currentYear - 1
-                : currentYear;
+            final lastMonthYear =
+                currentMonth == 1 ? currentYear - 1 : currentYear;
             final lastMonthCount = students
-                .where(
-                  (s) =>
-                      s.enrollmentDate.year == lastMonthYear &&
-                      s.enrollmentDate.month == lastMonthNum,
-                )
+                .where((s) =>
+                    s.enrollmentDate.year == lastMonthYear &&
+                    s.enrollmentDate.month == lastMonthNum)
                 .length;
 
             final String momText;
@@ -921,41 +907,33 @@ class _InsightCardState extends State<_InsightCard> {
                 }
                 final dt = DateTime(y, m, 1);
                 final count = students
-                    .where(
-                      (s) =>
-                          s.enrollmentDate.year == y &&
-                          s.enrollmentDate.month == m,
-                    )
+                    .where((s) =>
+                        s.enrollmentDate.year == y &&
+                        s.enrollmentDate.month == m)
                     .length;
-                slots.add(
-                  _MonthEnrollmentSlot(
-                    label: DateFormat.MMM().format(dt),
-                    fullLabel: DateFormat('MMM yyyy').format(dt),
-                    year: y,
-                    month: m,
-                    count: count,
-                  ),
-                );
+                slots.add(_MonthEnrollmentSlot(
+                  label: DateFormat.MMM().format(dt),
+                  fullLabel: DateFormat('MMM yyyy').format(dt),
+                  year: y,
+                  month: m,
+                  count: count,
+                ));
               }
             } else {
               for (int m = 1; m <= 12; m++) {
                 final dt = DateTime(currentYear, m, 1);
                 final count = students
-                    .where(
-                      (s) =>
-                          s.enrollmentDate.year == currentYear &&
-                          s.enrollmentDate.month == m,
-                    )
+                    .where((s) =>
+                        s.enrollmentDate.year == currentYear &&
+                        s.enrollmentDate.month == m)
                     .length;
-                slots.add(
-                  _MonthEnrollmentSlot(
-                    label: DateFormat.MMM().format(dt),
-                    fullLabel: DateFormat('MMM yyyy').format(dt),
-                    year: currentYear,
-                    month: m,
-                    count: count,
-                  ),
-                );
+                slots.add(_MonthEnrollmentSlot(
+                  label: DateFormat.MMM().format(dt),
+                  fullLabel: DateFormat('MMM yyyy').format(dt),
+                  year: currentYear,
+                  month: m,
+                  count: count,
+                ));
               }
             }
 
@@ -964,21 +942,18 @@ class _InsightCardState extends State<_InsightCard> {
               (i) => FlSpot(i.toDouble(), slots[i].count.toDouble()),
             );
 
-            final maxCountInWindow = slots
-                .map((s) => s.count)
-                .fold<int>(0, (a, b) => a > b ? a : b);
-            final peakSlot = slots.reduce((a, b) => a.count >= b.count ? a : b);
-            final maxY = maxCountInWindow <= 0
-                ? 5.0
-                : (maxCountInWindow * 1.3).ceilToDouble();
+            final maxCountInWindow =
+                slots.map((s) => s.count).fold<int>(0, (a, b) => a > b ? a : b);
+            final peakSlot =
+                slots.reduce((a, b) => a.count >= b.count ? a : b);
+            final maxY =
+                maxCountInWindow <= 0 ? 4.0 : (maxCountInWindow * 1.25).ceilToDouble();
 
             // Monthly Average in range
             final double avgPerMonth;
             if (_timeRange == _EnrollmentTimeRange.rolling6Months) {
-              final totalInWindow = slots.fold<int>(
-                0,
-                (sum, s) => sum + s.count,
-              );
+              final totalInWindow =
+                  slots.fold<int>(0, (sum, s) => sum + s.count);
               avgPerMonth = totalInWindow / 6.0;
             } else {
               final elapsedMonths = currentMonth.clamp(1, 12);
@@ -1015,99 +990,86 @@ class _InsightCardState extends State<_InsightCard> {
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                // Top Header Row
+                // Compact Top Bar: Total + Trend Badge on left, 6M/Year switch on right
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'TOTAL ENROLLED',
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: isDark
-                                  ? AppColors.darkBodyTextSecondary
-                                  : AppColors.lightBodyTextSecondary,
-                              letterSpacing: 1.0,
-                              fontWeight: FontWeight.w700,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        Text(
+                          '${students.length}',
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 24,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'STUDENTS',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: isDark
+                                ? AppColors.darkBodyTextSecondary
+                                : AppColors.lightBodyTextSecondary,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 10,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: momColor.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: momColor.withValues(alpha: 0.25),
+                              width: 0.8,
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
+                              Icon(momIcon, size: 11, color: momColor),
+                              const SizedBox(width: 2),
                               Text(
-                                '${students.length}',
-                                style: theme.textTheme.headlineMedium?.copyWith(
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 32,
-                                  letterSpacing: -0.5,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 3,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: momColor.withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(
-                                    color: momColor.withValues(alpha: 0.25),
-                                    width: 1,
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(momIcon, size: 13, color: momColor),
-                                    const SizedBox(width: 3),
-                                    Text(
-                                      momText,
-                                      style: theme.textTheme.labelSmall
-                                          ?.copyWith(
-                                            color: momColor,
-                                            fontWeight: FontWeight.w700,
-                                            fontSize: 11,
-                                          ),
-                                    ),
-                                  ],
+                                momText,
+                                style: TextStyle(
+                                  color: momColor,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 10,
                                 ),
                               ),
                             ],
                           ),
-                          Text(
-                            'Active Student Database',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: isDark
-                                  ? AppColors.darkBodyTextSecondary
-                                  : AppColors.lightBodyTextSecondary,
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                    // Time Range Selector Pill
-                    _buildRangeSelector(isDark),
+                    _buildCompactRangeSelector(isDark),
                   ],
                 ),
-                const SizedBox(height: 18),
+                const SizedBox(height: 10),
 
-                // Interactive Chart Section
+                // Compact Sparkline (68px height)
                 SizedBox(
-                  height: 140,
+                  height: 68,
                   child: LineChart(
                     LineChartData(
                       lineTouchData: LineTouchData(
                         enabled: true,
                         handleBuiltInTouches: true,
                         touchTooltipData: LineTouchTooltipData(
-                          getTooltipColor: (_) =>
-                              isDark ? AppColors.darkCard : AppColors.lightCard,
+                          getTooltipColor: (_) => isDark
+                              ? AppColors.darkCard
+                              : AppColors.lightCard,
                           tooltipBorder: BorderSide(
                             color: isDark
                                 ? AppColors.darkBorder
@@ -1116,6 +1078,10 @@ class _InsightCardState extends State<_InsightCard> {
                           tooltipBorderRadius: BorderRadius.circular(8),
                           fitInsideHorizontally: true,
                           fitInsideVertically: true,
+                          tooltipPadding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           getTooltipItems: (touchedSpots) {
                             return touchedSpots.map((spot) {
                               final index = spot.spotIndex;
@@ -1124,21 +1090,21 @@ class _InsightCardState extends State<_InsightCard> {
                               }
                               final slot = slots[index];
                               return LineTooltipItem(
-                                '${slot.fullLabel}\n',
+                                '${slot.label}: ',
                                 TextStyle(
                                   color: isDark
                                       ? AppColors.darkBodyTextSecondary
                                       : AppColors.lightBodyTextSecondary,
                                   fontSize: 10,
-                                  fontWeight: FontWeight.w500,
+                                  fontWeight: FontWeight.w600,
                                 ),
                                 children: [
                                   TextSpan(
-                                    text: '${spot.y.toInt()} enrolled',
+                                    text: '${spot.y.toInt()}',
                                     style: TextStyle(
                                       color: accentColor,
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 12,
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 11,
                                     ),
                                   ),
                                 ],
@@ -1147,22 +1113,7 @@ class _InsightCardState extends State<_InsightCard> {
                           },
                         ),
                       ),
-                      gridData: FlGridData(
-                        show: true,
-                        drawVerticalLine: false,
-                        horizontalInterval: maxY <= 5
-                            ? 1
-                            : (maxY / 4).ceilToDouble(),
-                        getDrawingHorizontalLine: (value) => FlLine(
-                          color:
-                              (isDark
-                                      ? AppColors.darkBorder
-                                      : AppColors.lightBorder)
-                                  .withValues(alpha: 0.5),
-                          strokeWidth: 1,
-                          dashArray: const [4, 4],
-                        ),
-                      ),
+                      gridData: const FlGridData(show: false),
                       titlesData: FlTitlesData(
                         show: true,
                         rightTitles: const AxisTitles(
@@ -1177,7 +1128,7 @@ class _InsightCardState extends State<_InsightCard> {
                         bottomTitles: AxisTitles(
                           sideTitles: SideTitles(
                             showTitles: true,
-                            reservedSize: 22,
+                            reservedSize: 16,
                             interval: 1,
                             getTitlesWidget: (value, meta) {
                               final index = value.toInt();
@@ -1187,29 +1138,24 @@ class _InsightCardState extends State<_InsightCard> {
                               final slot = slots[index];
                               final isCurrentMonth =
                                   slot.year == currentYear &&
-                                  slot.month == currentMonth;
+                                      slot.month == currentMonth;
 
-                              return Padding(
-                                padding: const EdgeInsets.only(top: 6.0),
-                                child: Text(
-                                  slot.label,
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize:
-                                        _timeRange ==
-                                            _EnrollmentTimeRange.thisYear
-                                        ? 9.0
-                                        : 11.0,
-                                    fontWeight: isCurrentMonth
-                                        ? FontWeight.w800
-                                        : FontWeight.w500,
-                                    color: isCurrentMonth
-                                        ? accentColor
-                                        : (isDark
-                                              ? AppColors.darkBodyTextSecondary
-                                              : AppColors
-                                                    .lightBodyTextSecondary),
-                                  ),
+                              return Text(
+                                slot.label,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: _timeRange ==
+                                          _EnrollmentTimeRange.thisYear
+                                      ? 8.5
+                                      : 9.5,
+                                  fontWeight: isCurrentMonth
+                                      ? FontWeight.w800
+                                      : FontWeight.w500,
+                                  color: isCurrentMonth
+                                      ? accentColor
+                                      : (isDark
+                                          ? AppColors.darkBodyTextSecondary
+                                          : AppColors.lightBodyTextSecondary),
                                 ),
                               );
                             },
@@ -1227,23 +1173,22 @@ class _InsightCardState extends State<_InsightCard> {
                           isCurved: true,
                           curveSmoothness: 0.35,
                           color: accentColor,
-                          barWidth: 3,
+                          barWidth: 2.5,
                           isStrokeCapRound: true,
                           dotData: FlDotData(
                             show: true,
                             getDotPainter: (spot, percent, barData, index) {
-                              final isCurrent =
-                                  index < slots.length &&
+                              final isCurrent = index < slots.length &&
                                   slots[index].year == currentYear &&
                                   slots[index].month == currentMonth;
                               return FlDotCirclePainter(
-                                radius: isCurrent ? 4.5 : 3,
+                                radius: isCurrent ? 3.5 : 2.2,
                                 color: isCurrent
                                     ? accentColor
                                     : (isDark
-                                          ? AppColors.darkCard
-                                          : AppColors.lightCard),
-                                strokeWidth: 2,
+                                        ? AppColors.darkCard
+                                        : AppColors.lightCard),
+                                strokeWidth: 1.5,
                                 strokeColor: accentColor,
                               );
                             },
@@ -1252,7 +1197,7 @@ class _InsightCardState extends State<_InsightCard> {
                             show: true,
                             gradient: LinearGradient(
                               colors: [
-                                accentColor.withValues(alpha: 0.28),
+                                accentColor.withValues(alpha: 0.25),
                                 accentColor.withValues(alpha: 0.0),
                               ],
                               begin: Alignment.topCenter,
@@ -1264,129 +1209,84 @@ class _InsightCardState extends State<_InsightCard> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 18),
-
-                // KPI Metrics 2x2 Grid for optimal readability & no overflow
-                Row(
-                  children: [
-                    Expanded(
-                      child: _StatChip(
-                        icon: Icons.calendar_today_rounded,
-                        label: 'This Month',
-                        value: '$thisMonthCount',
-                        subtitle: DateFormat('MMMM').format(now),
-                        progress: maxCountInWindow == 0
-                            ? 0
-                            : (thisMonthCount / maxCountInWindow).clamp(
-                                0.0,
-                                1.0,
-                              ),
-                        color: accentColor,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _StatChip(
-                        icon: Icons.event_available_rounded,
-                        label: 'This Year ($currentYear)',
-                        value: '$thisYearCount',
-                        subtitle: students.isEmpty
-                            ? '0%'
-                            : '${((thisYearCount / students.length) * 100).toStringAsFixed(0)}% of total',
-                        progress: students.isEmpty
-                            ? 0
-                            : (thisYearCount / students.length).clamp(0.0, 1.0),
-                        color: AppColors.info,
-                      ),
-                    ),
-                  ],
-                ),
                 const SizedBox(height: 10),
+
+                // Sleek Single-Row Micro-KPI Strip (Takes only ~42px)
                 Row(
                   children: [
                     Expanded(
-                      child: _StatChip(
-                        icon: Icons.speed_rounded,
-                        label: 'Avg / Month',
-                        value: avgPerMonth.toStringAsFixed(1),
-                        subtitle:
-                            _timeRange == _EnrollmentTimeRange.rolling6Months
-                            ? 'Past 6 months'
-                            : 'YTD average',
-                        progress: maxCountInWindow == 0
-                            ? 0
-                            : (avgPerMonth / maxCountInWindow).clamp(0.0, 1.0),
-                        color: AppColors.warning,
+                      child: _CompactStatTile(
+                        label: 'This Mo',
+                        value: '$thisMonthCount',
+                        color: accentColor,
+                        isDark: isDark,
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 6),
                     Expanded(
-                      child: _StatChip(
-                        icon: Icons.emoji_events_rounded,
-                        label: 'Peak Month',
+                      child: _CompactStatTile(
+                        label: 'Year $currentYear',
+                        value: '$thisYearCount',
+                        color: AppColors.info,
+                        isDark: isDark,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: _CompactStatTile(
+                        label: 'Avg / Mo',
+                        value: avgPerMonth.toStringAsFixed(1),
+                        color: AppColors.warning,
+                        isDark: isDark,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: _CompactStatTile(
+                        label: 'Peak',
                         value: peakSlot.count == 0 ? '—' : peakSlot.label,
-                        subtitle: peakSlot.count > 0
-                            ? '${peakSlot.count} students'
-                            : 'No peaks yet',
-                        progress: 1.0,
                         color: AppColors.accent,
-                        showBar: false,
+                        isDark: isDark,
                         badge: peakSlot.count > 0 ? '${peakSlot.count}' : null,
                       ),
                     ),
                   ],
                 ),
 
-                // Secondary Demographic / Level highlights
+                // Ultra-thin footnote for demographics (if available)
                 if (maleCount > 0 ||
                     femaleCount > 0 ||
                     topLevelName != null) ...[
-                  const SizedBox(height: 14),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 9,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? AppColors.darkNeutral.withValues(alpha: 0.4)
-                          : AppColors.lightNeutral.withValues(alpha: 0.8),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isDark
-                            ? AppColors.darkBorder.withValues(alpha: 0.4)
-                            : AppColors.lightBorder.withValues(alpha: 0.6),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.pie_chart_outline_rounded,
+                        size: 12,
+                        color: accentColor.withValues(alpha: 0.8),
                       ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.pie_chart_outline_rounded,
-                          size: 16,
-                          color: accentColor,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            [
-                              if (maleCount > 0 || femaleCount > 0)
-                                'Gender: ${(maleCount / (maleCount + femaleCount) * 100).round()}% M • ${(femaleCount / (maleCount + femaleCount) * 100).round()}% F',
-                              if (topLevelName != null)
-                                'Top: $topLevelName ($topLevelCount)',
-                            ].join('   •   '),
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: isDark
-                                  ? AppColors.darkBodyTextSecondary
-                                  : AppColors.lightBodyTextSecondary,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                      const SizedBox(width: 5),
+                      Flexible(
+                        child: Text(
+                          [
+                            if (maleCount > 0 || femaleCount > 0)
+                              '${(maleCount / (maleCount + femaleCount) * 100).round()}% M • ${(femaleCount / (maleCount + femaleCount) * 100).round()}% F',
+                            if (topLevelName != null)
+                              'Top: $topLevelName ($topLevelCount)',
+                          ].join('   |   '),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w500,
+                            color: isDark
+                                ? AppColors.darkBodyTextSecondary
+                                : AppColors.lightBodyTextSecondary,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ],
               ],
@@ -1397,17 +1297,17 @@ class _InsightCardState extends State<_InsightCard> {
     );
   }
 
-  Widget _buildRangeSelector(bool isDark) {
+  Widget _buildCompactRangeSelector(bool isDark) {
     return Container(
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkNeutral : AppColors.lightNeutral,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(14),
       ),
-      padding: const EdgeInsets.all(3),
+      padding: const EdgeInsets.all(2),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildRangeTab(
+          _buildCompactRangeTab(
             title: '6M',
             isSelected: _timeRange == _EnrollmentTimeRange.rolling6Months,
             isDark: isDark,
@@ -1415,7 +1315,7 @@ class _InsightCardState extends State<_InsightCard> {
               _timeRange = _EnrollmentTimeRange.rolling6Months;
             }),
           ),
-          _buildRangeTab(
+          _buildCompactRangeTab(
             title: 'Year',
             isSelected: _timeRange == _EnrollmentTimeRange.thisYear,
             isDark: isDark,
@@ -1428,7 +1328,7 @@ class _InsightCardState extends State<_InsightCard> {
     );
   }
 
-  Widget _buildRangeTab({
+  Widget _buildCompactRangeTab({
     required String title,
     required bool isSelected,
     required bool isDark,
@@ -1437,18 +1337,18 @@ class _InsightCardState extends State<_InsightCard> {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
         decoration: BoxDecoration(
           color: isSelected
               ? (isDark ? AppColors.darkCard : AppColors.lightCard)
               : Colors.transparent,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.06),
-                    blurRadius: 4,
+                    color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
+                    blurRadius: 3,
                     offset: const Offset(0, 1),
                   ),
                 ]
@@ -1457,13 +1357,13 @@ class _InsightCardState extends State<_InsightCard> {
         child: Text(
           title,
           style: TextStyle(
-            fontSize: 11,
-            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+            fontSize: 10,
+            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
             color: isSelected
                 ? AppColors.secondary
                 : (isDark
-                      ? AppColors.darkBodyTextSecondary
-                      : AppColors.lightBodyTextSecondary),
+                    ? AppColors.darkBodyTextSecondary
+                    : AppColors.lightBodyTextSecondary),
           ),
         ),
       ),
@@ -1472,7 +1372,7 @@ class _InsightCardState extends State<_InsightCard> {
 
   Widget _buildLoadingSkeleton(bool isDark) {
     return SizedBox(
-      height: 220,
+      height: 120,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1480,53 +1380,29 @@ class _InsightCardState extends State<_InsightCard> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                width: 120,
-                height: 28,
+                width: 90,
+                height: 20,
                 decoration: BoxDecoration(
-                  color: isDark
-                      ? AppColors.darkNeutral
-                      : AppColors.lightNeutral,
-                  borderRadius: BorderRadius.circular(8),
+                  color: isDark ? AppColors.darkNeutral : AppColors.lightNeutral,
+                  borderRadius: BorderRadius.circular(6),
                 ),
               ),
               Container(
-                width: 70,
-                height: 24,
+                width: 50,
+                height: 20,
                 decoration: BoxDecoration(
-                  color: isDark
-                      ? AppColors.darkNeutral
-                      : AppColors.lightNeutral,
-                  borderRadius: BorderRadius.circular(12),
+                  color: isDark ? AppColors.darkNeutral : AppColors.lightNeutral,
+                  borderRadius: BorderRadius.circular(10),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 14),
           Expanded(
             child: Container(
               decoration: BoxDecoration(
                 color: isDark ? AppColors.darkNeutral : AppColors.lightNeutral,
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: List.generate(
-              2,
-              (i) => Expanded(
-                child: Padding(
-                  padding: EdgeInsets.only(right: i == 0 ? 8.0 : 0),
-                  child: Container(
-                    height: 50,
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? AppColors.darkNeutral
-                          : AppColors.lightNeutral,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
+                borderRadius: BorderRadius.circular(10),
               ),
             ),
           ),
@@ -1536,30 +1412,23 @@ class _InsightCardState extends State<_InsightCard> {
   }
 
   Widget _buildEmptyState(ThemeData theme, bool isDark) {
-    return SizedBox(
-      height: 180,
-      child: Column(
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12.0),
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
             Icons.insights_rounded,
-            size: 40,
+            size: 24,
             color: isDark
                 ? AppColors.darkBodyTextSecondary
                 : AppColors.lightBodyTextSecondary,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(width: 8),
           Text(
             'No enrollments yet',
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Student enrollment trends and metrics will appear here',
-            textAlign: TextAlign.center,
-            style: theme.textTheme.bodySmall?.copyWith(
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w600,
               color: isDark
                   ? AppColors.darkBodyTextSecondary
                   : AppColors.lightBodyTextSecondary,
@@ -1571,89 +1440,68 @@ class _InsightCardState extends State<_InsightCard> {
   }
 }
 
-class _StatChip extends StatelessWidget {
-  const _StatChip({
+class _CompactStatTile extends StatelessWidget {
+  const _CompactStatTile({
     required this.label,
     required this.value,
-    required this.progress,
     required this.color,
-    this.icon,
-    this.subtitle,
-    this.showBar = true,
+    required this.isDark,
     this.badge,
   });
 
   final String label;
   final String value;
-  final double progress;
   final Color color;
-  final IconData? icon;
-  final String? subtitle;
-  final bool showBar;
+  final bool isDark;
   final String? badge;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkNeutral : AppColors.lightNeutral,
-        borderRadius: BorderRadius.circular(16),
+        color: isDark
+            ? AppColors.darkNeutral.withValues(alpha: 0.5)
+            : AppColors.lightNeutral,
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: isDark
-              ? AppColors.darkBorder.withValues(alpha: 0.5)
-              : AppColors.lightBorder.withValues(alpha: 0.7),
+              ? AppColors.darkBorder.withValues(alpha: 0.4)
+              : AppColors.lightBorder.withValues(alpha: 0.6),
+          width: 0.8,
         ),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                label,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: isDark
-                      ? AppColors.darkBodyTextSecondary
-                      : AppColors.lightBodyTextSecondary,
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.w600,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              if (icon != null) Icon(icon, size: 14, color: color),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              Text(
-                value,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w900,
-                  fontSize: 18,
+              Flexible(
+                child: Text(
+                  value,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 13,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               if (badge != null) ...[
-                const SizedBox(width: 6),
+                const SizedBox(width: 3),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 3, vertical: 0.5),
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
                     badge!,
                     style: TextStyle(
-                      fontSize: 10,
+                      fontSize: 8.5,
                       fontWeight: FontWeight.w800,
                       color: color,
                     ),
@@ -1662,35 +1510,19 @@ class _StatChip extends StatelessWidget {
               ],
             ],
           ),
-          if (subtitle != null) ...[
-            const SizedBox(height: 2),
-            Text(
-              subtitle!,
-              style: TextStyle(
-                fontSize: 10,
-                color: isDark
-                    ? AppColors.darkBodyTextSecondary.withValues(alpha: 0.8)
-                    : AppColors.lightBodyTextSecondary.withValues(alpha: 0.8),
-                fontWeight: FontWeight.w500,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+          const SizedBox(height: 1),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 9,
+              color: isDark
+                  ? AppColors.darkBodyTextSecondary
+                  : AppColors.lightBodyTextSecondary,
+              fontWeight: FontWeight.w500,
             ),
-          ],
-          if (showBar) ...[
-            const SizedBox(height: 8),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(999),
-              child: LinearProgressIndicator(
-                value: progress.clamp(0.0, 1.0),
-                minHeight: 3.5,
-                backgroundColor: isDark
-                    ? AppColors.darkBorder
-                    : AppColors.lightBorder,
-                valueColor: AlwaysStoppedAnimation(color),
-              ),
-            ),
-          ],
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ],
       ),
     );
