@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gep/core/constants/constants.dart';
@@ -10,7 +8,6 @@ import 'package:gep/services/analytics/analytics_service.dart';
 import 'package:gep/view/widgets/app_drawer.dart';
 import 'package:gep/view/widgets/app_scaffold.dart';
 import 'package:gep/view/widgets/grid_item.dart';
-import 'package:lottie/lottie.dart';
 import 'package:marquee/marquee.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -26,77 +23,67 @@ class AdminDashboardScreen extends StatelessWidget {
       {
         'title': 'Manage Notes',
         'subtitle': 'Browse subject-wise notes',
-        'lottieUrl': AppLotties.notes,
         'gradient': AppGradients.notes,
         'routeName': AppRoutes.kAdminNotesCategoriesRoute,
-        'icon': Icons.menu_book_rounded,
+        'icon': AppFeatureIcons.notes,
       },
       {
         'title': 'Manage Courses',
         'subtitle': 'Explore course outlines',
-        'lottieUrl': AppLotties.courses,
         'gradient': AppGradients.courses,
         'routeName': AppRoutes.kManageCoursesRoute,
-        'icon': Icons.school_rounded,
+        'icon': AppFeatureIcons.courses,
       },
     ];
 
     final List<Map<String, dynamic>> managementServices = [
       {
         'title': 'Updates',
-        'lottieUrl': AppLotties.updates,
+        'icon': AppFeatureIcons.updates,
         'gradient': AppGradients.updates,
         'routeName': AppRoutes.kUpdatesManagementRoute,
-        'fallbackIcon': Icons.campaign_rounded,
       },
       {
         'title': 'Admissions',
-        'lottieUrl': AppLotties.admissions,
+        'icon': AppFeatureIcons.admissions,
         'gradient': AppGradients.admissions,
         'routeName': AppRoutes.kAdminAdmissionsRoute,
-        'fallbackIcon': Icons.badge_rounded,
       },
       {
         'title': 'About Me',
-        'lottieUrl': AppLotties.aboutMe,
+        'icon': AppFeatureIcons.aboutMe,
         'gradient': AppGradients.aboutMe,
         'routeName': AppRoutes.kManageAboutMeRoute,
-        'fallbackIcon': Icons.info_rounded,
       },
       {
         'title': 'Banners',
-        'lottieUrl': AppLotties.banners,
+        'icon': AppFeatureIcons.banners,
         'gradient': AppGradients.students,
         'routeName': AppRoutes.kManageBannerRoute,
-        'fallbackIcon': Icons.image_rounded,
       },
       {
         'title': 'Enrollment',
-        'lottieUrl': AppLotties.students,
+        'icon': AppFeatureIcons.students,
         'gradient': AppGradients.terms,
         'routeName': AppRoutes.kEnrollStudentsManagementRoute,
-        'fallbackIcon': Icons.how_to_reg_rounded,
       },
       {
         'title': 'Shifts',
-        'lottieUrl': AppLotties.shift,
+        'icon': AppFeatureIcons.shift,
         'gradient': AppGradients.courses,
         'routeName': AppRoutes.kManageShiftsRoute,
-        'fallbackIcon': Icons.schedule_rounded,
       },
       {
         'title': 'Attendance QR',
-        'lottieUrl': AppLotties.qrCode,
+        'icon': AppFeatureIcons.qrCode,
         'gradient': AppGradients.admissions,
         'routeName': AppRoutes.kQrAttendanceRoute,
-        'fallbackIcon': Icons.qr_code_rounded,
       },
       {
         'title': 'Attendance',
-        'lottieUrl': AppLotties.attendance,
+        'icon': AppFeatureIcons.attendance,
         'gradient': AppGradients.notes,
         'routeName': AppRoutes.kAdminAttendanceRecordsRoute,
-        'fallbackIcon': Icons.fact_check_rounded,
       },
     ];
 
@@ -167,8 +154,7 @@ class AdminDashboardScreen extends StatelessWidget {
                       title: item['title'],
                       gradient: item['gradient'],
                       routeName: item['routeName'],
-                      lottieUrl: item['lottieUrl'],
-                      fallbackIcon: item['fallbackIcon'],
+                      icon: item['icon'],
                     )
                     .animate()
                     .fadeIn(delay: (60 + index * 30).ms)
@@ -429,18 +415,27 @@ class _AdminPrimaryCard extends StatelessWidget {
                     const Spacer(),
                     Align(
                       alignment: Alignment.centerRight,
-                      child: SizedBox(
-                        width: 65,
-                        height: 55,
-                        child: Lottie.asset(
-                          action['lottieUrl'],
-                          fit: BoxFit.contain,
-                          errorBuilder: (_, _, _) => Icon(
+                      child: Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          gradient: action['gradient'],
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(
+                                alpha: isDark ? 0.25 : 0.08,
+                              ),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Icon(
                             action['icon'],
-                            size: 32,
-                            color: isDark
-                                ? AppColors.darkIcon
-                                : AppColors.lightIcon,
+                            size: 26,
+                            color: Colors.white,
                           ),
                         ),
                       ),

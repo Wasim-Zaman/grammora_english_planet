@@ -4,7 +4,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gep/view/widgets/app_scaffold.dart';
 import 'package:intl/intl.dart';
-import 'package:lottie/lottie.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:upgrader/upgrader.dart';
 
@@ -38,47 +37,41 @@ class _DashboardScreenState extends State<DashboardScreen> {
   static const List<_Service> _services = [
     _Service(
       'Notes',
-      AppLotties.notes,
       AppRoutes.kNotesCategoriesRoute,
       AppGradients.notes,
       subtitle: 'Browse subject-wise notes',
-      icon: Icons.menu_book_rounded,
+      icon: AppFeatureIcons.notes,
     ),
     _Service(
       'Courses',
-      AppLotties.courses,
       AppRoutes.kCoursesOutlinesRoute,
       AppGradients.courses,
       subtitle: 'Explore course outlines',
-      icon: Icons.school_rounded,
+      icon: AppFeatureIcons.courses,
     ),
     _Service(
       'Updates',
-      AppLotties.updates,
       AppRoutes.kUpdatesRoute,
       AppGradients.updates,
-      icon: Icons.campaign_rounded,
+      icon: AppFeatureIcons.updates,
     ),
     _Service(
       'Admissions',
-      AppLotties.admissions,
       AppRoutes.kAdmissionsRoute,
       AppGradients.admissions,
-      icon: Icons.badge_rounded,
+      icon: AppFeatureIcons.admissions,
     ),
     _Service(
       'Students',
-      AppLotties.students,
       AppRoutes.kEnrolledStudentsRoute,
       AppGradients.students,
-      icon: Icons.groups_rounded,
+      icon: AppFeatureIcons.students,
     ),
     _Service(
       'About',
-      AppLotties.aboutMe,
       AppRoutes.kAboutMeRoute,
       AppGradients.aboutMe,
-      icon: Icons.info_rounded,
+      icon: AppFeatureIcons.aboutMe,
     ),
   ];
 
@@ -531,7 +524,6 @@ class _HeaderIconButton extends StatelessWidget {
 class _Service {
   const _Service(
     this.title,
-    this.lottie,
     this.route,
     this.gradient, {
     this.subtitle,
@@ -539,7 +531,6 @@ class _Service {
   });
 
   final String title;
-  final String lottie;
   final String route;
   final Gradient gradient;
   final String? subtitle;
@@ -618,14 +609,14 @@ class _FeaturedActionCard extends StatelessWidget {
             child: Stack(
               children: [
                 Positioned(
-                  right: -10,
-                  bottom: -10,
+                  right: -8,
+                  bottom: -8,
                   child: Opacity(
-                    opacity: 0.25,
-                    child: SizedBox(
-                      width: 72,
-                      height: 72,
-                      child: Lottie.asset(service.lottie, fit: BoxFit.contain),
+                    opacity: isDark ? 0.08 : 0.05,
+                    child: Icon(
+                      service.icon,
+                      size: 80,
+                      color: isDark ? Colors.white : AppColors.primary,
                     ),
                   ),
                 ),
@@ -726,7 +717,30 @@ class _ServiceTile extends StatelessWidget {
           children: [
             Expanded(
               child: Center(
-                child: Lottie.asset(service.lottie, fit: BoxFit.contain),
+                child: Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    gradient: service.gradient,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(
+                          alpha: isDark ? 0.25 : 0.08,
+                        ),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Icon(
+                      service.icon,
+                      size: 26,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 6),

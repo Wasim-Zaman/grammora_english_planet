@@ -1,5 +1,4 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:lottie/lottie.dart';
 import 'package:gep/router/app_navigation.dart';
 
 class LearningResourcesSection extends StatelessWidget {
@@ -65,9 +64,14 @@ class LearningResourcesSection extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Expanded(
-                            child: Lottie.asset(
-                              resources[index]['lottieUrl'],
-                              fit: BoxFit.contain,
+                            child: Center(
+                              child: resources[index]['icon'] is IconData
+                                  ? Icon(
+                                      resources[index]['icon'] as IconData,
+                                      size: 40,
+                                      color: Colors.white,
+                                    )
+                                  : const SizedBox.shrink(),
                             ),
                           ),
                           const SizedBox(height: 12),

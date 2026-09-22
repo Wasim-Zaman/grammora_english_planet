@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:iconsax_flutter/iconsax_flutter.dart';
+
 // Images
 class Images {
   static const siginLight = "assets/images/signin_light.png";
@@ -14,21 +16,21 @@ class AppIcons {
   static const signinDark = "assets/icons/signin_dark.png";
 }
 
-class AppLotties {
-  static const aboutMe = "assets/lotties/about_me.json";
-  static const admissions = "assets/lotties/admissions.json";
-  static const attendance = "assets/lotties/attendance.json";
-  static const qrCode = "assets/lotties/qr_code.json";
-  static const banners = "assets/lotties/banners.json";
-  static const courses = "assets/lotties/courses.json";
-  static const location = "assets/lotties/location.json";
-  static const notes = "assets/lotties/notes.json";
-  static const playlist = "assets/lotties/playlist.json";
-  static const shift = "assets/lotties/shift.json";
-  static const students = "assets/lotties/students.json";
-  static const terms = "assets/lotties/terms.json";
-  static const updates = "assets/lotties/updates.json";
-  static const youtube = "assets/lotties/youtube.json";
+class AppFeatureIcons {
+  static const IconData aboutMe = Iconsax.info_circle;
+  static const IconData admissions = Iconsax.card_pos;
+  static const IconData attendance = Iconsax.calendar_tick;
+  static const IconData qrCode = Iconsax.scan_barcode;
+  static const IconData banners = Iconsax.gallery;
+  static const IconData courses = Iconsax.teacher;
+  static const IconData location = Iconsax.location;
+  static const IconData notes = Iconsax.note_2;
+  static const IconData playlist = Iconsax.video_play;
+  static const IconData shift = Iconsax.clock;
+  static const IconData students = Iconsax.profile_2user;
+  static const IconData terms = Iconsax.receipt_item;
+  static const IconData updates = Iconsax.notification_bing;
+  static const IconData youtube = Iconsax.video_circle;
 }
 
 // Colors

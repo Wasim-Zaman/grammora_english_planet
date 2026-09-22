@@ -9,7 +9,6 @@ import 'package:gep/view/widgets/app_scaffold.dart';
 import 'package:gep/view/widgets/app_search_field.dart';
 import 'package:gep/view/widgets/paginated_widget.dart';
 import 'package:gep/view/widgets/placeholder_widget.dart';
-import 'package:lottie/lottie.dart';
 import 'package:material_ui/material_ui.dart';
 
 class CoursesOutlinesScreen extends StatefulWidget {
@@ -229,15 +228,21 @@ class _CoursesOutlinesScreenState extends State<CoursesOutlinesScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Lottie.asset(
-                            AppLotties.courses,
-                            width: 130,
-                            height: 130,
-                            fit: BoxFit.contain,
-                            errorBuilder: (_, _, _) => Icon(
-                              Icons.menu_book_rounded,
-                              size: 48,
-                              color: textColorSecondary,
+                          Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? AppColors.darkNeutral
+                                  : AppColors.lightNeutral,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Center(
+                              child: Icon(
+                                AppFeatureIcons.courses,
+                                size: 40,
+                                color: textColorSecondary,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 12),
