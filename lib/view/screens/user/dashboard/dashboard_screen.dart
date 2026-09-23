@@ -5,7 +5,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gep/view/widgets/app_scaffold.dart';
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:upgrader/upgrader.dart';
 
 import '../../../../core/constants/constants.dart';
 import '../../../../cubits/admin/admin_cubit.dart';
@@ -109,14 +108,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ? authState.isAdmin
             : false;
 
-        return UpgradeAlert(
-          upgrader: Upgrader(
-            durationUntilAlertAgain: const Duration(days: 1),
-            debugDisplayAlways: true,
-            minAppVersion: '2.0.0',
-          ),
-          child: AppScaffold(
-            scaffoldKey: _scaffoldKey,
+        return AppScaffold(
+          scaffoldKey: _scaffoldKey,
             drawer: AppDrawer(isAdminLoggedIn: isAdminLoggedIn),
             backgroundColor: theme.scaffoldBackgroundColor,
             safeAreaBottom: false,
@@ -258,8 +251,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 const SliverToBoxAdapter(child: SizedBox(height: 16)),
               ],
             ),
-          ),
-        );
+          );
       },
     );
   }
