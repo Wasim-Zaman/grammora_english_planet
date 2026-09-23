@@ -1,6 +1,5 @@
 import 'dart:math';
 
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gep/core/constants/constants.dart';
 import 'package:gep/cubits/user_students/user_students_cubit.dart';
@@ -106,7 +105,7 @@ class _EnrolledStudentsScreenState extends State<EnrolledStudentsScreen> {
                     child: TextFieldWidget(
                       controller: _searchController,
                       labelText: 'Search students',
-                      hintText: 'Search students…',
+                      hintText: 'Search by student name…',
                       prefixIcon: Icons.search_rounded,
                       suffixIcon: state.searchQuery.isNotEmpty
                           ? IconButton(
@@ -139,12 +138,12 @@ class _EnrolledStudentsScreenState extends State<EnrolledStudentsScreen> {
                         children: [
                           Row(
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.people_rounded,
                                 size: 16,
-                                color: textColorSecondary,
+                                color: AppColors.secondary,
                               ),
-                              const SizedBox(width: 6),
+                              const SizedBox(width: 8),
                               Text(
                                 state.searchQuery.isEmpty
                                     ? 'ENROLLED STUDENTS'
@@ -158,14 +157,30 @@ class _EnrolledStudentsScreenState extends State<EnrolledStudentsScreen> {
                             ],
                           ),
                           if (students.isNotEmpty)
-                            Badge(
-                              label: Text('${students.length}'),
-                              backgroundColor: isDark
-                                  ? AppColors.darkNeutral
-                                  : AppColors.lightNeutral,
-                              textColor: isDark
-                                  ? AppColors.darkBodyText
-                                  : AppColors.lightBodyText,
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? AppColors.darkNeutral
+                                    : AppColors.lightNeutral,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: borderColor,
+                                  width: 0.5,
+                                ),
+                              ),
+                              child: Text(
+                                '${students.length}',
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark
+                                      ? AppColors.darkBodyText
+                                      : AppColors.lightBodyText,
+                                ),
+                              ),
                             ),
                         ],
                       ),
@@ -220,7 +235,7 @@ class _EnrolledStudentsScreenState extends State<EnrolledStudentsScreen> {
                         children: [
                           Icon(
                             Icons.person_off_rounded,
-                            size: 36,
+                            size: 40,
                             color: textColorSecondary,
                           ),
                           const SizedBox(height: 16),
@@ -236,7 +251,7 @@ class _EnrolledStudentsScreenState extends State<EnrolledStudentsScreen> {
                           Text(
                             state.searchQuery.isEmpty
                                 ? 'Check back later for enrolled students'
-                                : '',
+                                : 'Try searching with a different name',
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: textColorSecondary,
                             ),
@@ -260,9 +275,10 @@ class _EnrolledStudentsScreenState extends State<EnrolledStudentsScreen> {
                           padding: const EdgeInsets.only(bottom: 10),
                           child: _StudentCard(
                             student: student,
-                            index: index,
                             cardColor: cardColor,
                             borderColor: borderColor,
+                            isDark: isDark,
+                            textColorSecondary: textColorSecondary,
                             onTap: () => _showStudentDetails(context, student),
                           ),
                         );
@@ -296,96 +312,191 @@ class _EnrolledStudentsScreenState extends State<EnrolledStudentsScreen> {
 
 class _StudentCard extends StatelessWidget {
   final EnrolledStudent student;
-  final int index;
   final Color cardColor;
   final Color borderColor;
+  final bool isDark;
+  final Color textColorSecondary;
   final VoidCallback onTap;
 
   const _StudentCard({
     required this.student,
-    required this.index,
     required this.cardColor,
     required this.borderColor,
+    required this.isDark,
+    required this.textColorSecondary,
     required this.onTap,
   });
 
+  Color _getColorForName(String name) {
+    if (name.isEmpty) return AppColors.secondary;
+    final hash = name.codeUnits.fold(0, (prev, curr) => prev + curr);
+    final color = AppColors.randomColors[hash % AppColors.randomColors.length];
+    if (color == AppColors.primary && isDark) {
+      return AppColors.secondary;
+    }
+    return color;
+  }
+
   String _getInitials(String name) {
-    final parts = name.split(' ');
+    final trimmed = name.trim();
+    if (trimmed.isEmpty) return '?';
+    final parts = trimmed.split(' ').where((s) => s.isNotEmpty).toList();
     if (parts.length > 1) {
       return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
     }
-    return name.substring(0, min(2, name.length)).toUpperCase();
+    return trimmed.substring(0, min(2, trimmed.length)).toUpperCase();
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final textColorSecondary = isDark
-        ? AppColors.darkBodyTextSecondary
-        : AppColors.lightBodyTextSecondary;
+    final accentColor = _getColorForName(student.name);
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: cardColor,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: borderColor),
-        ),
+    final avatarBgColor = isDark
+        ? accentColor.withValues(alpha: 0.2)
+        : accentColor.withValues(alpha: 0.12);
+
+    final avatarTextColor = isDark
+        ? Color.lerp(accentColor, AppColors.darkBodyText, 0.45)!
+        : accentColor;
+
+    return Material(
+      color: cardColor,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: borderColor, width: 1),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           child: Row(
             children: [
-              CircleAvatar(
-                radius: 26,
-                backgroundColor: theme.colorScheme.primary.withValues(
-                  alpha: 0.1,
+              // Avatar
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: avatarBgColor,
+                  shape: BoxShape.circle,
                 ),
+                alignment: Alignment.center,
                 child: Text(
                   _getInitials(student.name),
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.bold,
+                  style: TextStyle(
+                    color: avatarTextColor,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
                   ),
                 ),
               ),
               const SizedBox(width: 14),
+
+              // Student Details
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
                       student.name,
                       style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
+                        color: isDark
+                            ? AppColors.darkBodyText
+                            : AppColors.lightBodyText,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Level: ${student.level}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: textColorSecondary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Enrolled: ${DateFormat('MMM d, yyyy').format(student.enrollmentDate)}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: textColorSecondary,
-                        fontWeight: FontWeight.w500,
-                      ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        // Level Badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2.5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? AppColors.secondary.withValues(alpha: 0.2)
+                                : AppColors.secondary.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            student.level.isNotEmpty
+                                ? student.level
+                                : 'Enrolled',
+                            style: const TextStyle(
+                              color: AppColors.secondary,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+
+                        // Enrollment Date
+                        Expanded(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.calendar_today_rounded,
+                                size: 11,
+                                color: textColorSecondary,
+                              ),
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: Text(
+                                  DateFormat(
+                                    'MMM d, yyyy',
+                                  ).format(student.enrollmentDate),
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: textColorSecondary,
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right_rounded, color: textColorSecondary),
+              const SizedBox(width: 8),
+
+              // Trailing Action Button
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? AppColors.darkNeutral.withValues(alpha: 0.8)
+                      : AppColors.lightNeutral,
+                  shape: BoxShape.circle,
+                ),
+                alignment: Alignment.center,
+                child: Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 13,
+                  color: isDark ? AppColors.darkBodyText : AppColors.primary,
+                ),
+              ),
             ],
           ),
         ),
       ),
-    ).animate().fadeIn(delay: (30 + index * 20).ms).slideY(begin: 0.05, end: 0);
+    );
   }
 }
 
@@ -395,11 +506,13 @@ class _StudentDetailsCard extends StatelessWidget {
   const _StudentDetailsCard({required this.student});
 
   String _getInitials(String name) {
-    final parts = name.split(' ');
+    final trimmed = name.trim();
+    if (trimmed.isEmpty) return '?';
+    final parts = trimmed.split(' ').where((s) => s.isNotEmpty).toList();
     if (parts.length > 1) {
       return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
     }
-    return name.substring(0, min(2, name.length)).toUpperCase();
+    return trimmed.substring(0, min(2, trimmed.length)).toUpperCase();
   }
 
   @override
@@ -410,19 +523,23 @@ class _StudentDetailsCard extends StatelessWidget {
     final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
 
     return Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.topCenter,
       children: [
         Container(
-          padding: const EdgeInsets.only(
-            top: 80,
-            bottom: 16,
-            left: 16,
-            right: 16,
-          ),
-          margin: const EdgeInsets.only(top: 40),
+          margin: const EdgeInsets.only(top: 36),
+          padding: const EdgeInsets.fromLTRB(20, 48, 20, 20),
           decoration: BoxDecoration(
             color: cardColor,
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: borderColor),
+            border: Border.all(color: borderColor, width: 1),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.08),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -431,39 +548,69 @@ class _StudentDetailsCard extends StatelessWidget {
                 student.name,
                 style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
+                  fontSize: 19,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 3,
+                ),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? AppColors.secondary.withValues(alpha: 0.2)
+                      : AppColors.secondary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  student.level.isNotEmpty ? student.level : 'Enrolled Student',
+                  style: const TextStyle(
+                    color: AppColors.secondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
-              const SizedBox(height: 16),
-              _DetailRow(
-                icon: Icons.school_rounded,
-                label: 'Level',
-                value: student.level,
-              ),
+              const SizedBox(height: 20),
+              Divider(color: borderColor, height: 1),
+              const SizedBox(height: 14),
+
+              // Detail Rows
+              if (student.fatherName.isNotEmpty)
+                _DetailRow(
+                  icon: Icons.person_rounded,
+                  label: "Father's Name",
+                  value: student.fatherName,
+                  isDark: isDark,
+                ),
               if (student.email.isNotEmpty)
                 _DetailRow(
                   icon: Icons.email_rounded,
                   label: 'Email',
                   value: student.email,
+                  isDark: isDark,
                 ),
-              _DetailRow(
-                icon: Icons.person_rounded,
-                label: 'Father',
-                value: student.fatherName,
-              ),
               if (student.contactNumber.isNotEmpty)
                 _DetailRow(
                   icon: Icons.phone_rounded,
                   label: 'Contact',
                   value: student.contactNumber,
+                  isDark: isDark,
                 ),
               _DetailRow(
                 icon: Icons.calendar_today_rounded,
-                label: 'Enrolled',
-                value: DateFormat('MMM d, yyyy').format(student.enrollmentDate),
+                label: 'Enrolled On',
+                value: DateFormat(
+                  'MMMM d, yyyy',
+                ).format(student.enrollmentDate),
+                isDark: isDark,
               ),
-              const SizedBox(height: 16),
+
+              const SizedBox(height: 18),
               Align(
-                alignment: Alignment.bottomRight,
+                alignment: Alignment.centerRight,
                 child: AppTextButton(
                   onPressed: () => Navigator.of(context).pop(),
                   label: 'Close',
@@ -472,16 +619,30 @@ class _StudentDetailsCard extends StatelessWidget {
             ],
           ),
         ),
+
+        // Floating Avatar
         Positioned(
-          left: 0,
-          right: 0,
-          child: CircleAvatar(
-            backgroundColor: theme.colorScheme.primary,
-            radius: 40,
+          top: 0,
+          child: Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              gradient: AppGradients.students,
+              shape: BoxShape.circle,
+              border: Border.all(color: cardColor, width: 4),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.secondary.withValues(alpha: 0.35),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            alignment: Alignment.center,
             child: Text(
               _getInitials(student.name),
               style: const TextStyle(
-                fontSize: 28,
+                fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
@@ -497,17 +658,18 @@ class _DetailRow extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
+  final bool isDark;
 
   const _DetailRow({
     required this.icon,
     required this.label,
     required this.value,
+    required this.isDark,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final textColorSecondary = isDark
         ? AppColors.darkBodyTextSecondary
         : AppColors.lightBodyTextSecondary;
@@ -516,33 +678,42 @@ class _DetailRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          Icon(
-            icon,
-            size: 18,
-            color: isDark ? AppColors.darkIcon : AppColors.primary,
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkNeutral : AppColors.lightNeutral,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            alignment: Alignment.center,
+            child: Icon(icon, size: 16, color: AppColors.secondary),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 12),
           Expanded(
-            child: RichText(
-              text: TextSpan(
-                children: [
-                  TextSpan(
-                    text: '$label: ',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: isDark
-                          ? AppColors.darkBodyText
-                          : AppColors.lightBodyText,
-                    ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  label,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: textColorSecondary,
+                    fontSize: 11,
                   ),
-                  TextSpan(
-                    text: value,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: textColorSecondary,
-                    ),
+                ),
+                const SizedBox(height: 1),
+                Text(
+                  value,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: isDark
+                        ? AppColors.darkBodyText
+                        : AppColors.lightBodyText,
                   ),
-                ],
-              ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
           ),
         ],
