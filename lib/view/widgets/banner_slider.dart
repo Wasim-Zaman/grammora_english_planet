@@ -34,7 +34,7 @@ class BannerSlider extends StatelessWidget {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(14),
               child: AspectRatio(
-                aspectRatio: 2,
+                aspectRatio: 3,
                 child: CarouselSlider(
                   options: CarouselOptions(
                     viewportFraction: 1.0,

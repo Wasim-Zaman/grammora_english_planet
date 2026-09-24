@@ -42,11 +42,7 @@ class AdminLoginScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
                       const SizedBox(height: 80),
-                      Image.asset(
-                        isDark ? AppIcons.gepLogoDark : AppIcons.gepLogo,
-                        height: 200,
-                        width: 200,
-                      ),
+                      Image.asset(AppIcons.gepLogo, height: 200, width: 200),
                       const SizedBox(height: 40),
                       Text(
                         'Admin Login',
@@ -106,6 +102,7 @@ class AdminLoginScreen extends StatelessWidget {
                         builder: (context, state) {
                           return AppButton(
                             label: 'Login',
+                            isLoading: state is AuthLoading,
                             onPressed: state is AuthLoading
                                 ? null
                                 : () => authCubit.loginAdmin(),

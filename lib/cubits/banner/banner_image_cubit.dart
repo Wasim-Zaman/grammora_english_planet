@@ -16,24 +16,34 @@ class BannerImageCubit extends Cubit<BannerImageState> {
     int targetWidth = 1200,
     int targetHeight = 480,
   }) async {
+    if (isClosed) return;
     emit(const BannerImageProcessing());
 
-    final processedImage = await ImageUtils.pickCropAndResizeImage(
-      context: context,
-      targetWidth: targetWidth,
-      targetHeight: targetHeight,
-      // Default standard banner ratio (1200 / 480 = 2.5 ratio)
-      aspectRatio: const CropAspectRatio(ratioX: 5, ratioY: 2),
-    );
+    try {
+      final processedImage = await ImageUtils.pickCropAndResizeImage(
+        context: context,
+        targetWidth: targetWidth,
+        targetHeight: targetHeight,
+        // Default standard banner ratio (1200 / 480 = 2.5 ratio)
+        aspectRatio: const CropAspectRatio(ratioX: 5, ratioY: 2),
+      );
 
-    if (processedImage != null) {
-      emit(BannerImageSuccess(processedImage));
-    } else {
-      emit(const BannerImageInitial());
+      if (isClosed) return;
+
+      if (processedImage != null) {
+        emit(BannerImageSuccess(processedImage));
+      } else {
+        emit(const BannerImageInitial());
+      }
+    } catch (e) {
+      debugPrint('BannerImageCubit: Error picking/processing banner: $e');
+      if (isClosed) return;
+      emit(BannerImageFailure(e.toString()));
     }
   }
 
   void reset() {
+    if (isClosed) return;
     emit(const BannerImageInitial());
   }
 }

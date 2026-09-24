@@ -492,7 +492,7 @@ class _AddEditBannerSheetState extends State<AddEditBannerSheet> {
                                                 ),
                                                 const SizedBox(height: 6),
                                                 Text(
-                                                  'Select Image (1200x480)',
+                                                  'Select Banner Image',
                                                   style: theme.textTheme.bodySmall,
                                                 ),
                                               ],
