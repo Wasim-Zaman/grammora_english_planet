@@ -93,6 +93,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     await _analyticsService.logScreenView('Dashboard');
     if (!mounted) return;
     context.read<AuthCubit>().checkAdminStatus();
+    _bannerCubit.fetchBanners();
   }
 
   @override

@@ -13,10 +13,12 @@ import 'package:gep/utils/snackbars.dart';
 import 'package:gep/view/widgets/app_button.dart';
 import 'package:gep/view/widgets/app_dialog.dart';
 import 'package:gep/view/widgets/app_scaffold.dart';
+import 'package:gep/view/widgets/app_search_field.dart';
 import 'package:gep/view/widgets/cached_image_widget.dart';
 import 'package:gep/view/widgets/paginated_widget.dart';
 import 'package:gep/view/widgets/placeholder_widget.dart';
 import 'package:gep/view/widgets/text_field_widget.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:material_ui/material_ui.dart';
 
 class ManageBannerScreen extends StatefulWidget {
@@ -48,7 +50,7 @@ class _ManageBannerScreenState extends State<ManageBannerScreen> {
     final isDark = theme.brightness == Brightness.dark;
     final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
     final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
-    final textColorSecondary = isDark
+    final secondaryTextColor = isDark
         ? AppColors.darkBodyTextSecondary
         : AppColors.lightBodyTextSecondary;
 
@@ -74,7 +76,7 @@ class _ManageBannerScreenState extends State<ManageBannerScreen> {
               }
             },
             child: AppScaffold(
-              title: 'Banners',
+              title: 'Manage Banners',
               floatingActionButton: isLoading
                   ? null
                   : FloatingActionButton.extended(
@@ -104,7 +106,8 @@ class _ManageBannerScreenState extends State<ManageBannerScreen> {
                           onNext: () => context.read<BannersCubit>().nextPage(),
                           onPageSelected: (page) =>
                               context.read<BannersCubit>().goToPage(page),
-                          onRefresh: () => context.read<BannersCubit>().refresh(),
+                          onRefresh: () =>
+                              context.read<BannersCubit>().refresh(),
                           currentPage: state.currentPage,
                           pageSize: 10,
                         ),
@@ -117,41 +120,35 @@ class _ManageBannerScreenState extends State<ManageBannerScreen> {
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.all(AppConstants.defaultPadding),
                   children: [
+                    // Search Bar
                     Padding(
                       padding: const EdgeInsets.only(bottom: 12),
-                      child: TextFieldWidget(
+                      child: AppSearchField(
                         controller: _searchController,
+                        query: state.searchQuery,
                         labelText: 'Search banners',
                         hintText: 'Search banners…',
-                        prefixIcon: Icons.search_rounded,
-                        suffixIcon: _searchController.text.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.close_rounded, size: 18),
-                                color: textColorSecondary,
-                                onPressed: () {
-                                  _searchController.clear();
-                                  context.read<BannersCubit>().clearSearch();
-                                },
-                              )
-                            : null,
-                        onChanged: (v) =>
-                            context.read<BannersCubit>().setSearchQuery(v),
+                        onChanged: (q) =>
+                            context.read<BannersCubit>().setSearchQuery(q),
+                        onClear: () =>
+                            context.read<BannersCubit>().clearSearch(),
                       ),
                     ),
+
+                    // Section Header
                     Padding(
-                      padding:
-                          const EdgeInsets.only(bottom: 12, left: 4, right: 4),
+                      padding: const EdgeInsets.only(bottom: 12, left: 4, right: 4),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Row(
                             children: [
                               Icon(
-                                Icons.view_carousel_rounded,
+                                Iconsax.gallery,
                                 size: 16,
-                                color: textColorSecondary,
+                                color: secondaryTextColor,
                               ),
-                              const SizedBox(width: 6),
+                              const SizedBox(width: 8),
                               Text(
                                 state.searchQuery.isEmpty
                                     ? 'AVAILABLE BANNERS'
@@ -159,7 +156,7 @@ class _ManageBannerScreenState extends State<ManageBannerScreen> {
                                 style: theme.textTheme.labelSmall?.copyWith(
                                   fontWeight: FontWeight.w800,
                                   letterSpacing: 1.1,
-                                  color: textColorSecondary,
+                                  color: secondaryTextColor,
                                 ),
                               ),
                             ],
@@ -177,6 +174,8 @@ class _ManageBannerScreenState extends State<ManageBannerScreen> {
                         ],
                       ),
                     ),
+
+                    // Content States
                     if (isLoading)
                       PlaceholderWidgets.listPlaceholder()
                     else if (state.error != null && banners.isEmpty)
@@ -188,7 +187,7 @@ class _ManageBannerScreenState extends State<ManageBannerScreen> {
                             children: [
                               const Icon(
                                 Icons.error_outline_rounded,
-                                size: 48,
+                                size: 40,
                                 color: AppColors.error,
                               ),
                               const SizedBox(height: 12),
@@ -196,13 +195,16 @@ class _ManageBannerScreenState extends State<ManageBannerScreen> {
                                 'Failed to load banners',
                                 style: theme.textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.bold,
+                                  color: isDark
+                                      ? AppColors.darkBodyText
+                                      : AppColors.lightBodyText,
                                 ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 state.error!,
                                 style: theme.textTheme.bodySmall?.copyWith(
-                                  color: textColorSecondary,
+                                  color: secondaryTextColor,
                                 ),
                               ),
                             ],
@@ -211,18 +213,18 @@ class _ManageBannerScreenState extends State<ManageBannerScreen> {
                       )
                     else if (banners.isEmpty)
                       _EmptyState(
-                        onAdd: () => _showAddEditSheet(context),
                         searchQuery: state.searchQuery,
+                        onAdd: () => _showAddEditSheet(context),
                       )
                     else
                       ListView.separated(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         itemCount: banners.length,
-                        separatorBuilder: (_, _) => const SizedBox(height: 12),
+                        separatorBuilder: (_, __) => const SizedBox(height: 14),
                         itemBuilder: (context, index) {
                           final banner = banners[index];
-                          return _BannerItemCard(
+                          return _BannerCard(
                             banner: banner,
                             onEdit: () =>
                                 _showAddEditSheet(context, banner: banner),
@@ -230,6 +232,7 @@ class _ManageBannerScreenState extends State<ManageBannerScreen> {
                           );
                         },
                       ),
+
                     const SizedBox(height: 80),
                   ],
                 ),
@@ -244,6 +247,7 @@ class _ManageBannerScreenState extends State<ManageBannerScreen> {
   void _showAddEditSheet(BuildContext context, {BannerModel? banner}) {
     final bannerFormCubit = context.read<BannerFormCubit>();
     bannerFormCubit.reset();
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -273,12 +277,12 @@ class _ManageBannerScreenState extends State<ManageBannerScreen> {
   }
 }
 
-class _BannerItemCard extends StatelessWidget {
+class _BannerCard extends StatelessWidget {
   final BannerModel banner;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
-  const _BannerItemCard({
+  const _BannerCard({
     required this.banner,
     required this.onEdit,
     required this.onDelete,
@@ -288,76 +292,68 @@ class _BannerItemCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
+    final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final primaryTextColor = isDark
+        ? AppColors.darkBodyText
+        : AppColors.lightBodyText;
+    final actionColor = isDark ? AppColors.secondary : AppColors.primary;
 
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? AppColors.darkCard : AppColors.lightCard,
+        color: cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
-        ),
+        border: Border.all(color: borderColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AspectRatio(
-            aspectRatio: 16 / 7,
+            aspectRatio: 2.5,
             child: ClipRRect(
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(15),
               ),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  CachedImageWidget(imageUrl: banner.imageUrl),
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.6),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            constraints: const BoxConstraints(),
-                            padding: const EdgeInsets.all(6),
-                            icon: const Icon(
-                              Icons.edit_outlined,
-                              color: Colors.white,
-                              size: 18,
-                            ),
-                            onPressed: onEdit,
-                          ),
-                          IconButton(
-                            constraints: const BoxConstraints(),
-                            padding: const EdgeInsets.all(6),
-                            icon: const Icon(
-                              Icons.delete_outline_rounded,
-                              color: AppColors.error,
-                              size: 18,
-                            ),
-                            onPressed: onDelete,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+              child: CachedImageWidget(
+                imageUrl: banner.imageUrl,
+                fit: BoxFit.cover,
               ),
             ),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            child: Text(
-              banner.title,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    banner.title,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: primaryTextColor,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  icon: Icon(
+                    Icons.edit_outlined,
+                    size: 20,
+                    color: actionColor,
+                  ),
+                  onPressed: onEdit,
+                ),
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  icon: const Icon(
+                    Icons.delete_outline_rounded,
+                    size: 20,
+                    color: AppColors.error,
+                  ),
+                  onPressed: onDelete,
+                ),
+              ],
             ),
           ),
         ],
@@ -391,18 +387,12 @@ class _AddEditBannerSheetState extends State<AddEditBannerSheet> {
   }
 
   void _save(BuildContext context) {
-    final title = _titleController.text.trim();
     final imageState = context.read<BannerImageCubit>().state;
     final imageFile =
         imageState is BannerImageSuccess ? imageState.imageFile : null;
 
-    if (title.isEmpty || (imageFile == null && widget.banner == null)) {
-      TopSnackbar.error(context, 'Please provide title and image');
-      return;
-    }
-
     context.read<BannerFormCubit>().save(
-          title: title,
+          title: _titleController.text,
           imageFile: imageFile,
           existingBanner: widget.banner,
         );
@@ -410,7 +400,6 @@ class _AddEditBannerSheetState extends State<AddEditBannerSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final imageCubit = context.read<BannerImageCubit>();
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final bg = isDark
@@ -418,6 +407,15 @@ class _AddEditBannerSheetState extends State<AddEditBannerSheet> {
         : AppColors.lightScaffoldBackground;
     final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
     final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final secondaryTextColor = isDark
+        ? AppColors.darkBodyTextSecondary
+        : AppColors.lightBodyTextSecondary;
+    final primaryTextColor = isDark
+        ? AppColors.darkBodyText
+        : AppColors.lightBodyText;
+    final accentColor = isDark ? AppColors.secondary : AppColors.primary;
+
+    final isEditing = widget.banner != null;
 
     return BlocConsumer<BannerFormCubit, BannerFormState>(
       listener: (context, state) {
@@ -431,19 +429,43 @@ class _AddEditBannerSheetState extends State<AddEditBannerSheet> {
         return Container(
           decoration: BoxDecoration(
             color: bg,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           ),
-          margin: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 24),
-          child: ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-            child: AppScaffold(
-              title: widget.banner == null ? 'Add Banner' : 'Edit Banner',
-              body: ListView(
-                padding: const EdgeInsets.all(AppConstants.defaultPadding),
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: SafeArea(
+            top: false,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(AppConstants.defaultPadding),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        isEditing ? 'Edit Banner' : 'Add Banner',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: primaryTextColor,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded),
+                        color: secondaryTextColor,
+                        onPressed: isSaving
+                            ? null
+                            : () => Navigator.of(context).pop(),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
                   TextFieldWidget(
                     controller: _titleController,
                     labelText: 'Banner Title',
+                    hintText: 'Enter banner title…',
                     prefixIcon: Icons.title_rounded,
                   ),
                   const SizedBox(height: 16),
@@ -453,47 +475,55 @@ class _AddEditBannerSheetState extends State<AddEditBannerSheet> {
                       final File? pickedFile = state is BannerImageSuccess
                           ? state.imageFile
                           : null;
+                      final hasExisting =
+                          widget.banner != null && widget.banner!.imageUrl.isNotEmpty;
 
                       return Material(
                         color: cardColor,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(14),
                         child: InkWell(
                           onTap: isSaving || isProcessing
                               ? null
-                              : () => imageCubit.pickAndProcessBanner(context),
-                          borderRadius: BorderRadius.circular(12),
+                              : () => context
+                                  .read<BannerImageCubit>()
+                                  .pickAndProcessBanner(context),
+                          borderRadius: BorderRadius.circular(14),
                           child: Container(
-                            height: 150,
+                            height: 145,
                             width: double.infinity,
                             decoration: BoxDecoration(
                               border: Border.all(color: borderColor),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(14),
                             ),
                             child: ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(13),
                               child: isProcessing
                                   ? const Center(
-                                      child: CircularProgressIndicator())
+                                      child: CircularProgressIndicator(),
+                                    )
                                   : pickedFile != null
                                       ? Image.file(pickedFile, fit: BoxFit.cover)
-                                      : widget.banner != null
+                                      : hasExisting
                                           ? CachedImageWidget(
                                               imageUrl: widget.banner!.imageUrl,
+                                              fit: BoxFit.cover,
                                             )
                                           : Column(
                                               mainAxisAlignment:
                                                   MainAxisAlignment.center,
                                               children: [
                                                 Icon(
-                                                  Icons
-                                                      .add_photo_alternate_outlined,
+                                                  Icons.add_photo_alternate_outlined,
                                                   size: 32,
-                                                  color: theme.colorScheme.primary,
+                                                  color: accentColor,
                                                 ),
                                                 const SizedBox(height: 6),
                                                 Text(
-                                                  'Select Banner Image',
-                                                  style: theme.textTheme.bodySmall,
+                                                  'Select Banner Image (5:2 ratio)',
+                                                  style: theme.textTheme.bodySmall
+                                                      ?.copyWith(
+                                                    color: secondaryTextColor,
+                                                  ),
                                                 ),
                                               ],
                                             ),
@@ -503,23 +533,13 @@ class _AddEditBannerSheetState extends State<AddEditBannerSheet> {
                       );
                     },
                   ),
-                  const SizedBox(height: AppConstants.defaultPadding * 2),
-                  BlocBuilder<BannerImageCubit, BannerImageState>(
-                    builder: (context, state) {
-                      final File? pickedFile = state is BannerImageSuccess
-                          ? state.imageFile
-                          : null;
-                      final bool canSave =
-                          !isSaving && (pickedFile != null || widget.banner != null);
-                      return AppButton(
-                        label: isSaving ? 'Saving…' : 'Save',
-                        onPressed:
-                            canSave ? () => _save(context) : null,
-                      );
-                    },
+                  const SizedBox(height: 24),
+                  AppButton(
+                    label: isEditing ? 'Update Banner' : 'Save Banner',
+                    isLoading: isSaving,
+                    onPressed: isSaving ? null : () => _save(context),
                   ),
-                  SizedBox(
-                      height: MediaQuery.of(context).viewInsets.bottom + 24),
+                  const SizedBox(height: 12),
                 ],
               ),
             ),
@@ -531,18 +551,21 @@ class _AddEditBannerSheetState extends State<AddEditBannerSheet> {
 }
 
 class _EmptyState extends StatelessWidget {
-  final VoidCallback onAdd;
   final String searchQuery;
+  final VoidCallback onAdd;
 
-  const _EmptyState({required this.onAdd, required this.searchQuery});
+  const _EmptyState({required this.searchQuery, required this.onAdd});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final textColorSecondary = isDark
+    final secondaryTextColor = isDark
         ? AppColors.darkBodyTextSecondary
         : AppColors.lightBodyTextSecondary;
+    final primaryTextColor = isDark
+        ? AppColors.darkBodyText
+        : AppColors.lightBodyText;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 48),
@@ -551,15 +574,16 @@ class _EmptyState extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.view_carousel_outlined,
+              Iconsax.gallery,
               size: 36,
-              color: textColorSecondary,
+              color: secondaryTextColor,
             ),
             const SizedBox(height: 16),
             Text(
               searchQuery.isEmpty ? 'No Banners Found' : 'No Matches',
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
+                color: primaryTextColor,
               ),
             ),
             const SizedBox(height: 4),
@@ -569,7 +593,7 @@ class _EmptyState extends StatelessWidget {
                   : 'No banners match "$searchQuery"',
               textAlign: TextAlign.center,
               style: theme.textTheme.bodySmall?.copyWith(
-                color: textColorSecondary,
+                color: secondaryTextColor,
               ),
             ),
             const SizedBox(height: 20),

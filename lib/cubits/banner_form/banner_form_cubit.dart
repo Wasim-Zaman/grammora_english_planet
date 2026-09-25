@@ -24,6 +24,17 @@ class BannerFormCubit extends Cubit<BannerFormState> {
     File? imageFile,
     BannerModel? existingBanner,
   }) async {
+    final cleanTitle = title.trim();
+    if (cleanTitle.isEmpty) {
+      emit(const BannerFormFailure('Please enter a banner title'));
+      return;
+    }
+
+    if (imageFile == null && (existingBanner == null || existingBanner.imageUrl.isEmpty)) {
+      emit(const BannerFormFailure('Please select a banner image'));
+      return;
+    }
+
     emit(const BannerFormLoading());
     try {
       String imageUrl = existingBanner?.imageUrl ?? '';
@@ -40,7 +51,7 @@ class BannerFormCubit extends Cubit<BannerFormState> {
 
       final banner = BannerModel(
         id: existingBanner?.id ?? '',
-        title: title,
+        title: cleanTitle,
         imageUrl: imageUrl,
       );
 
