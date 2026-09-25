@@ -41,11 +41,20 @@ class BannerSlider extends StatelessWidget {
             ),
             decoration: BoxDecoration(
               color: cardColor,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(20),
               border: Border.all(color: borderColor),
+              boxShadow: [
+                BoxShadow(
+                  color: isDark
+                      ? Colors.transparent
+                      : AppColors.primary.withValues(alpha: 0.03),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
+                ),
+              ],
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(15),
+              borderRadius: BorderRadius.circular(19),
               child: AspectRatio(
                 aspectRatio: 2.5,
                 child: CarouselSlider(

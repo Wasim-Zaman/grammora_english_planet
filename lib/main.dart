@@ -36,7 +36,10 @@ import 'services/enrolled_students/enrolled_students_services.dart';
 import 'services/notes/notes_service.dart';
 import 'services/shifts/shifts_service.dart';
 import 'services/storage/storage_service.dart';
+import 'services/student_spotlight/student_spotlight_service.dart';
 import 'services/updates/updates_services.dart';
+import 'cubits/student_spotlight/student_spotlight_cubit.dart';
+import 'cubits/user_student_spotlight/user_student_spotlight_cubit.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -103,6 +106,14 @@ void main() async {
         ),
         BlocProvider(
           create: (context) => StudentAttendanceCubit(AttendanceService()),
+        ),
+        BlocProvider(
+          create: (context) =>
+              StudentSpotlightCubit(StudentSpotlightService()),
+        ),
+        BlocProvider(
+          create: (context) =>
+              UserStudentSpotlightCubit(StudentSpotlightService()),
         ),
         BlocProvider(create: (context) => ThemeCubit(savedTheme)),
       ],

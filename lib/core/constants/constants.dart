@@ -31,6 +31,7 @@ class AppFeatureIcons {
   static const IconData terms = Iconsax.receipt_item;
   static const IconData updates = Iconsax.notification_bing;
   static const IconData youtube = Iconsax.video_circle;
+  static const IconData spotlight = Iconsax.award;
 }
 
 // Colors
@@ -136,6 +137,12 @@ class AppGradients {
 
   static const LinearGradient privacy = LinearGradient(
     colors: [Color(0xFF3F51B5), Color(0xFF7B1FA2)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static const LinearGradient spotlight = LinearGradient(
+    colors: [AppColors.primary, AppColors.secondary],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );

@@ -50,114 +50,130 @@ class _AnnouncementStripContent extends StatelessWidget {
         final current = state.currentUpdate;
         if (current == null) return const SizedBox.shrink();
 
-        return GestureDetector(
-          onTap: () => AppNavigation.push(context, AppRoutes.kUpdatesRoute),
-          child: Container(
-            height: 40,
-            margin: const EdgeInsets.symmetric(
-              horizontal: AppConstants.defaultPadding,
+        return Container(
+          margin: const EdgeInsets.symmetric(
+            horizontal: AppConstants.defaultPadding,
+          ),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.darkCard : AppColors.lightCard,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.darkCard : AppColors.lightCard,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+            boxShadow: [
+              BoxShadow(
+                color: isDark
+                    ? Colors.transparent
+                    : AppColors.primary.withValues(alpha: 0.02),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
               ),
-            ),
-            child: ClipRect(
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 650),
-                switchInCurve: Curves.easeOutCubic,
-                switchOutCurve: Curves.easeInCubic,
-                transitionBuilder: (child, animation) {
-                  final isIncoming = child.key == ValueKey(current.title);
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(14),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: () => AppNavigation.push(context, AppRoutes.kUpdatesRoute),
+              child: Container(
+                height: 42,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: ClipRect(
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 650),
+                    switchInCurve: Curves.easeOutCubic,
+                    switchOutCurve: Curves.easeInCubic,
+                    transitionBuilder: (child, animation) {
+                      final isIncoming = child.key == ValueKey(current.title);
 
-                  final slideTween = Tween<Offset>(
-                    begin: isIncoming ? const Offset(0.35, 0) : Offset.zero,
-                    end: isIncoming ? Offset.zero : const Offset(-0.35, 0),
-                  );
+                      final slideTween = Tween<Offset>(
+                        begin: isIncoming ? const Offset(0.35, 0) : Offset.zero,
+                        end: isIncoming ? Offset.zero : const Offset(-0.35, 0),
+                      );
 
-                  final fadeTween = isIncoming
-                      ? Tween<double>(begin: 0, end: 1)
-                      : Tween<double>(begin: 1, end: 0);
+                      final fadeTween = isIncoming
+                          ? Tween<double>(begin: 0, end: 1)
+                          : Tween<double>(begin: 1, end: 0);
 
-                  return ClipRect(
-                    child: SlideTransition(
-                      position: slideTween.animate(animation),
-                      child: FadeTransition(
-                        opacity: fadeTween.animate(animation),
-                        child: child,
-                      ),
-                    ),
-                  );
-                },
-                layoutBuilder: (currentChild, previousChildren) {
-                  return Stack(
-                    alignment: Alignment.centerLeft,
-                    children: [...previousChildren, ?currentChild],
-                  );
-                },
-                child: Row(
-                  key: ValueKey(current.title),
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? AppColors.darkNeutral
-                            : AppColors.lightNeutral,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            AnnouncementStrip._typeIcon(current.type),
-                            size: 12,
-                            color: isDark
-                                ? AppColors.accent
-                                : AppColors.secondary,
+                      return ClipRect(
+                        child: SlideTransition(
+                          position: slideTween.animate(animation),
+                          child: FadeTransition(
+                            opacity: fadeTween.animate(animation),
+                            child: child,
                           ),
-                          const SizedBox(width: 4),
-                          Text(
-                            AnnouncementStrip._typeLabel(current.type),
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 0.8,
+                        ),
+                      );
+                    },
+                    layoutBuilder: (currentChild, previousChildren) {
+                      return Stack(
+                        alignment: Alignment.centerLeft,
+                        children: [...previousChildren, ?currentChild],
+                      );
+                    },
+                    child: Row(
+                      key: ValueKey(current.title),
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? AppColors.darkNeutral
+                                : AppColors.lightNeutral,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                AnnouncementStrip._typeIcon(current.type),
+                                size: 12,
+                                color: isDark
+                                    ? AppColors.accent
+                                    : AppColors.secondary,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                AnnouncementStrip._typeLabel(current.type),
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.8,
+                                  color: isDark
+                                      ? AppColors.accent
+                                      : AppColors.secondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _MarqueeText(
+                            text: current.title,
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
                               color: isDark
-                                  ? AppColors.accent
-                                  : AppColors.secondary,
+                                  ? AppColors.darkBodyText
+                                  : AppColors.lightBodyText,
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _MarqueeText(
-                        text: current.title,
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: isDark
-                              ? AppColors.darkBodyText
-                              : AppColors.lightBodyText,
                         ),
-                      ),
+                        const SizedBox(width: 8),
+                        Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          size: 12,
+                          color: isDark
+                              ? AppColors.darkBodyTextSecondary
+                              : AppColors.lightBodyTextSecondary,
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      size: 12,
-                      color: isDark
-                          ? AppColors.darkBodyTextSecondary
-                          : AppColors.lightBodyTextSecondary,
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -217,9 +233,9 @@ class _MarqueeTextViewState extends State<_MarqueeTextView>
       _controller.reset();
       if (mounted) {
         context.read<MarqueeCubit>().updateMeasurement(
-              needsScroll: false,
-              textWidth: 0,
-            );
+          needsScroll: false,
+          textWidth: 0,
+        );
         WidgetsBinding.instance.addPostFrameCallback((_) => _measure());
       }
     }
@@ -242,9 +258,9 @@ class _MarqueeTextViewState extends State<_MarqueeTextView>
 
     final needs = textWidth > maxWidth;
     context.read<MarqueeCubit>().updateMeasurement(
-          needsScroll: needs,
-          textWidth: textWidth,
-        );
+      needsScroll: needs,
+      textWidth: textWidth,
+    );
 
     if (needs) {
       const gap = 48.0;

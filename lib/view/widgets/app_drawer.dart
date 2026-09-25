@@ -72,6 +72,20 @@ class AppDrawer extends StatelessWidget {
                         );
                       },
                     ),
+                    const SizedBox(height: 6),
+                    _DrawerTile(
+                      icon: Icons.emoji_events_outlined,
+                      label: 'Student Spotlight',
+                      subtitle: 'Manage monthly & yearly stars',
+                      index: 1,
+                      onTap: () {
+                        Navigator.pop(context);
+                        AppNavigation.push(
+                          context,
+                          AppRoutes.kManageStudentSpotlightRoute,
+                        );
+                      },
+                    ),
                   ] else ...[
                     const _SectionHeader(label: 'Management'),
                     _DrawerTile(
@@ -136,6 +150,20 @@ class AppDrawer extends StatelessWidget {
                         AppNavigation.push(
                           context,
                           AppRoutes.kScanAttendanceRoute,
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 6),
+                    _DrawerTile(
+                      icon: Icons.emoji_events_outlined,
+                      label: 'Hall of Fame',
+                      subtitle: 'Student of the Month & Year',
+                      index: 3,
+                      onTap: () {
+                        Navigator.pop(context);
+                        AppNavigation.push(
+                          context,
+                          AppRoutes.kStudentSpotlightRoute,
                         );
                       },
                     ),

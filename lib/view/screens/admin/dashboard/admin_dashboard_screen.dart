@@ -8,7 +8,6 @@ import 'package:gep/services/analytics/analytics_service.dart';
 import 'package:gep/view/widgets/app_drawer.dart';
 import 'package:gep/view/widgets/app_scaffold.dart';
 import 'package:gep/view/widgets/grid_item.dart';
-import 'package:marquee/marquee.dart';
 import 'package:material_ui/material_ui.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
@@ -84,6 +83,12 @@ class AdminDashboardScreen extends StatelessWidget {
         'icon': AppFeatureIcons.attendance,
         'gradient': AppGradients.notes,
         'routeName': AppRoutes.kAdminAttendanceRecordsRoute,
+      },
+      {
+        'title': 'Spotlight',
+        'icon': AppFeatureIcons.spotlight,
+        'gradient': AppGradients.spotlight,
+        'routeName': AppRoutes.kManageStudentSpotlightRoute,
       },
     ];
 
@@ -280,26 +285,34 @@ class AdminDashboardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Container(
-            height: 34,
+            height: 36,
             padding: const EdgeInsets.symmetric(horizontal: 10),
             decoration: BoxDecoration(
               color: isDark ? AppColors.darkNeutral : AppColors.lightNeutral,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Marquee(
-              text:
-                  'Welcome to the Admin Dashboard! Control and manage system operations with ease.',
-              style: theme.textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: isDark
-                    ? AppColors.darkBodyText
-                    : AppColors.lightBodyText,
-              ),
-              scrollAxis: Axis.horizontal,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              blankSpace: 24.0,
-              velocity: 35.0,
-              pauseAfterRound: const Duration(seconds: 1),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.campaign_rounded,
+                  size: 16,
+                  color: AppColors.secondary,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Welcome to the Admin Dashboard! Control and manage system operations with ease.',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: isDark
+                          ? AppColors.darkBodyText
+                          : AppColors.lightBodyText,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],

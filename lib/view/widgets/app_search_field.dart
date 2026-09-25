@@ -6,8 +6,7 @@ import 'text_field_widget.dart';
 /// Search field wired to a cubit's debounced search.
 ///
 /// Shows a clear (X) suffix icon whenever [query] is non-empty and forwards
-/// text changes to [onChanged]. This removes the need for a local
-/// `addListener(() => setState(() {}))` just to toggle the suffix icon.
+/// text changes to [onChanged]. Pure [StatelessWidget] reactive to Cubit state.
 class AppSearchField extends StatelessWidget {
   final TextEditingController controller;
   final String query;

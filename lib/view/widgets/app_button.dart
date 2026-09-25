@@ -35,11 +35,21 @@ class AppButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final effectiveTextColor = foregroundColor ??
+        (backgroundColor != null
+            ? (backgroundColor!.computeLuminance() > 0.5
+                ? AppColors.lightBodyText
+                : AppColors.darkBodyText)
+            : (isDark ? AppColors.darkBodyText : AppColors.lightBodyText));
+
     Widget child = isLoading
-        ? const SizedBox(
+        ? SizedBox(
             height: 24,
             width: 24,
-            child: CircularProgressIndicator(strokeWidth: 2.5),
+            child: CircularProgressIndicator(
+              strokeWidth: 2.5,
+              valueColor: AlwaysStoppedAnimation<Color>(effectiveTextColor),
+            ),
           )
         : Row(
             mainAxisSize: MainAxisSize.min,
@@ -50,9 +60,7 @@ class AppButton extends StatelessWidget {
                 label,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: isDark
-                      ? AppColors.darkBodyText
-                      : AppColors.lightBodyText,
+                  color: effectiveTextColor,
                 ),
               ),
             ],

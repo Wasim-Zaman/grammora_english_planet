@@ -19,6 +19,7 @@ import 'package:gep/view/screens/admin/dashboard/enrolled_students/student_detai
 import 'package:gep/view/screens/admin/dashboard/notes/add_notes_screen.dart';
 import 'package:gep/view/screens/admin/dashboard/notes/admin_notes_categories_screen.dart';
 import 'package:gep/view/screens/admin/dashboard/shifts/manage_shifts_screen.dart';
+import 'package:gep/view/screens/admin/dashboard/student_spotlight/manage_student_spotlight_screen.dart';
 import 'package:gep/view/screens/admin/dashboard/updates/updates_management_screen.dart';
 import 'package:gep/view/screens/user/auth/login_screen.dart';
 import 'package:gep/view/screens/user/dashboard/about_me/about_me_screen.dart';
@@ -33,6 +34,7 @@ import 'package:gep/view/screens/user/dashboard/notes/notes_categories_screen.da
 import 'package:gep/view/screens/user/dashboard/notes/notes_screen.dart';
 import 'package:gep/view/screens/user/dashboard/notes/pdf_viewer_screen.dart';
 import 'package:gep/view/screens/user/dashboard/privacy_policy_screen.dart';
+import 'package:gep/view/screens/user/dashboard/student_spotlight/student_spotlight_screen.dart';
 import 'package:gep/view/screens/user/dashboard/terms_and_conditions_screen.dart';
 import 'package:gep/view/screens/user/dashboard/updates/updates_screen.dart';
 import 'package:gep/view/splash_screen.dart';
@@ -325,6 +327,19 @@ class AppRouter {
           );
           return StudentAttendanceScreen(studentId: studentId);
         },
+      ),
+
+      // Student Spotlight / Hall of Fame
+      GoRoute(
+        path: AppRoutes.kStudentSpotlightRoutePath,
+        name: AppRoutes.kStudentSpotlightRoute,
+        builder: (context, state) => const StudentSpotlightScreen(),
+      ),
+
+      GoRoute(
+        path: AppRoutes.kManageStudentSpotlightRoutePath,
+        name: AppRoutes.kManageStudentSpotlightRoute,
+        builder: (context, state) => const ManageStudentSpotlightScreen(),
       ),
     ],
   );

@@ -122,4 +122,12 @@ class AppRoutes {
 
   static const String kStudentAttendanceRoute = "student-attendance";
   static const String kStudentAttendanceRoutePath = "/student-attendance";
+
+  // Student Spotlight / Hall of Fame
+  static const String kStudentSpotlightRoute = "student-spotlight";
+  static const String kStudentSpotlightRoutePath = "/student-spotlight";
+
+  static const String kManageStudentSpotlightRoute = "manage-student-spotlight";
+  static const String kManageStudentSpotlightRoutePath =
+      "/admin/manage-student-spotlight";
 }

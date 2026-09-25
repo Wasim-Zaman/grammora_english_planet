@@ -132,6 +132,33 @@ create table if not exists public.updates (
 create index if not exists idx_updates_date
   on public.updates (date);
 
+-- ----------------------------------------------------------------------------
+-- student_spotlights
+-- used by: services/student_spotlight/student_spotlight_service.dart
+-- ----------------------------------------------------------------------------
+create table if not exists public.student_spotlights (
+  id uuid primary key default gen_random_uuid(),
+  student_name text not null,
+  award_title text not null default 'Student of the Month',
+  period text not null,
+  course_or_batch text not null default '',
+  image_url text not null,
+  quote_or_message text not null default '',
+  achievement_highlights text not null default '',
+  is_featured boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_student_spotlights_created_at
+  on public.student_spotlights (created_at desc);
+
+create index if not exists idx_student_spotlights_is_featured
+  on public.student_spotlights (is_featured);
+
+create index if not exists idx_student_spotlights_award_title
+  on public.student_spotlights (award_title);
+
+
 -- ============================================================================
 -- Row Level Security
 -- The app talks to Supabase with the anon key only (there is no
@@ -148,6 +175,7 @@ alter table public.courses_outlines enable row level security;
 alter table public.enrolled_students enable row level security;
 alter table public.note_categories enable row level security;
 alter table public.notes enable row level security;
+alter table public.student_spotlights enable row level security;
 alter table public.updates enable row level security;
 
 do $$
@@ -163,6 +191,7 @@ begin
     'enrolled_students',
     'note_categories',
     'notes',
+    'student_spotlights',
     'updates'
   ]
   loop
@@ -192,6 +221,7 @@ begin
     'enrolled_students',
     'note_categories',
     'notes',
+    'student_spotlights',
     'updates'
   ]
   loop
