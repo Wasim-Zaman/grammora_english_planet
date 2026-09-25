@@ -1,34 +1,35 @@
-import 'package:material_ui/material_ui.dart';
-import 'package:lottie/lottie.dart';
+import 'package:gep/core/constants/constants.dart';
 import 'package:gep/router/app_navigation.dart';
 import 'package:gep/services/analytics/analytics_service.dart';
+import 'package:material_ui/material_ui.dart';
 
 class GridItem extends StatelessWidget {
-  final String title;
-  final Gradient gradient;
-  final String? routeName;
-  final String lottieUrl;
-  final IconData fallbackIcon;
-  final Function? onTap;
-
   const GridItem({
     super.key,
     required this.title,
     required this.gradient,
     this.routeName,
-    required this.lottieUrl,
-    required this.fallbackIcon,
+    required this.icon,
     this.onTap,
   });
 
+  final String title;
+  final Gradient gradient;
+  final String? routeName;
+  final IconData icon;
+  final VoidCallback? onTap;
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: () async {
         if (routeName != null) {
-          final AnalyticsService analyticsService = AnalyticsService();
+          final analyticsService = AnalyticsService();
           await analyticsService.logButtonClick(title);
-          // ignore: use_build_context_synchronously
+          if (!context.mounted) return;
           AppNavigation.push(context, routeName!);
         } else if (onTap != null) {
           onTap!();
@@ -36,29 +37,49 @@ class GridItem extends StatelessWidget {
       },
       child: Container(
         decoration: BoxDecoration(
-          gradient: gradient,
-          borderRadius: BorderRadius.circular(15),
+          color: isDark ? AppColors.darkCard : AppColors.lightCard,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+          ),
         ),
+        padding: const EdgeInsets.all(10),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Expanded(
-              child: Lottie.asset(
-                lottieUrl,
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) {
-                  return Icon(fallbackIcon, size: 50);
-                },
+              child: Center(
+                child: Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    gradient: gradient,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.08),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Icon(
+                      icon,
+                      size: 26,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
+            const SizedBox(height: 6),
+            Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.labelMedium?.copyWith(
+                fontWeight: FontWeight.w700,
               ),
             ),
           ],
@@ -67,3 +88,4 @@ class GridItem extends StatelessWidget {
     );
   }
 }
+

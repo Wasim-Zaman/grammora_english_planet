@@ -1,25 +1,38 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/cubits/banner/banner_state.dart';
-import 'package:gep/models/banner.dart';
+
+import '../../models/banner.dart';
+import '../../services/banner/banner_service.dart';
+import 'banner_state.dart';
 
 class BannerCubit extends Cubit<BannerState> {
   final Stream<List<BannerModel>> bannersStream;
+  final BannerService _bannerService;
   StreamSubscription? _bannerSubscription;
 
-  BannerCubit({required this.bannersStream}) : super(BannerInitial()) {
+  BannerCubit({required this.bannersStream, BannerService? bannerService})
+    : _bannerService = bannerService ?? BannerService(),
+      super(BannerInitial()) {
     _initBanners();
+  }
+
+  Future<void> fetchBanners() async {
+    try {
+      final banners = await _bannerService.getBanners();
+      emit(BannerLoaded(banners: banners));
+    } catch (_) {}
   }
 
   void _initBanners() {
     emit(BannerLoading());
+    fetchBanners();
     _bannerSubscription = bannersStream.listen(
       (banners) {
         emit(BannerLoaded(banners: banners));
       },
       onError: (error) {
-        emit(BannerError(error.toString()));
+        fetchBanners();
       },
     );
   }

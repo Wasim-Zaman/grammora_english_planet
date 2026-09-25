@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -59,8 +60,9 @@ class AdminCubit extends Cubit<AdminState> {
       // Delete the entire folder for the category from Supabase Storage
       await _storageService.deleteFolder('notes/$category');
 
-      emit(AdminSuccess(
-          'Category and all associated notes deleted successfully'));
+      emit(
+        AdminSuccess('Category and all associated notes deleted successfully'),
+      );
     } catch (e) {
       emit(AdminFailure(e.toString()));
     }
@@ -69,13 +71,28 @@ class AdminCubit extends Cubit<AdminState> {
   Future<void> uploadNote(String category, String title, File file) async {
     emit(AdminLoading());
     try {
+      final trimmedCategory = category.trim();
+      if (trimmedCategory.isEmpty) {
+        emit(AdminFailure('Category cannot be empty'));
+        return;
+      }
+      final trimmedTitle = title.trim();
+      if (trimmedTitle.isEmpty) {
+        emit(AdminFailure('Title cannot be empty'));
+        return;
+      }
+
       final String fileName = '${DateTime.now().millisecondsSinceEpoch}.pdf';
-      final String filePath = 'notes/$category/$fileName';
-      final String downloadUrl =
-          await _storageService.uploadFile(filePath, file);
-      await _notesService.addNote(category, title, downloadUrl);
+      final String filePath = 'notes/$trimmedCategory/$fileName';
+      final String downloadUrl = await _storageService.uploadFile(
+        filePath,
+        file,
+        contentType: 'application/pdf',
+      );
+      await _notesService.addNote(trimmedCategory, trimmedTitle, downloadUrl);
       emit(AdminSuccess('Note uploaded successfully'));
     } catch (e) {
+      log('Error uploading note: $e');
       emit(AdminFailure(e.toString()));
     }
   }
@@ -89,7 +106,10 @@ class AdminCubit extends Cubit<AdminState> {
   }
 
   Future<void> deleteNote(
-      String category, String noteId, String fileUrl) async {
+    String category,
+    String noteId,
+    String fileUrl,
+  ) async {
     emit(AdminLoading());
     try {
       await _notesService.deleteNote(category, noteId);
@@ -141,7 +161,8 @@ class AdminCubit extends Cubit<AdminState> {
   }
 
   Future<void> addAdmissionAnnouncement(
-      AdmissionAnnouncement announcement) async {
+    AdmissionAnnouncement announcement,
+  ) async {
     emit(AdminLoading());
     try {
       await _admissionsService.addAnnouncement(announcement);
@@ -152,7 +173,8 @@ class AdminCubit extends Cubit<AdminState> {
   }
 
   Future<void> updateAdmissionAnnouncement(
-      AdmissionAnnouncement announcement) async {
+    AdmissionAnnouncement announcement,
+  ) async {
     emit(AdminLoading());
     try {
       await _admissionsService.updateAnnouncement(announcement);
@@ -172,9 +194,6 @@ class AdminCubit extends Cubit<AdminState> {
     }
   }
 
-
-
-
   // Banner management methods
   Stream<List<BannerModel>> getBannersStream() {
     return _bannerService.getBannersStream();
@@ -183,16 +202,22 @@ class AdminCubit extends Cubit<AdminState> {
   Future<void> addBanner(String title, File imageFile) async {
     emit(AdminLoading());
     try {
-      final String fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final String fileName = '${DateTime.now().millisecondsSinceEpoch}.png';
       final String filePath = 'banners/$fileName';
-      final String imageUrl =
-          await _storageService.uploadFile(filePath, imageFile);
-      final BannerModel banner =
-          BannerModel(id: '', title: title, imageUrl: imageUrl);
+      final String imageUrl = await _storageService.uploadFile(
+        filePath,
+        imageFile,
+      );
+      final BannerModel banner = BannerModel(
+        id: '',
+        title: title,
+        imageUrl: imageUrl,
+      );
       await _bannerService.addBanner(banner);
       emit(AdminSuccess('Banner added successfully'));
     } catch (e) {
       emit(AdminFailure(e.toString()));
+      rethrow;
     }
   }
 
@@ -201,7 +226,7 @@ class AdminCubit extends Cubit<AdminState> {
     try {
       String imageUrl = banner.imageUrl;
       if (newImageFile != null) {
-        final String fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
+        final String fileName = '${DateTime.now().millisecondsSinceEpoch}.png';
         final String filePath = 'banners/$fileName';
         imageUrl = await _storageService.uploadFile(filePath, newImageFile);
         await _storageService.deleteFile(banner.imageUrl);
@@ -211,6 +236,7 @@ class AdminCubit extends Cubit<AdminState> {
       emit(AdminSuccess('Banner updated successfully'));
     } catch (e) {
       emit(AdminFailure(e.toString()));
+      rethrow;
     }
   }
 
@@ -223,12 +249,16 @@ class AdminCubit extends Cubit<AdminState> {
       emit(AdminSuccess('Banner deleted successfully'));
     } catch (e) {
       emit(AdminFailure(e.toString()));
+      rethrow;
     }
   }
 
   // About Me management methods
-  Future<void> updateAboutMe(AboutMe aboutMe,
-      {File? profileImage, File? resume}) async {
+  Future<void> updateAboutMe(
+    AboutMe aboutMe, {
+    File? profileImage,
+    File? resume,
+  }) async {
     emit(AdminLoading());
     try {
       String? profileImageUrl = aboutMe.profileImageUrl;
@@ -236,12 +266,16 @@ class AdminCubit extends Cubit<AdminState> {
 
       if (profileImage != null) {
         profileImageUrl = await _storageService.uploadFile(
-            'profile_images/admin_profile.jpg', profileImage);
+          'profile_images/admin_profile.jpg',
+          profileImage,
+        );
       }
 
       if (resume != null) {
         resumeUrl = await _storageService.uploadFile(
-            'resumes/admin_resume.pdf', resume);
+          'resumes/admin_resume.pdf',
+          resume,
+        );
       }
 
       final updatedAboutMe = aboutMe.copyWith(
@@ -311,7 +345,9 @@ class AdminCubit extends Cubit<AdminState> {
   }
 
   Future<void> updateEnrolledStudent(
-      String studentId, EnrolledStudent student) async {
+    String studentId,
+    EnrolledStudent student,
+  ) async {
     emit(AdminLoading());
     try {
       await _enrolledStudentsServices.updateStudent(studentId, student);

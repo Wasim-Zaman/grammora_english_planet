@@ -1,13 +1,10 @@
-import 'dart:ui';
-
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lottie/lottie.dart';
+import 'package:gep/view/widgets/app_scaffold.dart';
+import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:upgrader/upgrader.dart';
 
 import '../../../../core/constants/constants.dart';
 import '../../../../cubits/admin/admin_cubit.dart';
@@ -19,8 +16,10 @@ import '../../../../router/app_navigation.dart';
 import '../../../../router/app_routes.dart';
 import '../../../../services/analytics/analytics_service.dart';
 import '../../../../services/auth/auth_service.dart';
+import '../../../widgets/announcement_strip.dart';
 import '../../../widgets/app_drawer.dart';
 import '../../../widgets/banner_slider.dart';
+import '../../../widgets/cached_image_widget.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -32,69 +31,69 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final AnalyticsService _analyticsService = AnalyticsService();
-  bool _isAdminLoggedIn = false;
+  late final BannerCubit _bannerCubit;
 
-  // First two entries are promoted to the "featured" quick-action cards;
-  // the rest render in the compact grid below.
   static const List<_Service> _services = [
     _Service(
       'Notes',
-      AppLotties.notes,
       AppRoutes.kNotesCategoriesRoute,
       AppGradients.notes,
       subtitle: 'Browse subject-wise notes',
-      icon: Icons.menu_book_rounded,
+      icon: AppFeatureIcons.notes,
     ),
     _Service(
       'Courses',
-      AppLotties.courses,
       AppRoutes.kCoursesOutlinesRoute,
       AppGradients.courses,
       subtitle: 'Explore course outlines',
-      icon: Icons.school_rounded,
+      icon: AppFeatureIcons.courses,
     ),
     _Service(
       'Updates',
-      AppLotties.updates,
       AppRoutes.kUpdatesRoute,
       AppGradients.updates,
-      icon: Icons.campaign_rounded,
+      icon: AppFeatureIcons.updates,
     ),
     _Service(
       'Admissions',
-      AppLotties.admissions,
       AppRoutes.kAdmissionsRoute,
       AppGradients.admissions,
-      icon: Icons.badge_rounded,
+      icon: AppFeatureIcons.admissions,
     ),
     _Service(
       'Students',
-      AppLotties.students,
       AppRoutes.kEnrolledStudentsRoute,
       AppGradients.students,
-      icon: Icons.groups_rounded,
+      icon: AppFeatureIcons.students,
     ),
     _Service(
       'About',
-      AppLotties.aboutMe,
       AppRoutes.kAboutMeRoute,
       AppGradients.aboutMe,
-      icon: Icons.info_rounded,
+      icon: AppFeatureIcons.aboutMe,
     ),
   ];
 
   @override
   void initState() {
     super.initState();
+    _bannerCubit = BannerCubit(
+      bannersStream: context.read<AdminCubit>().getBannersStream(),
+    );
     init();
+  }
+
+  @override
+  void dispose() {
+    _bannerCubit.close();
+    super.dispose();
   }
 
   Future<void> init() async {
     await _analyticsService.logScreenView('Dashboard');
     if (!mounted) return;
-    final isAdminLoggedIn = await context.read<AuthCubit>().isAdminLoggedIn();
-    if (!mounted) return;
-    setState(() => _isAdminLoggedIn = isAdminLoggedIn);
+    context.read<AuthCubit>().checkAdminStatus();
+    _bannerCubit.fetchBanners();
   }
 
   @override
@@ -104,142 +103,201 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final featured = _services.take(2).toList();
     final rest = _services.skip(2).toList();
 
-    return UpgradeAlert(
-      upgrader: Upgrader(
-        durationUntilAlertAgain: const Duration(days: 1),
-        debugDisplayAlways: true,
-        minAppVersion: '1.0.0',
-      ),
-      child: Scaffold(
-        key: _scaffoldKey,
-        drawer: AppDrawer(isAdminLoggedIn: _isAdminLoggedIn),
-        backgroundColor: theme.scaffoldBackgroundColor,
-        body: SafeArea(
-          bottom: false,
-          child: CustomScrollView(
-            physics: const BouncingScrollPhysics(
-              parent: AlwaysScrollableScrollPhysics(),
-            ),
-            slivers: [
-              SliverToBoxAdapter(child: _buildHeader(user, theme)),
+    return BlocBuilder<AuthCubit, AuthState>(
+      builder: (context, authState) {
+        final isAdminLoggedIn = authState is AuthSuccess
+            ? authState.isAdmin
+            : false;
 
-              // Banner Slider
-              SliverToBoxAdapter(
-                child: BlocProvider(
-                  create: (context) => BannerCubit(
-                    bannersStream: context
-                        .read<AdminCubit>()
-                        .getBannersStream(),
+        return AppScaffold(
+          scaffoldKey: _scaffoldKey,
+            drawer: AppDrawer(isAdminLoggedIn: isAdminLoggedIn),
+            backgroundColor: theme.scaffoldBackgroundColor,
+            safeAreaBottom: false,
+            body: CustomScrollView(
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              ),
+              slivers: [
+                SliverToBoxAdapter(child: _buildHeader(user, theme)),
+
+                // Admin Panel Access (only for admins)
+                if (isAdminLoggedIn)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppConstants.defaultPadding,
+                        4,
+                        AppConstants.defaultPadding,
+                        8,
+                      ),
+                      child: _AdminAccessCard(),
+                    ),
                   ),
-                  child: const BannerSlider(),
-                ).animate().fadeIn(duration: 350.ms),
-              ),
 
-              // Quick Actions — featured
-              const SliverToBoxAdapter(
-                child: _SectionHeader(
-                  icon: Icons.bolt_rounded,
-                  title: 'Quick Actions',
+                // Banner Slider
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: BlocProvider.value(
+                      value: _bannerCubit,
+                      child: const BannerSlider(),
+                    ).animate().fadeIn(duration: 350.ms),
+                  ),
                 ),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                sliver: SliverToBoxAdapter(
-                  child: Row(
-                    children: [
-                      for (var i = 0; i < featured.length; i++) ...[
-                        if (i > 0) const SizedBox(width: 12),
-                        Expanded(
-                          child: _FeaturedActionCard(
-                            service: featured[i],
-                            index: i,
+
+                // Announcement Strip
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 2, bottom: 8),
+                    child: AnnouncementStrip(),
+                  ),
+                ),
+
+                // Quick Actions
+                const SliverToBoxAdapter(
+                  child: _SectionHeader(
+                    icon: Icons.bolt_rounded,
+                    title: 'QUICK ACTIONS',
+                  ),
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppConstants.defaultPadding,
+                  ),
+                  sliver: SliverToBoxAdapter(
+                    child: Row(
+                      children: [
+                        for (var i = 0; i < featured.length; i++) ...[
+                          if (i > 0) const SizedBox(width: 12),
+                          Expanded(
+                            child: _FeaturedActionCard(
+                              service: featured[i],
+                              index: i,
+                            ),
                           ),
-                        ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
-              ),
 
-              // Explore — remaining services
-              const SliverToBoxAdapter(
-                child: _SectionHeader(
-                  icon: Icons.apps_rounded,
-                  title: 'Explore',
-                ),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 96,
-                    mainAxisSpacing: 14,
-                    crossAxisSpacing: 14,
-                    childAspectRatio: 0.82,
-                  ),
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) =>
-                        _ServiceTile(service: rest[index], index: index),
-                    childCount: rest.length,
+                // Explore — remaining services
+                const SliverToBoxAdapter(
+                  child: _SectionHeader(
+                    icon: Icons.grid_view_rounded,
+                    title: 'EXPLORE',
                   ),
                 ),
-              ),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppConstants.defaultPadding,
+                  ),
+                  sliver: SliverGrid(
+                    gridDelegate:
+                        const SliverGridDelegateWithMaxCrossAxisExtent(
+                          maxCrossAxisExtent: 100,
+                          mainAxisSpacing: 10,
+                          crossAxisSpacing: 10,
+                          childAspectRatio: 1.0,
+                        ),
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) =>
+                          _ServiceTile(service: rest[index], index: index),
+                      childCount: rest.length,
+                    ),
+                  ),
+                ),
 
-              // Enrollment Insight
-              const SliverToBoxAdapter(
-                child: _SectionHeader(
-                  icon: Icons.insights_rounded,
-                  title: 'Enrollment Insight',
+                // Enrollment Insights
+                SliverToBoxAdapter(
+                  child: _SectionHeader(
+                    icon: Icons.analytics_rounded,
+                    title: 'ENROLLMENT INSIGHTS',
+                    trailing: GestureDetector(
+                      onTap: () => AppNavigation.push(
+                        context,
+                        AppRoutes.kEnrolledStudentsRoute,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'View All',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: AppColors.secondary,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(width: 2),
+                            const Icon(
+                              Icons.chevron_right_rounded,
+                              size: 16,
+                              color: AppColors.secondary,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-              SliverToBoxAdapter(
-                child: const _InsightCard()
-                    .animate()
-                    .fadeIn(delay: 200.ms)
-                    .slideY(begin: 0.05, end: 0),
-              ),
-              const SliverToBoxAdapter(child: SizedBox(height: 28)),
-            ],
-          ),
-        ),
-      ),
+                SliverToBoxAdapter(
+                  child: const _InsightCard()
+                      .animate()
+                      .fadeIn(delay: 200.ms)
+                      .slideY(begin: 0.05, end: 0),
+                ),
+                const SliverToBoxAdapter(child: SizedBox(height: 16)),
+              ],
+            ),
+          );
+      },
     );
   }
 
   Widget _buildHeader(User? user, ThemeData theme) {
-    final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
+    final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
+    final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final textColorSecondary = isDark
+        ? AppColors.darkBodyTextSecondary
+        : AppColors.lightBodyTextSecondary;
+
     final firstName =
         (user?.displayName?.split(' ').first.trim().isNotEmpty ?? false)
         ? user!.displayName!.split(' ').first
         : 'Guest';
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+    return Container(
+      margin: const EdgeInsets.fromLTRB(
+        AppConstants.defaultPadding,
+        8,
+        AppConstants.defaultPadding,
+        4,
+      ),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: borderColor),
+      ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(9),
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: isDark
-                    ? [const Color(0xFF00E5FF), const Color(0xFF7C4DFF)]
-                    : [colorScheme.primary, colorScheme.tertiary],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(14),
+              color: isDark ? AppColors.darkNeutral : AppColors.lightNeutral,
+              borderRadius: BorderRadius.circular(16),
             ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(4),
-                onTap: () => _scaffoldKey.currentState?.openDrawer(),
-                child: const Icon(
-                  Icons.school_rounded,
-                  color: Colors.white,
-                  size: 20,
-                ),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(8),
+              onTap: () => _scaffoldKey.currentState?.openDrawer(),
+              child: Icon(
+                Icons.widgets_rounded,
+                color: isDark ? AppColors.darkIcon : AppColors.lightIcon,
+                size: AppConstants.defaultIconSize - 4,
               ),
             ),
           ),
@@ -249,18 +307,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${_greeting()}, $firstName 👋',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                  '${_greeting().toUpperCase()} / USER',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: textColorSecondary,
+                    letterSpacing: 1.1,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  firstName,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.5,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  'Welcome back to GEP',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
                 ),
               ],
             ),
@@ -277,60 +339,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
               );
             },
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
           GestureDetector(
             onTap: () => _scaffoldKey.currentState?.openDrawer(),
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(2),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: isDark
-                          ? [const Color(0xFF00E5FF), const Color(0xFF7C4DFF)]
-                          : [colorScheme.primary, colorScheme.tertiary],
-                    ),
-                  ),
-                  child: CircleAvatar(
-                    radius: 19,
-                    backgroundColor: colorScheme.secondaryContainer,
-                    child: ClipOval(
-                      child: CachedNetworkImage(
-                        imageUrl: user?.photoURL ?? '',
-                        width: 38,
-                        height: 38,
-                        fit: BoxFit.cover,
-                        placeholder: (_, _) => const Padding(
-                          padding: EdgeInsets.all(9.0),
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                        errorWidget: (_, _, _) => Icon(
-                          Icons.person_outline,
-                          color: colorScheme.onSecondaryContainer,
-                        ),
-                      ),
-                    ),
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: borderColor,
+                  width: AppConstants.defaultBorderWidth + 1,
+                ),
+              ),
+              child: CircleAvatar(
+                radius: 18,
+                backgroundColor: isDark
+                    ? AppColors.darkNeutral
+                    : AppColors.lightNeutral,
+                child: ClipOval(
+                  child: CachedImageWidget(
+                    imageUrl: user?.photoURL ?? '',
+                    width: 36,
+                    height: 36,
+                    fit: BoxFit.cover,
                   ),
                 ),
-                Positioned(
-                  right: 0,
-                  bottom: 0,
-                  child: Container(
-                    width: 11,
-                    height: 11,
-                    decoration: BoxDecoration(
-                      color: Colors.greenAccent.shade400,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: theme.scaffoldBackgroundColor,
-                        width: 2,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ],
@@ -344,63 +378,102 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (hour < 17) return 'Good Afternoon';
     return 'Good Evening';
   }
+}
 
-  // Kept for admin-only entry point; surfaced inside the drawer/quick
-  // actions context rather than the old inline banner.
-  Widget adminSwitchBanner(BuildContext context, ThemeData theme) {
-    final colorScheme = theme.colorScheme;
+class _AdminAccessCard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    if (!_isAdminLoggedIn) return const SizedBox.shrink();
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(14),
-          onTap: () => AppNavigation.pushReplacement(
-            context,
-            AppRoutes.kAdminDashboardRoute,
-          ),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? const Color(0xFF7C4DFF).withValues(alpha: 0.12)
-                  : colorScheme.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: isDark
-                    ? const Color(0xFF7C4DFF).withValues(alpha: 0.3)
-                    : Colors.transparent,
+    final primaryTextColor = isDark
+        ? AppColors.darkBodyText
+        : AppColors.lightBodyText;
+    final secondaryTextColor = isDark
+        ? AppColors.darkBodyTextSecondary
+        : AppColors.lightBodyTextSecondary;
+    final cardBg = isDark ? AppColors.darkCard : AppColors.lightCard;
+    final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+
+    return GestureDetector(
+      onTap: () => AppNavigation.pushReplacement(
+        context,
+        AppRoutes.kAdminDashboardRoute,
+      ),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: cardBg,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: borderColor, width: 1),
+        ),
+        child: Row(
+          children: [
+            // Admin Icon Container
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest.withValues(
+                  alpha: 0.6,
+                ),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: theme.colorScheme.outline.withValues(alpha: 0.2),
+                  width: 0.8,
+                ),
+              ),
+              child: Icon(
+                Icons.admin_panel_settings_outlined,
+                color: primaryTextColor,
+                size: 16,
               ),
             ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.admin_panel_settings_outlined,
-                  size: 20,
-                  color: isDark ? const Color(0xFF7C4DFF) : colorScheme.primary,
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  'Switch to Admin Dashboard',
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: isDark
-                        ? const Color(0xFF7C4DFF)
-                        : colorScheme.primary,
-                    fontWeight: FontWeight.w600,
+            const SizedBox(width: 10),
+
+            // Title & Subtitle
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Admin Panel',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: primaryTextColor,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                    ),
                   ),
-                ),
-                const Spacer(),
-                Icon(
-                  Icons.chevron_right_rounded,
-                  size: 20,
-                  color: isDark ? const Color(0xFF7C4DFF) : colorScheme.primary,
-                ),
-              ],
+                  Text(
+                    'Manage students, shifts & attendance',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: secondaryTextColor,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
+            const SizedBox(width: 8),
+
+            // Compact Action Arrow
+            Container(
+              width: 24,
+              height: 24,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: borderColor, width: 1),
+              ),
+              child: Icon(
+                Icons.arrow_forward_rounded,
+                size: 13,
+                color: secondaryTextColor,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -420,18 +493,21 @@ class _HeaderIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Material(
-      color: isDark
-          ? Colors.white.withValues(alpha: 0.06)
-          : colorScheme.surfaceContainerHigh,
-      shape: const CircleBorder(),
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(9),
-          child: Icon(icon, size: 19),
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkNeutral : AppColors.lightNeutral,
+        shape: BoxShape.circle,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        shape: const CircleBorder(),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onTap,
+          child: Padding(
+            padding: EdgeInsets.all(10),
+            child: Icon(icon, size: 18),
+          ),
         ),
       ),
     );
@@ -441,7 +517,6 @@ class _HeaderIconButton extends StatelessWidget {
 class _Service {
   const _Service(
     this.title,
-    this.lottie,
     this.route,
     this.gradient, {
     this.subtitle,
@@ -449,7 +524,6 @@ class _Service {
   });
 
   final String title;
-  final String lottie;
   final String route;
   final Gradient gradient;
   final String? subtitle;
@@ -457,35 +531,48 @@ class _Service {
 }
 
 class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.icon, required this.title});
+  const _SectionHeader({
+    required this.icon,
+    required this.title,
+    this.trailing,
+  });
 
   final IconData icon;
   final String title;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 22, 20, 12),
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 6),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: theme.colorScheme.primary),
+          Icon(
+            icon,
+            size: 16,
+            color: isDark ? AppColors.darkBodyTextSecondary : AppColors.primary,
+          ),
           const SizedBox(width: 8),
           Text(
             title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
+            style: theme.textTheme.labelMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.2,
+              color: isDark
+                  ? AppColors.darkBodyTextSecondary
+                  : AppColors.lightBodyTextSecondary,
             ),
           ),
+          if (trailing != null) ...[const Spacer(), trailing!],
         ],
       ),
     );
   }
 }
 
-/// Large gradient "hero" action card — mirrors the two-up quick-action
-/// layout, with a frosted circular chevron button and a Lottie glyph
-/// tucked into the corner.
 class _FeaturedActionCard extends StatelessWidget {
   const _FeaturedActionCard({required this.service, required this.index});
 
@@ -495,6 +582,7 @@ class _FeaturedActionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return GestureDetector(
           onTap: () async {
@@ -502,80 +590,82 @@ class _FeaturedActionCard extends StatelessWidget {
             if (context.mounted) AppNavigation.push(context, service.route);
           },
           child: Container(
-            height: 148,
-            padding: const EdgeInsets.all(16),
+            height: 132,
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              gradient: service.gradient,
-              borderRadius: BorderRadius.circular(22),
-              boxShadow: [
-                BoxShadow(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.18),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                ),
-              ],
+              color: isDark ? AppColors.darkCard : AppColors.lightCard,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+              ),
             ),
             child: Stack(
               children: [
                 Positioned(
-                  right: -18,
-                  bottom: -18,
+                  right: -8,
+                  bottom: -8,
                   child: Opacity(
-                    opacity: 0.35,
-                    child: SizedBox(
-                      width: 96,
-                      height: 96,
-                      child: Lottie.asset(
-                        service.lottie,
-                        fit: BoxFit.contain,
-                        errorBuilder: (_, _, _) => Icon(
-                          service.icon,
-                          size: 72,
-                          color: Colors.white.withValues(alpha: 0.5),
-                        ),
-                      ),
+                    opacity: isDark ? 0.08 : 0.05,
+                    child: Icon(
+                      service.icon,
+                      size: 80,
+                      color: isDark ? Colors.white : AppColors.primary,
                     ),
                   ),
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Align(
-                      alignment: Alignment.topRight,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(999),
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-                          child: Container(
-                            padding: const EdgeInsets.all(7),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.22),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.arrow_outward_rounded,
-                              size: 15,
-                              color: Colors.white,
-                            ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? AppColors.darkNeutral
+                                : AppColors.lightNeutral,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            service.icon,
+                            size: 18,
+                            color: isDark
+                                ? AppColors.darkIcon
+                                : AppColors.primary,
                           ),
                         ),
-                      ),
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? AppColors.darkNeutral
+                                : AppColors.lightNeutral,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.arrow_outward_rounded,
+                            size: 14,
+                          ),
+                        ),
+                      ],
                     ),
                     const Spacer(),
                     Text(
                       service.title,
                       style: theme.textTheme.titleMedium?.copyWith(
-                        color: Colors.white,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Text(
-                      service.subtitle ?? 'Open $service.title',
+                      service.subtitle ?? 'Open ${service.title}',
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.85),
+                        color: isDark
+                            ? AppColors.darkBodyTextSecondary
+                            : AppColors.lightBodyTextSecondary,
                       ),
                     ),
                   ],
@@ -606,345 +696,606 @@ class _ServiceTile extends StatelessWidget {
         await AnalyticsService().logButtonClick(service.title);
         if (context.mounted) AppNavigation.push(context, service.route);
       },
-      child: Column(
-        children: [
-          Expanded(
-            child: Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                gradient: service.gradient,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: isDark ? 0.08 : 0.4),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: isDark
-                        ? Colors.cyan.withValues(alpha: 0.15)
-                        : theme.colorScheme.primary.withValues(alpha: 0.12),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
+      child: Container(
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.darkCard : AppColors.lightCard,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+          ),
+        ),
+        padding: const EdgeInsets.all(8),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Expanded(
+              child: Center(
+                child: Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    gradient: service.gradient,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(
+                          alpha: isDark ? 0.25 : 0.08,
+                        ),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Lottie.asset(
-                  service.lottie,
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, _, _) =>
-                      Icon(service.icon, color: Colors.white),
+                  child: Center(
+                    child: Icon(
+                      service.icon,
+                      size: 26,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            service.title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.labelMedium?.copyWith(
-              fontWeight: FontWeight.w600,
+            const SizedBox(height: 6),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                service.title,
+                maxLines: 1,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     ).animate().fadeIn(delay: (80 + index * 40).ms).slideY(begin: 0.1, end: 0);
   }
 }
 
-/// Overview-style card: a headline enrollment count, a change badge
-/// computed against last month, a sparkline, and three small stat chips
-/// (total / this month / monthly average) driven entirely by the real
-/// `EnrolledStudent` stream — no placeholder figures.
-class _InsightCard extends StatelessWidget {
+enum _EnrollmentTimeRange { rolling6Months, thisYear }
+
+class _MonthEnrollmentSlot {
+  final String label;
+  final String fullLabel;
+  final int year;
+  final int month;
+  final int count;
+
+  const _MonthEnrollmentSlot({
+    required this.label,
+    required this.fullLabel,
+    required this.year,
+    required this.month,
+    required this.count,
+  });
+}
+
+class _InsightCard extends StatefulWidget {
   const _InsightCard();
 
-  static const List<String> _months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-  ];
+  @override
+  State<_InsightCard> createState() => _InsightCardState();
+}
+
+class _InsightCardState extends State<_InsightCard> {
+  _EnrollmentTimeRange _timeRange = _EnrollmentTimeRange.rolling6Months;
+  late final Stream<List<EnrolledStudent>> _stream;
+
+  @override
+  void initState() {
+    super.initState();
+    _stream = context.read<AdminCubit>().getEnrolledStudentsStream();
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
-    final accentColor = isDark ? const Color(0xFF00E5FF) : colorScheme.primary;
+    final accentColor = AppColors.secondary;
 
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      elevation: 0,
-      color: isDark ? const Color(0xFF16162A) : colorScheme.surfaceContainerLow,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(22),
-        side: BorderSide(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.06)
-              : colorScheme.outlineVariant.withValues(alpha: 0.3),
+    return Container(
+      margin: const EdgeInsets.symmetric(
+        horizontal: AppConstants.defaultPadding,
+      ),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkCard : AppColors.lightCard,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.16 : 0.03),
+            blurRadius: 12,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
         child: StreamBuilder<List<EnrolledStudent>>(
-          stream: context.read<AdminCubit>().getEnrolledStudentsStream(),
+          stream: _stream,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const SizedBox(
-                height: 180,
-                child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-              );
+              return _buildLoadingSkeleton(isDark);
             }
 
             if (snapshot.hasError) {
-              return const SizedBox(
-                height: 180,
+              return SizedBox(
+                height: 90,
                 child: Center(
-                  child: Text('Unable to load enrollment data.'),
+                  child: Text(
+                    'Unable to load enrollment data.',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: isDark
+                          ? AppColors.darkBodyTextSecondary
+                          : AppColors.lightBodyTextSecondary,
+                    ),
+                  ),
                 ),
               );
             }
 
             final students = snapshot.data ?? [];
+            if (students.isEmpty) {
+              return _buildEmptyState(theme, isDark);
+            }
+
             final now = DateTime.now();
-            final counts = List.filled(6, 0);
-            for (final student in students) {
-              if (student.enrollmentDate.year == now.year &&
-                  student.enrollmentDate.month <= 6) {
-                counts[student.enrollmentDate.month - 1]++;
+            final currentYear = now.year;
+            final currentMonth = now.month;
+
+            // Accurate Month-over-Month (MoM) metrics
+            final thisMonthCount = students
+                .where((s) =>
+                    s.enrollmentDate.year == currentYear &&
+                    s.enrollmentDate.month == currentMonth)
+                .length;
+
+            final lastMonthNum = currentMonth == 1 ? 12 : currentMonth - 1;
+            final lastMonthYear =
+                currentMonth == 1 ? currentYear - 1 : currentYear;
+            final lastMonthCount = students
+                .where((s) =>
+                    s.enrollmentDate.year == lastMonthYear &&
+                    s.enrollmentDate.month == lastMonthNum)
+                .length;
+
+            final String momText;
+            final IconData momIcon;
+            final Color momColor;
+            if (lastMonthCount == 0 && thisMonthCount == 0) {
+              momText = '0%';
+              momIcon = Icons.remove_rounded;
+              momColor = isDark
+                  ? AppColors.darkBodyTextSecondary
+                  : AppColors.lightBodyTextSecondary;
+            } else if (lastMonthCount == 0) {
+              momText = '+$thisMonthCount new';
+              momIcon = Icons.arrow_upward_rounded;
+              momColor = AppColors.success;
+            } else {
+              final diff = thisMonthCount - lastMonthCount;
+              final pct = (diff / lastMonthCount) * 100;
+              if (pct > 0) {
+                momText = '+${pct.toStringAsFixed(0)}%';
+                momIcon = Icons.arrow_upward_rounded;
+                momColor = AppColors.success;
+              } else if (pct < 0) {
+                momText = '${pct.toStringAsFixed(0)}%';
+                momIcon = Icons.arrow_downward_rounded;
+                momColor = AppColors.error;
+              } else {
+                momText = '0%';
+                momIcon = Icons.remove_rounded;
+                momColor = isDark
+                    ? AppColors.darkBodyTextSecondary
+                    : AppColors.lightBodyTextSecondary;
               }
             }
-            final spots = List.generate(
-              6,
-              (i) => FlSpot(i.toDouble(), counts[i].toDouble()),
-            );
-            final maxCount = counts.reduce((a, b) => a > b ? a : b);
-            final maxY = (maxCount + 1).toDouble();
 
-            final thisMonthIndex = now.month - 1;
-            final thisMonthCount =
-                (thisMonthIndex >= 0 && thisMonthIndex < 6)
-                    ? counts[thisMonthIndex]
-                    : 0;
-            final lastMonthIndex = thisMonthIndex - 1;
-            final lastMonthCount =
-                (lastMonthIndex >= 0 && lastMonthIndex < 6)
-                    ? counts[lastMonthIndex]
-                    : 0;
-            final change = lastMonthCount == 0
-                ? (thisMonthCount == 0 ? 0.0 : 100.0)
-                : ((thisMonthCount - lastMonthCount) / lastMonthCount) * 100;
-            final monthsElapsed = now.month.clamp(1, 6);
-            final avgPerMonth = counts
-                    .take(monthsElapsed)
-                    .fold<int>(0, (a, b) => a + b) /
-                monthsElapsed;
+            // Current year to date total
+            final thisYearCount = students
+                .where((s) => s.enrollmentDate.year == currentYear)
+                .length;
 
-            if (students.isEmpty) {
-              return SizedBox(
-                height: 180,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.insights_outlined,
-                      size: 40,
-                      color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'No enrollments yet',
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Student data will appear here',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant
-                            .withValues(alpha: 0.7),
-                      ),
-                    ),
-                  ],
-                ),
-              );
+            // Generate slots for selected time range
+            final List<_MonthEnrollmentSlot> slots = [];
+            if (_timeRange == _EnrollmentTimeRange.rolling6Months) {
+              for (int i = 0; i < 6; i++) {
+                final offset = 5 - i;
+                var m = currentMonth - offset;
+                var y = currentYear;
+                while (m <= 0) {
+                  m += 12;
+                  y -= 1;
+                }
+                final dt = DateTime(y, m, 1);
+                final count = students
+                    .where((s) =>
+                        s.enrollmentDate.year == y &&
+                        s.enrollmentDate.month == m)
+                    .length;
+                slots.add(_MonthEnrollmentSlot(
+                  label: DateFormat.MMM().format(dt),
+                  fullLabel: DateFormat('MMM yyyy').format(dt),
+                  year: y,
+                  month: m,
+                  count: count,
+                ));
+              }
+            } else {
+              for (int m = 1; m <= 12; m++) {
+                final dt = DateTime(currentYear, m, 1);
+                final count = students
+                    .where((s) =>
+                        s.enrollmentDate.year == currentYear &&
+                        s.enrollmentDate.month == m)
+                    .length;
+                slots.add(_MonthEnrollmentSlot(
+                  label: DateFormat.MMM().format(dt),
+                  fullLabel: DateFormat('MMM yyyy').format(dt),
+                  year: currentYear,
+                  month: m,
+                  count: count,
+                ));
+              }
             }
+
+            final spots = List.generate(
+              slots.length,
+              (i) => FlSpot(i.toDouble(), slots[i].count.toDouble()),
+            );
+
+            final maxCountInWindow =
+                slots.map((s) => s.count).fold<int>(0, (a, b) => a > b ? a : b);
+            final peakSlot =
+                slots.reduce((a, b) => a.count >= b.count ? a : b);
+            final maxY =
+                maxCountInWindow <= 0 ? 4.0 : (maxCountInWindow * 1.25).ceilToDouble();
+
+            // Monthly Average in range
+            final double avgPerMonth;
+            if (_timeRange == _EnrollmentTimeRange.rolling6Months) {
+              final totalInWindow =
+                  slots.fold<int>(0, (sum, s) => sum + s.count);
+              avgPerMonth = totalInWindow / 6.0;
+            } else {
+              final elapsedMonths = currentMonth.clamp(1, 12);
+              final totalElapsed = slots
+                  .take(elapsedMonths)
+                  .fold<int>(0, (sum, s) => sum + s.count);
+              avgPerMonth = totalElapsed / elapsedMonths;
+            }
+
+            // Demographics & Level Insights
+            int maleCount = 0;
+            int femaleCount = 0;
+            final levelCounts = <String, int>{};
+            for (final s in students) {
+              final g = s.gender.trim().toLowerCase();
+              if (g == 'male' || g == 'm') {
+                maleCount++;
+              } else if (g == 'female' || g == 'f') {
+                femaleCount++;
+              }
+              final lvl = s.level.trim();
+              if (lvl.isNotEmpty) {
+                levelCounts[lvl] = (levelCounts[lvl] ?? 0) + 1;
+              }
+            }
+            String? topLevelName;
+            int topLevelCount = 0;
+            levelCounts.forEach((lvl, count) {
+              if (count > topLevelCount) {
+                topLevelCount = count;
+                topLevelName = lvl;
+              }
+            });
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
+                // Compact Top Bar: Total + Trend Badge on left, 6M/Year switch on right
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'TOTAL ENROLLED',
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                              letterSpacing: 0.6,
-                              fontWeight: FontWeight.w600,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        Text(
+                          '${students.length}',
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 24,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'STUDENTS',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: isDark
+                                ? AppColors.darkBodyTextSecondary
+                                : AppColors.lightBodyTextSecondary,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 10,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: momColor.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: momColor.withValues(alpha: 0.25),
+                              width: 0.8,
                             ),
                           ),
-                          const SizedBox(height: 6),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.end,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
+                              Icon(momIcon, size: 11, color: momColor),
+                              const SizedBox(width: 2),
                               Text(
-                                '${students.length}',
-                                style: theme.textTheme.headlineMedium
-                                    ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Padding(
-                                padding: const EdgeInsets.only(bottom: 6),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      change >= 0
-                                          ? Icons.arrow_upward_rounded
-                                          : Icons.arrow_downward_rounded,
-                                      size: 14,
-                                      color: change >= 0
-                                          ? Colors.greenAccent.shade400
-                                          : Colors.redAccent.shade100,
-                                    ),
-                                    Text(
-                                      '${change.abs().toStringAsFixed(0)}%',
-                                      style: theme.textTheme.labelMedium
-                                          ?.copyWith(
-                                        color: change >= 0
-                                            ? Colors.greenAccent.shade400
-                                            : Colors.redAccent.shade100,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ],
+                                momText,
+                                style: TextStyle(
+                                  color: momColor,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 10,
                                 ),
                               ),
                             ],
                           ),
-                          Text(
-                            'vs last month',
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(
-                      width: 120,
-                      height: 56,
-                      child: LineChart(
-                        LineChartData(
-                          gridData: const FlGridData(show: false),
-                          titlesData: const FlTitlesData(show: false),
-                          borderData: FlBorderData(show: false),
-                          minX: 0,
-                          maxX: 5,
-                          minY: 0,
-                          maxY: maxY,
-                          lineTouchData:
-                              const LineTouchData(enabled: false),
-                          lineBarsData: [
-                            LineChartBarData(
-                              spots: spots,
-                              isCurved: true,
-                              color: accentColor,
-                              barWidth: 2.5,
-                              dotData: const FlDotData(show: false),
-                              belowBarData: BarAreaData(
-                                show: true,
-                                gradient: LinearGradient(
-                                  colors: [
-                                    accentColor.withValues(alpha: 0.25),
-                                    accentColor.withValues(alpha: 0.0),
-                                  ],
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                ),
-                              ),
-                            ),
-                          ],
                         ),
-                      ),
+                      ],
                     ),
+                    _buildCompactRangeSelector(isDark),
                   ],
                 ),
-                const SizedBox(height: 18),
+                const SizedBox(height: 10),
+
+                // Compact Sparkline (68px height)
+                SizedBox(
+                  height: 68,
+                  child: LineChart(
+                    LineChartData(
+                      lineTouchData: LineTouchData(
+                        enabled: true,
+                        handleBuiltInTouches: true,
+                        touchTooltipData: LineTouchTooltipData(
+                          getTooltipColor: (_) => isDark
+                              ? AppColors.darkCard
+                              : AppColors.lightCard,
+                          tooltipBorder: BorderSide(
+                            color: isDark
+                                ? AppColors.darkBorder
+                                : AppColors.lightBorder,
+                          ),
+                          tooltipBorderRadius: BorderRadius.circular(8),
+                          fitInsideHorizontally: true,
+                          fitInsideVertically: true,
+                          tooltipPadding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          getTooltipItems: (touchedSpots) {
+                            return touchedSpots.map((spot) {
+                              final index = spot.spotIndex;
+                              if (index < 0 || index >= slots.length) {
+                                return null;
+                              }
+                              final slot = slots[index];
+                              return LineTooltipItem(
+                                '${slot.label}: ',
+                                TextStyle(
+                                  color: isDark
+                                      ? AppColors.darkBodyTextSecondary
+                                      : AppColors.lightBodyTextSecondary,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                children: [
+                                  TextSpan(
+                                    text: '${spot.y.toInt()}',
+                                    style: TextStyle(
+                                      color: accentColor,
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }).toList();
+                          },
+                        ),
+                      ),
+                      gridData: const FlGridData(show: false),
+                      titlesData: FlTitlesData(
+                        show: true,
+                        rightTitles: const AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
+                        topTitles: const AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
+                        leftTitles: const AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
+                        bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 16,
+                            interval: 1,
+                            getTitlesWidget: (value, meta) {
+                              final index = value.toInt();
+                              if (index < 0 || index >= slots.length) {
+                                return const SizedBox.shrink();
+                              }
+                              final slot = slots[index];
+                              final isCurrentMonth =
+                                  slot.year == currentYear &&
+                                      slot.month == currentMonth;
+
+                              return Text(
+                                slot.label,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: _timeRange ==
+                                          _EnrollmentTimeRange.thisYear
+                                      ? 8.5
+                                      : 9.5,
+                                  fontWeight: isCurrentMonth
+                                      ? FontWeight.w800
+                                      : FontWeight.w500,
+                                  color: isCurrentMonth
+                                      ? accentColor
+                                      : (isDark
+                                          ? AppColors.darkBodyTextSecondary
+                                          : AppColors.lightBodyTextSecondary),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                      borderData: FlBorderData(show: false),
+                      minX: 0,
+                      maxX: (slots.length - 1).toDouble(),
+                      minY: 0,
+                      maxY: maxY,
+                      lineBarsData: [
+                        LineChartBarData(
+                          spots: spots,
+                          isCurved: true,
+                          curveSmoothness: 0.35,
+                          color: accentColor,
+                          barWidth: 2.5,
+                          isStrokeCapRound: true,
+                          dotData: FlDotData(
+                            show: true,
+                            getDotPainter: (spot, percent, barData, index) {
+                              final isCurrent = index < slots.length &&
+                                  slots[index].year == currentYear &&
+                                  slots[index].month == currentMonth;
+                              return FlDotCirclePainter(
+                                radius: isCurrent ? 3.5 : 2.2,
+                                color: isCurrent
+                                    ? accentColor
+                                    : (isDark
+                                        ? AppColors.darkCard
+                                        : AppColors.lightCard),
+                                strokeWidth: 1.5,
+                                strokeColor: accentColor,
+                              );
+                            },
+                          ),
+                          belowBarData: BarAreaData(
+                            show: true,
+                            gradient: LinearGradient(
+                              colors: [
+                                accentColor.withValues(alpha: 0.25),
+                                accentColor.withValues(alpha: 0.0),
+                              ],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                // Sleek Single-Row Micro-KPI Strip (Takes only ~42px)
                 Row(
                   children: [
                     Expanded(
-                      child: _StatChip(
-                        label: 'This Month',
+                      child: _CompactStatTile(
+                        label: 'This Mo',
                         value: '$thisMonthCount',
-                        progress:
-                            maxCount == 0 ? 0 : thisMonthCount / maxCount,
                         color: accentColor,
+                        isDark: isDark,
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 6),
                     Expanded(
-                      child: _StatChip(
-                        label: 'Avg / Month',
+                      child: _CompactStatTile(
+                        label: 'Year $currentYear',
+                        value: '$thisYearCount',
+                        color: AppColors.info,
+                        isDark: isDark,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: _CompactStatTile(
+                        label: 'Avg / Mo',
                         value: avgPerMonth.toStringAsFixed(1),
-                        progress:
-                            maxCount == 0 ? 0 : avgPerMonth / maxCount,
-                        color: isDark
-                            ? const Color(0xFF7C4DFF)
-                            : colorScheme.tertiary,
+                        color: AppColors.warning,
+                        isDark: isDark,
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 6),
                     Expanded(
-                      child: _StatChip(
-                        label: 'Peak Month',
-                        value: maxCount == 0
-                            ? '—'
-                            : _months[counts.indexOf(maxCount)],
-                        progress: 1,
-                        color: Colors.orangeAccent.shade200,
-                        showBar: false,
+                      child: _CompactStatTile(
+                        label: 'Peak',
+                        value: peakSlot.count == 0 ? '—' : peakSlot.label,
+                        color: AppColors.accent,
+                        isDark: isDark,
+                        badge: peakSlot.count > 0 ? '${peakSlot.count}' : null,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 14),
-                SizedBox(
-                  height: 20,
-                  child: Row(
-                    children: List.generate(_months.length, (i) {
-                      final isCurrent = i == thisMonthIndex;
-                      return Expanded(
+
+                // Ultra-thin footnote for demographics (if available)
+                if (maleCount > 0 ||
+                    femaleCount > 0 ||
+                    topLevelName != null) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.pie_chart_outline_rounded,
+                        size: 12,
+                        color: accentColor.withValues(alpha: 0.8),
+                      ),
+                      const SizedBox(width: 5),
+                      Flexible(
                         child: Text(
-                          _months[i],
-                          textAlign: TextAlign.center,
+                          [
+                            if (maleCount > 0 || femaleCount > 0)
+                              '${(maleCount / (maleCount + femaleCount) * 100).round()}% M • ${(femaleCount / (maleCount + femaleCount) * 100).round()}% F',
+                            if (topLevelName != null)
+                              'Top: $topLevelName ($topLevelCount)',
+                          ].join('   |   '),
                           style: theme.textTheme.labelSmall?.copyWith(
-                            color: isCurrent
-                                ? accentColor
-                                : (isDark
-                                    ? Colors.white54
-                                    : colorScheme.onSurfaceVariant),
-                            fontWeight: isCurrent
-                                ? FontWeight.bold
-                                : FontWeight.w500,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w500,
+                            color: isDark
+                                ? AppColors.darkBodyTextSecondary
+                                : AppColors.lightBodyTextSecondary,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      );
-                    }),
+                      ),
+                    ],
                   ),
-                ),
+                ],
               ],
             );
           },
@@ -952,67 +1303,233 @@ class _InsightCard extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildCompactRangeSelector(bool isDark) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkNeutral : AppColors.lightNeutral,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      padding: const EdgeInsets.all(2),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildCompactRangeTab(
+            title: '6M',
+            isSelected: _timeRange == _EnrollmentTimeRange.rolling6Months,
+            isDark: isDark,
+            onTap: () => setState(() {
+              _timeRange = _EnrollmentTimeRange.rolling6Months;
+            }),
+          ),
+          _buildCompactRangeTab(
+            title: 'Year',
+            isSelected: _timeRange == _EnrollmentTimeRange.thisYear,
+            isDark: isDark,
+            onTap: () => setState(() {
+              _timeRange = _EnrollmentTimeRange.thisYear;
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCompactRangeTab({
+    required String title,
+    required bool isSelected,
+    required bool isDark,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? (isDark ? AppColors.darkCard : AppColors.lightCard)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
+                    blurRadius: 3,
+                    offset: const Offset(0, 1),
+                  ),
+                ]
+              : null,
+        ),
+        child: Text(
+          title,
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
+            color: isSelected
+                ? AppColors.secondary
+                : (isDark
+                    ? AppColors.darkBodyTextSecondary
+                    : AppColors.lightBodyTextSecondary),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingSkeleton(bool isDark) {
+    return SizedBox(
+      height: 120,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                width: 90,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkNeutral : AppColors.lightNeutral,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+              ),
+              Container(
+                width: 50,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.darkNeutral : AppColors.lightNeutral,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.darkNeutral : AppColors.lightNeutral,
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(ThemeData theme, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.insights_rounded,
+            size: 24,
+            color: isDark
+                ? AppColors.darkBodyTextSecondary
+                : AppColors.lightBodyTextSecondary,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            'No enrollments yet',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: isDark
+                  ? AppColors.darkBodyTextSecondary
+                  : AppColors.lightBodyTextSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
-/// Small pill-style stat card used inside the Enrollment Insight card —
-/// mirrors the "Active / Approved / Rejected" chip row from the reference
-/// design, with an optional thin progress bar underneath.
-class _StatChip extends StatelessWidget {
-  const _StatChip({
+class _CompactStatTile extends StatelessWidget {
+  const _CompactStatTile({
     required this.label,
     required this.value,
-    required this.progress,
     required this.color,
-    this.showBar = true,
+    required this.isDark,
+    this.badge,
   });
 
   final String label;
   final String value;
-  final double progress;
   final Color color;
-  final bool showBar;
+  final bool isDark;
+  final String? badge;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     return Container(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: isDark ? 0.10 : 0.08),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: color.withValues(alpha: 0.25)),
+        color: isDark
+            ? AppColors.darkNeutral.withValues(alpha: 0.5)
+            : AppColors.lightNeutral,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: isDark
+              ? AppColors.darkBorder.withValues(alpha: 0.4)
+              : AppColors.lightBorder.withValues(alpha: 0.6),
+          width: 0.8,
+        ),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            value,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(
+                child: Text(
+                  value,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 13,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (badge != null) ...[
+                const SizedBox(width: 3),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 3, vertical: 0.5),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    badge!,
+                    style: TextStyle(
+                      fontSize: 8.5,
+                      fontWeight: FontWeight.w800,
+                      color: color,
+                    ),
+                  ),
+                ),
+              ],
+            ],
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 1),
           Text(
             label,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+            style: TextStyle(
+              fontSize: 9,
+              color: isDark
+                  ? AppColors.darkBodyTextSecondary
+                  : AppColors.lightBodyTextSecondary,
+              fontWeight: FontWeight.w500,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          if (showBar) ...[
-            const SizedBox(height: 8),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(999),
-              child: LinearProgressIndicator(
-                value: progress.clamp(0, 1).toDouble(),
-                minHeight: 4,
-                backgroundColor: color.withValues(alpha: 0.15),
-                valueColor: AlwaysStoppedAnimation(color),
-              ),
-            ),
-          ],
         ],
       ),
     );

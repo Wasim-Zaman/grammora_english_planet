@@ -1,6 +1,4 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-package="com.sairatec.gep"
-> 
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" /> 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" /> 
@@ -9,7 +7,7 @@ package="com.sairatec.gep"
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" /> 
     
     <application
-        android:label="SELC"
+        android:label="GEP"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
         <activity
@@ -42,6 +40,12 @@ package="com.sairatec.gep"
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyCsEUxB9psxb-LxhYx8hJtF248gj4bx49A"/>
+
+        <!-- Required by image_cropper plugin -->
+        <activity
+            android:name="com.yalantis.ucrop.UCropActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and
@@ -52,6 +56,13 @@ package="com.sairatec.gep"
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
+        </intent>
+        <!-- Required for Google Sign-In on Android 11+ (API 30+) -->
+        <package android:name="com.google.android.gms" />
+        <package android:name="com.android.vending" />
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
         </intent>
     </queries>
 </manifest>

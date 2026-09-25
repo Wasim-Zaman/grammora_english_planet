@@ -8,7 +8,7 @@ part 'auth_states.dart';
 class AuthCubit extends Cubit<AuthState> {
   final AdminAuthService _adminAuthService;
   final AuthService _userAuthService = AuthService();
-  final TextEditingController phoneController = TextEditingController();
+  final TextEditingController identifierController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
   AuthCubit(this._adminAuthService) : super(AuthInitial());
@@ -32,12 +32,13 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> loginAdmin() async {
     emit(AuthLoading());
     try {
-      if (phoneController.text.isEmpty || passwordController.text.isEmpty) {
-        emit(AuthFailure('Please enter your phone number and password.'));
+      if (identifierController.text.isEmpty ||
+          passwordController.text.isEmpty) {
+        emit(AuthFailure('Please enter your email/phone and password.'));
         return;
       }
       bool success = await _adminAuthService.signInAdmin(
-        phoneController.text.trim(),
+        identifierController.text.trim(),
         passwordController.text,
       );
 
@@ -63,13 +64,18 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
+  Future<void> checkAdminStatus() async {
+    final isAdmin = await _adminAuthService.isAdminLoggedIn();
+    emit(AuthSuccess(isAdmin: isAdmin));
+  }
+
   Future<bool> isAdminLoggedIn() async {
     return await _adminAuthService.isAdminLoggedIn();
   }
 
   @override
   Future<void> close() {
-    phoneController.dispose();
+    identifierController.dispose();
     passwordController.dispose();
 
     return super.close();

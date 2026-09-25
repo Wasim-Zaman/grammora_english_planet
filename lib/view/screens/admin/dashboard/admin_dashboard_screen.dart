@@ -1,14 +1,15 @@
-// ignore_for_file: use_build_context_synchronously
-
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/cubits/auth/auth_cubit.dart';
+import 'package:gep/core/constants/constants.dart';
 import 'package:gep/cubits/theme/theme_cubit.dart';
 import 'package:gep/router/app_navigation.dart';
 import 'package:gep/router/app_routes.dart';
-import 'package:gep/core/constants/constants.dart';
+import 'package:gep/services/analytics/analytics_service.dart';
+import 'package:gep/view/widgets/app_drawer.dart';
+import 'package:gep/view/widgets/app_scaffold.dart';
 import 'package:gep/view/widgets/grid_item.dart';
 import 'package:marquee/marquee.dart';
+import 'package:material_ui/material_ui.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({super.key});
@@ -16,265 +17,454 @@ class AdminDashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
-    // Admin services data with Lottie URLs and gradients
-    final List<Map<String, dynamic>> adminServices = [
+    final List<Map<String, dynamic>> primaryActions = [
       {
         'title': 'Manage Notes',
-        'lottieUrl': AppLotties.notes,
-        'gradient': const LinearGradient(
-          colors: [Color(0xFF6A1B9A), Color(0xFF1E88E5)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        'subtitle': 'Browse subject-wise notes',
+        'gradient': AppGradients.notes,
         'routeName': AppRoutes.kAdminNotesCategoriesRoute,
+        'icon': AppFeatureIcons.notes,
       },
       {
         'title': 'Manage Courses',
-        'lottieUrl': AppLotties.courses,
-        'gradient': const LinearGradient(
-          colors: [Color(0xFF00BCD4), Color(0xFF3F51B5)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        'subtitle': 'Explore course outlines',
+        'gradient': AppGradients.courses,
         'routeName': AppRoutes.kManageCoursesRoute,
+        'icon': AppFeatureIcons.courses,
       },
+    ];
+
+    final List<Map<String, dynamic>> managementServices = [
       {
-        'title': 'Manage Updates',
-        'lottieUrl': AppLotties.updates,
-        'gradient': const LinearGradient(
-          colors: [Color(0xFF4CAF50), Color(0xFF009688)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        'title': 'Updates',
+        'icon': AppFeatureIcons.updates,
+        'gradient': AppGradients.updates,
         'routeName': AppRoutes.kUpdatesManagementRoute,
       },
       {
-        'title': 'Manage Admissions',
-        'lottieUrl': AppLotties.admissions,
-        'gradient': const LinearGradient(
-          colors: [Color(0xFFFF4081), Color(0xFFFF5722)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        'title': 'Admissions',
+        'icon': AppFeatureIcons.admissions,
+        'gradient': AppGradients.admissions,
         'routeName': AppRoutes.kAdminAdmissionsRoute,
       },
       {
-        'title': 'Manage About Me',
-        'lottieUrl': AppLotties.aboutMe,
-        'gradient': const LinearGradient(
-          colors: [Color(0xFF3F51B5), Color(0xFF00BCD4)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        'title': 'About Me',
+        'icon': AppFeatureIcons.aboutMe,
+        'gradient': AppGradients.aboutMe,
         'routeName': AppRoutes.kManageAboutMeRoute,
       },
       {
-        'title': 'Manage Banner',
-        'lottieUrl': AppLotties.banners,
-        'gradient': const LinearGradient(
-          colors: [Color(0xFFFFA000), Color(0xFFFF5722)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        'title': 'Banners',
+        'icon': AppFeatureIcons.banners,
+        'gradient': AppGradients.students,
         'routeName': AppRoutes.kManageBannerRoute,
       },
       {
-        'title': 'Manage Enrollment',
-        'lottieUrl': AppLotties.students,
-        'gradient': const LinearGradient(
-          colors: [Color(0xFF009688), Color(0xFF00BCD4)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        'title': 'Enrollment',
+        'icon': AppFeatureIcons.students,
+        'gradient': AppGradients.terms,
         'routeName': AppRoutes.kEnrollStudentsManagementRoute,
       },
+      {
+        'title': 'Shifts',
+        'icon': AppFeatureIcons.shift,
+        'gradient': AppGradients.courses,
+        'routeName': AppRoutes.kManageShiftsRoute,
+      },
+      {
+        'title': 'Attendance QR',
+        'icon': AppFeatureIcons.qrCode,
+        'gradient': AppGradients.admissions,
+        'routeName': AppRoutes.kQrAttendanceRoute,
+      },
+      {
+        'title': 'Attendance',
+        'icon': AppFeatureIcons.attendance,
+        'gradient': AppGradients.notes,
+        'routeName': AppRoutes.kAdminAttendanceRecordsRoute,
+      },
     ];
-    IconData getFallbackIcon(String title) {
-      switch (title) {
-        case 'Manage Notes':
-          return Icons.note;
-        case 'Manage Courses':
-          return Icons.school;
-        case 'Manage Updates':
-          return Icons.update;
-        case 'Manage Admissions':
-          return Icons.person_add;
-        case 'Manage About Me':
-          return Icons.analytics;
-        case 'Manage Banner':
-          return Icons.image;
-        case 'Manage Enrollment':
-          return Icons.how_to_reg;
-        default:
-          return Icons.dashboard;
-      }
-    }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Admin Dashboard', style: theme.textTheme.headlineSmall),
-        actions: [
-          BlocBuilder<ThemeCubit, ThemeState>(
-            builder: (context, state) {
-              return IconButton(
-                icon: Icon(
-                  state.themeMode == ThemeMode.light
-                      ? Icons.dark_mode
-                      : Icons.light_mode,
-                ),
-                onPressed: () {
-                  context.read<ThemeCubit>().toggleTheme();
-                },
-              );
-            },
+    return AppScaffold(
+      drawer: const AppDrawer(isAdminLoggedIn: true, isAdminDashboard: true),
+      safeAreaBottom: false,
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
+        slivers: [
+          // Header Hero Banner Card
+          SliverToBoxAdapter(child: _buildHeaderCard(context, theme, isDark)),
+
+          // Primary Actions Header
+          const SliverToBoxAdapter(
+            child: _SectionHeader(
+              icon: Icons.bolt_rounded,
+              title: 'PRIMARY ACTIONS',
+            ),
           ),
+
+          // Primary Actions Cards
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppConstants.defaultPadding,
+            ),
+            sliver: SliverToBoxAdapter(
+              child: Row(
+                children: [
+                  for (var i = 0; i < primaryActions.length; i++) ...[
+                    if (i > 0) const SizedBox(width: 12),
+                    Expanded(
+                      child: _AdminPrimaryCard(
+                        action: primaryActions[i],
+                        index: i,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+
+          // Management Services Header
+          const SliverToBoxAdapter(
+            child: _SectionHeader(
+              icon: Icons.grid_view_rounded,
+              title: 'MANAGEMENT SERVICES',
+            ),
+          ),
+
+          // Management Services Grid
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppConstants.defaultPadding,
+            ),
+            sliver: SliverGrid(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                mainAxisSpacing: 14,
+                crossAxisSpacing: 14,
+                childAspectRatio: 0.95,
+              ),
+              delegate: SliverChildBuilderDelegate((context, index) {
+                final item = managementServices[index];
+                return GridItem(
+                      title: item['title'],
+                      gradient: item['gradient'],
+                      routeName: item['routeName'],
+                      icon: item['icon'],
+                    )
+                    .animate()
+                    .fadeIn(delay: (60 + index * 30).ms)
+                    .slideY(begin: 0.08, end: 0);
+              }, childCount: managementServices.length),
+            ),
+          ),
+
+          const SliverToBoxAdapter(child: SizedBox(height: 32)),
         ],
       ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: theme.primaryColor,
-              ),
-              child: Text(
-                'Admin Panel',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  color: theme.colorScheme.onPrimary,
+    );
+  }
+
+  Widget _buildHeaderCard(BuildContext context, ThemeData theme, bool isDark) {
+    final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
+    final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final textColorSecondary = isDark
+        ? AppColors.darkBodyTextSecondary
+        : AppColors.lightBodyTextSecondary;
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(
+        AppConstants.defaultPadding,
+        12,
+        AppConstants.defaultPadding,
+        8,
+      ),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: borderColor),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Builder(
+                builder: (scaffoldContext) => Material(
+                  color: isDark
+                      ? AppColors.darkNeutral
+                      : AppColors.lightNeutral,
+                  borderRadius: BorderRadius.circular(16),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () => Scaffold.of(scaffoldContext).openDrawer(),
+                    child: Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: Icon(
+                        Icons.widgets_rounded,
+                        color: isDark
+                            ? AppColors.darkIcon
+                            : AppColors.lightIcon,
+                        size: 20,
+                      ),
+                    ),
+                  ),
                 ),
               ),
-            ),
-            ListTile(
-              title: const Text('User App'),
-              onTap: () {
-                AppNavigation.goAndClearStack(
-                    context, AppRoutes.kDashboardRoute);
-              },
-            ),
-            ListTile(
-              title: const Text('Logout'),
-              onTap: () async {
-                await context.read<AuthCubit>().logout();
-                AppNavigation.goAndClearStack(context, AppRoutes.kLoginRoute);
-              },
-            ),
-          ],
-        ),
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(24),
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      theme.primaryColor,
-                      theme.primaryColor.withValues(alpha: 0.7)
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: theme.primaryColor.withValues(alpha: 0.3),
-                      blurRadius: 15,
-                      offset: const Offset(0, 8),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'WELCOME BACK / ADMIN',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: textColorSecondary,
+                        letterSpacing: 1.1,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Sani',
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.5,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
-                child: Column(
+              ),
+              BlocBuilder<ThemeCubit, ThemeState>(
+                builder: (context, state) {
+                  final isLight = state.themeMode == ThemeMode.light;
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppColors.darkNeutral
+                          : AppColors.lightNeutral,
+                      shape: BoxShape.circle,
+                    ),
+                    child: IconButton(
+                      icon: Icon(
+                        isLight
+                            ? Icons.dark_mode_outlined
+                            : Icons.light_mode_outlined,
+                        size: 18,
+                      ),
+                      onPressed: () => context.read<ThemeCubit>().toggleTheme(),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.accent.withValues(alpha: 0.18),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.admin_panel_settings_rounded,
+                  size: 20,
+                  color: AppColors.accent,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            height: 34,
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkNeutral : AppColors.lightNeutral,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Marquee(
+              text:
+                  'Welcome to the Admin Dashboard! Control and manage system operations with ease.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: isDark
+                    ? AppColors.darkBodyText
+                    : AppColors.lightBodyText,
+              ),
+              scrollAxis: Axis.horizontal,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              blankSpace: 24.0,
+              velocity: 35.0,
+              pauseAfterRound: const Duration(seconds: 1),
+            ),
+          ),
+        ],
+      ),
+    ).animate().fadeIn(duration: 250.ms);
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.icon, required this.title});
+
+  final IconData icon;
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            size: 16,
+            color: isDark ? AppColors.darkBodyTextSecondary : AppColors.primary,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            title,
+            style: theme.textTheme.labelMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.2,
+              color: isDark
+                  ? AppColors.darkBodyTextSecondary
+                  : AppColors.lightBodyTextSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AdminPrimaryCard extends StatelessWidget {
+  const _AdminPrimaryCard({required this.action, required this.index});
+
+  final Map<String, dynamic> action;
+  final int index;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return GestureDetector(
+          onTap: () async {
+            await AnalyticsService().logButtonClick(action['title']);
+            if (context.mounted) {
+              AppNavigation.push(context, action['routeName']);
+            }
+          },
+          child: Container(
+            height: 175,
+            padding: const EdgeInsets.all(AppConstants.defaultPadding),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.darkCard : AppColors.lightCard,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+              ),
+            ),
+            child: Stack(
+              children: [
+                Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Welcome back,',
-                              style: theme.textTheme.titleLarge?.copyWith(
-                                color: theme.colorScheme.onPrimary
-                                    .withValues(alpha: 0.8),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'SANI',
-                              style: theme.textTheme.headlineMedium?.copyWith(
-                                color: theme.colorScheme.onPrimary,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? AppColors.darkNeutral
+                                : AppColors.lightNeutral,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            action['icon'],
+                            size: 18,
+                            color: isDark
+                                ? AppColors.darkIcon
+                                : AppColors.primary,
+                          ),
                         ),
-                        Icon(
-                          Icons.admin_panel_settings,
-                          size: 48,
-                          color: theme.colorScheme.onPrimary
-                              .withValues(alpha: 0.8),
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? AppColors.darkNeutral
+                                : AppColors.lightNeutral,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.arrow_outward_rounded,
+                            size: 14,
+                          ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      height: 30,
-                      child: Marquee(
-                        text:
-                            'Welcome to the Admin Dashboard! Manage your app with ease.',
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          color: theme.colorScheme.onPrimary,
+                    const Spacer(),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          gradient: action['gradient'],
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(
+                                alpha: isDark ? 0.25 : 0.08,
+                              ),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
-                        scrollAxis: Axis.horizontal,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        blankSpace: 20.0,
-                        velocity: 50.0,
-                        pauseAfterRound: const Duration(seconds: 1),
-                        startPadding: 10.0,
-                        accelerationDuration: const Duration(seconds: 1),
-                        accelerationCurve: Curves.linear,
-                        decelerationDuration: const Duration(milliseconds: 500),
-                        decelerationCurve: Curves.easeOut,
+                        child: Center(
+                          child: Icon(
+                            action['icon'],
+                            size: 26,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Text(
+                      action['title'],
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      action['subtitle'],
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: isDark
+                            ? AppColors.darkBodyTextSecondary
+                            : AppColors.lightBodyTextSecondary,
                       ),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 16),
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: adminServices.length,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16.0,
-                  mainAxisSpacing: 16.0,
-                  childAspectRatio: 1.5,
-                ),
-                itemBuilder: (context, index) {
-                  return GridItem(
-                    title: adminServices[index]['title'],
-                    gradient: adminServices[index]['gradient'],
-                    routeName: adminServices[index]['routeName'],
-                    lottieUrl: adminServices[index]['lottieUrl'],
-                    fallbackIcon: getFallbackIcon(
-                      adminServices[index]['title'],
-                    ),
-                  );
-                },
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      ),
-    );
+        )
+        .animate()
+        .fadeIn(delay: (index * 60).ms)
+        .slideX(begin: index.isEven ? -0.05 : 0.05, end: 0);
   }
 }
