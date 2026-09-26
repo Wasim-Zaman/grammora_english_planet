@@ -3,6 +3,7 @@ import 'package:toastification/toastification.dart';
 
 class TopSnackbar {
   static void success(BuildContext context, String message) {
+    toastification.dismissAll(delayForAnimation: false);
     toastification.show(
       context: context,
       title: Text(message),
@@ -17,6 +18,7 @@ class TopSnackbar {
   }
 
   static void info(BuildContext context, String message) {
+    toastification.dismissAll(delayForAnimation: false);
     toastification.show(
       context: context,
       title: Text(message),
@@ -31,6 +33,7 @@ class TopSnackbar {
   }
 
   static void error(BuildContext context, String message) {
+    toastification.dismissAll(delayForAnimation: false);
     toastification.show(
       context: context,
       title: Text(message),

@@ -19,6 +19,11 @@ class LoginScreen extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return BlocListener<AuthCubit, AuthState>(
+      listenWhen: (previous, current) =>
+          (previous is AuthLoading &&
+              current is AuthSuccess &&
+              !current.isAdmin) ||
+          current is AuthFailure,
       listener: (context, state) {
         if (state is AuthSuccess && !state.isAdmin) {
           TopSnackbar.success(context, 'Login successful');

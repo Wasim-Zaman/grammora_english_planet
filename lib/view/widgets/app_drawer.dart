@@ -27,8 +27,9 @@ class AppDrawer extends StatelessWidget {
     final user = AuthService().getCurrentUser();
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-
-    final backgroundColor = theme.scaffoldBackgroundColor;
+    final backgroundColor = isDark
+        ? AppColors.darkScaffoldBackground
+        : AppColors.lightScaffoldBackground;
 
     return Drawer(
       backgroundColor: backgroundColor,
@@ -226,7 +227,7 @@ class AppDrawer extends StatelessWidget {
                         'GEP Portal • v2.0.0',
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: isDark
-                              ? Colors.white38
+                              ? AppColors.darkBodyTextSecondary
                               : AppColors.lightBodyTextSecondary,
                           fontWeight: FontWeight.w500,
                         ),
@@ -253,6 +254,14 @@ class _DrawerHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
+    final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final primaryAccent = isDark ? AppColors.secondary : AppColors.primary;
+    final textPrimary =
+        isDark ? AppColors.darkBodyText : AppColors.lightBodyText;
+    final textSecondary = isDark
+        ? AppColors.darkBodyTextSecondary
+        : AppColors.lightBodyTextSecondary;
 
     final displayName = user?.displayName ?? 'Welcome';
     final email = user?.email ?? 'Signed in account';
@@ -262,12 +271,20 @@ class _DrawerHeader extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(14, 12, 14, 6),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: theme.cardColor,
+        color: cardColor,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color:
-              theme.colorScheme.outline.withValues(alpha: isDark ? 0.3 : 0.6),
+          color: borderColor,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.2)
+                : AppColors.primary.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -283,9 +300,9 @@ class _DrawerHeader extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color:
-                          theme.colorScheme.primary.withValues(alpha: 0.12),
+                          primaryAccent.withValues(alpha: isDark ? 0.2 : 0.12),
                       border: Border.all(
-                        color: theme.colorScheme.primary,
+                        color: primaryAccent,
                         width: 2,
                       ),
                     ),
@@ -300,20 +317,20 @@ class _DrawerHeader extends StatelessWidget {
                                   height: 20,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    color: theme.colorScheme.primary,
+                                    color: primaryAccent,
                                   ),
                                 ),
                               ),
                               errorWidget: (context, url, error) => Icon(
                                 Icons.person_rounded,
-                                color: theme.colorScheme.primary,
+                                color: primaryAccent,
                                 size: 30,
                               ),
                             )
                           : Icon(
                               Icons.person_rounded,
                               size: 30,
-                              color: theme.colorScheme.primary,
+                              color: primaryAccent,
                             ),
                     ),
                   ),
@@ -327,7 +344,7 @@ class _DrawerHeader extends StatelessWidget {
                         color: const Color(0xFF10B981),
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: theme.cardColor,
+                          color: cardColor,
                           width: 2,
                         ),
                       ),
@@ -342,13 +359,15 @@ class _DrawerHeader extends StatelessWidget {
                 ),
                 decoration: BoxDecoration(
                   color: isAdminLoggedIn
-                      ? theme.colorScheme.primary.withValues(alpha: 0.14)
-                      : theme.colorScheme.surfaceContainerHighest,
+                      ? primaryAccent.withValues(alpha: isDark ? 0.2 : 0.14)
+                      : (isDark
+                          ? AppColors.darkNeutral.withValues(alpha: 0.6)
+                          : theme.colorScheme.surfaceContainerHighest),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: isAdminLoggedIn
-                        ? theme.colorScheme.primary.withValues(alpha: 0.4)
-                        : Colors.transparent,
+                        ? primaryAccent.withValues(alpha: isDark ? 0.45 : 0.4)
+                        : (isDark ? AppColors.darkBorder : Colors.transparent),
                   ),
                 ),
                 child: Row(
@@ -359,9 +378,7 @@ class _DrawerHeader extends StatelessWidget {
                           ? Icons.shield_rounded
                           : Icons.school_rounded,
                       size: 13,
-                      color: isAdminLoggedIn
-                          ? theme.colorScheme.primary
-                          : theme.colorScheme.onSurfaceVariant,
+                      color: isAdminLoggedIn ? primaryAccent : textSecondary,
                     ),
                     const SizedBox(width: 4),
                     Text(
@@ -369,9 +386,7 @@ class _DrawerHeader extends StatelessWidget {
                       style: theme.textTheme.labelSmall?.copyWith(
                         fontWeight: FontWeight.w800,
                         letterSpacing: 0.6,
-                        color: isAdminLoggedIn
-                            ? theme.colorScheme.primary
-                            : theme.colorScheme.onSurfaceVariant,
+                        color: isAdminLoggedIn ? primaryAccent : textSecondary,
                       ),
                     ),
                   ],
@@ -386,6 +401,7 @@ class _DrawerHeader extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w800,
+              color: textPrimary,
             ),
           ),
           if (email.isNotEmpty) ...[
@@ -395,7 +411,7 @@ class _DrawerHeader extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+                color: textSecondary,
               ),
             ),
           ],
@@ -412,6 +428,11 @@ class _ThemeSegmentedToggle extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
+    final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final textSecondary = isDark
+        ? AppColors.darkBodyTextSecondary
+        : AppColors.lightBodyTextSecondary;
 
     return BlocBuilder<ThemeCubit, ThemeState>(
       builder: (context, state) {
@@ -420,12 +441,20 @@ class _ThemeSegmentedToggle extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
-            color: theme.cardColor,
+            color: cardColor,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: theme.colorScheme.outline
-                  .withValues(alpha: isDark ? 0.3 : 0.6),
+              color: borderColor,
             ),
+            boxShadow: [
+              BoxShadow(
+                color: isDark
+                    ? Colors.black.withValues(alpha: 0.15)
+                    : AppColors.primary.withValues(alpha: 0.03),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Row(
             children: [
@@ -442,7 +471,7 @@ class _ThemeSegmentedToggle extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     decoration: BoxDecoration(
                       color: !isDarkMode
-                          ? theme.colorScheme.primary
+                          ? AppColors.primary
                           : Colors.transparent,
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -452,18 +481,15 @@ class _ThemeSegmentedToggle extends StatelessWidget {
                         Icon(
                           Icons.light_mode_rounded,
                           size: 16,
-                          color: !isDarkMode
-                              ? Colors.white
-                              : theme.colorScheme.onSurfaceVariant,
+                          color: !isDarkMode ? Colors.white : textSecondary,
                         ),
                         const SizedBox(width: 6),
                         Text(
                           'Light',
-                          style: theme.textTheme.labelSmall?.copyWith(
+                          style: TextStyle(
+                            fontSize: 12,
                             fontWeight: FontWeight.bold,
-                            color: !isDarkMode
-                                ? Colors.white
-                                : theme.colorScheme.onSurfaceVariant,
+                            color: !isDarkMode ? Colors.white : textSecondary,
                           ),
                         ),
                       ],
@@ -485,7 +511,7 @@ class _ThemeSegmentedToggle extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     decoration: BoxDecoration(
                       color: isDarkMode
-                          ? theme.colorScheme.primary
+                          ? AppColors.secondary
                           : Colors.transparent,
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -495,18 +521,15 @@ class _ThemeSegmentedToggle extends StatelessWidget {
                         Icon(
                           Icons.dark_mode_rounded,
                           size: 16,
-                          color: isDarkMode
-                              ? Colors.white
-                              : theme.colorScheme.onSurfaceVariant,
+                          color: isDarkMode ? Colors.white : textSecondary,
                         ),
                         const SizedBox(width: 6),
                         Text(
                           'Dark',
-                          style: theme.textTheme.labelSmall?.copyWith(
+                          style: TextStyle(
+                            fontSize: 12,
                             fontWeight: FontWeight.bold,
-                            color: isDarkMode
-                                ? Colors.white
-                                : theme.colorScheme.onSurfaceVariant,
+                            color: isDarkMode ? Colors.white : textSecondary,
                           ),
                         ),
                       ],
@@ -529,16 +552,18 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Padding(
       padding: const EdgeInsets.only(left: 4, bottom: 8, top: 4),
       child: Text(
         label.toUpperCase(),
-        style: theme.textTheme.labelSmall?.copyWith(
+        style: TextStyle(
           fontWeight: FontWeight.w800,
           letterSpacing: 1.2,
-          color: theme.colorScheme.onSurfaceVariant,
+          color: isDark
+              ? AppColors.darkBodyTextSecondary
+              : AppColors.lightBodyTextSecondary,
           fontSize: 10,
         ),
       ),
@@ -565,17 +590,33 @@ class _DrawerTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
+    final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    final primaryAccent = isDark ? AppColors.secondary : AppColors.primary;
+    final textPrimary =
+        isDark ? AppColors.darkBodyText : AppColors.lightBodyText;
+    final textSecondary = isDark
+        ? AppColors.darkBodyTextSecondary
+        : AppColors.lightBodyTextSecondary;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Container(
         decoration: BoxDecoration(
-          color: theme.cardColor,
+          color: cardColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color:
-                theme.colorScheme.outline.withValues(alpha: isDark ? 0.25 : 0.5),
+            color: borderColor,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: isDark
+                  ? Colors.black.withValues(alpha: 0.15)
+                  : AppColors.primary.withValues(alpha: 0.03),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Material(
           color: Colors.transparent,
@@ -592,13 +633,13 @@ class _DrawerTile extends StatelessWidget {
                     height: 38,
                     decoration: BoxDecoration(
                       color:
-                          theme.colorScheme.primary.withValues(alpha: 0.1),
+                          primaryAccent.withValues(alpha: isDark ? 0.18 : 0.09),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(
                       icon,
                       size: 20,
-                      color: theme.colorScheme.primary,
+                      color: primaryAccent,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -610,12 +651,13 @@ class _DrawerTile extends StatelessWidget {
                           label,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.w700,
+                            color: textPrimary,
                           ),
                         ),
                         Text(
                           subtitle,
                           style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
+                            color: textSecondary,
                             fontSize: 11,
                           ),
                           maxLines: 1,
@@ -627,8 +669,7 @@ class _DrawerTile extends StatelessWidget {
                   Icon(
                     Icons.chevron_right_rounded,
                     size: 18,
-                    color: theme.colorScheme.onSurfaceVariant
-                        .withValues(alpha: 0.7),
+                    color: textSecondary.withValues(alpha: 0.7),
                   ),
                 ],
               ),
@@ -651,13 +692,14 @@ class _LogoutTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.error.withValues(alpha: 0.1),
+        color: AppColors.error.withValues(alpha: isDark ? 0.15 : 0.08),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.error.withValues(alpha: 0.25),
+          color: AppColors.error.withValues(alpha: isDark ? 0.35 : 0.20),
         ),
       ),
       child: Material(
