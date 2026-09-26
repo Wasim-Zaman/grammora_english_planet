@@ -2,7 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../widgets/app_scaffold.dart';
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -21,6 +20,7 @@ import '../../../../services/analytics/analytics_service.dart';
 import '../../../../services/auth/auth_service.dart';
 import '../../../widgets/announcement_strip.dart';
 import '../../../widgets/app_drawer.dart';
+import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/banner_slider.dart';
 import '../../../widgets/cached_image_widget.dart';
 import '../../../widgets/student_spotlight_card.dart';
@@ -139,6 +139,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ),
 
+              // Student Spotlight Stories Reel (Top of the screen)
+              BlocBuilder<UserStudentSpotlightCubit, UserStudentSpotlightState>(
+                builder: (context, state) {
+                  if (state.featuredSpotlights.isEmpty) {
+                    return const SliverToBoxAdapter(child: SizedBox.shrink());
+                  }
+
+                  return SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 2, bottom: 6),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // _SectionHeader(
+                          //   icon: AppFeatureIcons.spotlight,
+                          //   title: 'SPOTLIGHT STORIES',
+                          //   trailing: _SectionActionLink(
+                          //     label: 'Hall of Fame',
+                          //     onTap: () => AppNavigation.push(
+                          //       context,
+                          //       AppRoutes.kStudentSpotlightRoute,
+                          //     ),
+                          //   ),
+                          // ),
+                          const StudentSpotlightDashboardCard(),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+
               // Banner Slider
               SliverToBoxAdapter(
                 child: Padding(
@@ -186,35 +218,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
 
-              // Student Spotlight (Student of the Month / Year) - Only shown if there is data
-              BlocBuilder<UserStudentSpotlightCubit, UserStudentSpotlightState>(
-                builder: (context, state) {
-                  if (state.featuredSpotlights.isEmpty) {
-                    return const SliverToBoxAdapter(child: SizedBox.shrink());
-                  }
-
-                  return SliverToBoxAdapter(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _SectionHeader(
-                          icon: AppFeatureIcons.spotlight,
-                          title: 'STUDENT SPOTLIGHT',
-                          trailing: _SectionActionLink(
-                            label: 'Hall of Fame',
-                            onTap: () => AppNavigation.push(
-                              context,
-                              AppRoutes.kStudentSpotlightRoute,
-                            ),
-                          ),
-                        ),
-                        const StudentSpotlightDashboardCard(),
-                      ],
-                    ),
-                  );
-                },
-              ),
-
               // Explore — remaining services
               const SliverToBoxAdapter(
                 child: _SectionHeader(
@@ -229,9 +232,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 sliver: SliverGrid(
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 4,
-                    mainAxisSpacing: 10,
-                    crossAxisSpacing: 10,
-                    childAspectRatio: 0.8,
+                    mainAxisSpacing: 04,
+                    crossAxisSpacing: 04,
+                    childAspectRatio: 1,
                   ),
                   delegate: SliverChildBuilderDelegate(
                     (context, index) =>
@@ -535,124 +538,69 @@ class _AdminAccessCard extends StatelessWidget {
 
     return Material(
       color: cardBg,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(14),
       child: InkWell(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(14),
         onTap: () => AppNavigation.pushReplacement(
           context,
           AppRoutes.kAdminDashboardRoute,
         ),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: AppColors.secondary.withValues(alpha: 0.25),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: isDark
-                    ? Colors.transparent
-                    : AppColors.primary.withValues(alpha: 0.03),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: borderColor),
           ),
           child: Row(
             children: [
-              // Admin Icon Container with gradient surface tint
+              // Flat admin icon — no gradient tint, just a simple neutral chip.
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      AppColors.secondary.withValues(alpha: 0.22),
-                      AppColors.secondary.withValues(alpha: 0.08),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: AppColors.secondary.withValues(alpha: 0.3),
-                    width: 0.8,
-                  ),
+                  color: neutralColor,
+                  borderRadius: BorderRadius.circular(9),
                 ),
                 child: const Icon(
                   Icons.admin_panel_settings_rounded,
                   color: AppColors.secondary,
-                  size: 18,
+                  size: 15,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
 
-              // Title & Subtitle
+              // Title + subtitle collapsed into a single line to save height.
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          'Admin Panel',
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            color: primaryTextColor,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 13,
-                          ),
+                child: Text.rich(
+                  TextSpan(
+                    children: [
+                      TextSpan(
+                        text: 'Admin Panel  ',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: primaryTextColor,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12.5,
                         ),
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 1.5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.secondary.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            'STAFF',
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: AppColors.secondary,
-                              fontSize: 9,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Manage students, shifts & attendance',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: secondaryTextColor,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w400,
                       ),
-                    ),
-                  ],
+                      TextSpan(
+                        text: 'Students, shifts & attendance',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: secondaryTextColor,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    ],
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
 
-              // Action Arrow with tactile visual
-              Container(
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: neutralColor,
-                  borderRadius: BorderRadius.circular(9),
-                  border: Border.all(color: borderColor),
-                ),
-                child: Icon(
-                  Icons.arrow_forward_rounded,
-                  size: 14,
-                  color: secondaryTextColor,
-                ),
+              Icon(
+                Icons.chevron_right_rounded,
+                size: 18,
+                color: secondaryTextColor,
               ),
             ],
           ),
@@ -861,7 +809,7 @@ class _FeaturedActionCard extends StatelessWidget {
               if (context.mounted) AppNavigation.push(context, service.route);
             },
             child: Container(
-              constraints: const BoxConstraints(minHeight: 132),
+              constraints: const BoxConstraints(minHeight: 100),
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(22),

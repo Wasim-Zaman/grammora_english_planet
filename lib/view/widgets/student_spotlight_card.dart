@@ -1,6 +1,9 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:material_ui/material_ui.dart';
+
 import '../../core/constants/constants.dart';
 import '../../cubits/user_student_spotlight/spotlight_carousel_cubit.dart';
 import '../../cubits/user_student_spotlight/user_student_spotlight_cubit.dart';
@@ -9,15 +12,13 @@ import '../../models/student_spotlight.dart';
 import '../../router/app_navigation.dart';
 import '../../router/app_routes.dart';
 import 'cached_image_widget.dart';
-import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:material_ui/material_ui.dart';
 
 class StudentSpotlightDashboardCard extends StatelessWidget {
   const StudentSpotlightDashboardCard({super.key});
 
   // Fixed compact card height and avatar sizing
-  static const double cardHeight = 100;
-  static const double avatarSize = 54;
+  static const double cardHeight = 88;
+  static const double avatarSize = 56;
 
   @override
   Widget build(BuildContext context) {
@@ -78,7 +79,7 @@ class _StudentSpotlightCardView extends StatelessWidget {
               options: CarouselOptions(
                 height: StudentSpotlightDashboardCard.cardHeight,
                 viewportFraction: 0.92,
-                enlargeCenterPage: true,
+                enlargeCenterPage: false,
                 autoPlay: true,
                 autoPlayInterval: const Duration(seconds: 5),
                 onPageChanged: (index, _) {
@@ -94,6 +95,7 @@ class _StudentSpotlightCardView extends StatelessWidget {
                   cardColor,
                   borderColor,
                   secondaryTextColor,
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
                 );
               },
             ),
@@ -105,8 +107,7 @@ class _StudentSpotlightCardView extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: List.generate(featured.length, (index) {
                       final isSelected = currentIndex == index;
-                      final isYear = featured[index]
-                          .awardTitle
+                      final isYear = featured[index].awardTitle
                           .toLowerCase()
                           .contains('year');
                       final accent = isYear
@@ -141,8 +142,9 @@ class _StudentSpotlightCardView extends StatelessWidget {
     bool isDark,
     Color cardColor,
     Color borderColor,
-    Color secondaryTextColor,
-  ) {
+    Color secondaryTextColor, {
+    EdgeInsetsGeometry? margin,
+  }) {
     final isYear = student.awardTitle.toLowerCase().contains('year');
     final accent = isYear
         ? (isDark ? AppColors.accent : AppColors.warning)
@@ -164,6 +166,7 @@ class _StudentSpotlightCardView extends StatelessWidget {
             AppNavigation.push(context, AppRoutes.kStudentSpotlightRoute),
         child: Container(
           height: StudentSpotlightDashboardCard.cardHeight,
+          margin: margin,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             color: cardColor,
@@ -259,8 +262,9 @@ class _StudentSpotlightCardView extends StatelessWidget {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color:
-                                accent.withValues(alpha: isDark ? 0.20 : 0.12),
+                            color: accent.withValues(
+                              alpha: isDark ? 0.20 : 0.12,
+                            ),
                             borderRadius: BorderRadius.circular(5),
                           ),
                           child: Row(
@@ -279,6 +283,7 @@ class _StudentSpotlightCardView extends StatelessWidget {
                                   fontWeight: FontWeight.w800,
                                   letterSpacing: 0.4,
                                   color: accent,
+                                  height: 1.1,
                                 ),
                               ),
                             ],
@@ -295,6 +300,7 @@ class _StudentSpotlightCardView extends StatelessWidget {
                                 fontSize: 10,
                                 fontWeight: FontWeight.w600,
                                 color: secondaryTextColor,
+                                height: 1.1,
                               ),
                             ),
                           ),
@@ -312,6 +318,7 @@ class _StudentSpotlightCardView extends StatelessWidget {
                         fontWeight: FontWeight.w800,
                         fontSize: 15,
                         letterSpacing: -0.2,
+                        height: 1.2,
                       ),
                     ),
 
@@ -326,6 +333,7 @@ class _StudentSpotlightCardView extends StatelessWidget {
                           color: secondaryTextColor,
                           fontSize: 11,
                           fontWeight: FontWeight.w400,
+                          height: 1.2,
                         ),
                       ),
                     ],
