@@ -53,12 +53,23 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
+  // Log out completely from the app (Member + Admin)
   Future<void> logout() async {
     emit(AuthLoading());
     try {
       await _adminAuthService.setAdminLoggedIn(false);
       await _userAuthService.signOut();
-      emit(AuthSuccess());
+      emit(AuthInitial());
+    } catch (e) {
+      emit(AuthFailure(e.toString()));
+    }
+  }
+
+  // Log out ONLY from Admin panel (keeps Member/Google session active)
+  Future<void> logoutAdmin() async {
+    try {
+      await _adminAuthService.setAdminLoggedIn(false);
+      emit(AuthSuccess(isAdmin: false));
     } catch (e) {
       emit(AuthFailure(e.toString()));
     }
