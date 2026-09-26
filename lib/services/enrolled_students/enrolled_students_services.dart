@@ -12,15 +12,39 @@ class EnrolledStudentsServices {
 
   EnrolledStudentsServices(this._analyticsService);
 
-  Stream<List<EnrolledStudent>> getEnrolledStudentsStream() {
-    return _supabase.from(_table).stream(primaryKey: ['id']).map((rows) {
-      final students = rows.map((row) {
+  Stream<List<EnrolledStudent>> getEnrolledStudentsStream() async* {
+    // 1. Initial REST fetch so data renders immediately without waiting for or depending solely on WebSockets
+    try {
+      final restRows = await _supabase.from(_table).select();
+      final initialStudents = restRows.map((row) {
         final id = row['id']?.toString() ?? '';
         return _fromRow(row, id);
       }).toList();
-      students.sort((a, b) => a.name.compareTo(b.name));
-      return students;
-    });
+      initialStudents.sort((a, b) => a.name.compareTo(b.name));
+      yield initialStudents;
+    } catch (e) {
+      log('Initial REST fetch error in getEnrolledStudentsStream: $e');
+    }
+
+    // 2. Stream realtime updates if available, catching timeout / publication errors
+    try {
+      yield* _supabase
+          .from(_table)
+          .stream(primaryKey: ['id'])
+          .map((rows) {
+            final students = rows.map((row) {
+              final id = row['id']?.toString() ?? '';
+              return _fromRow(row, id);
+            }).toList();
+            students.sort((a, b) => a.name.compareTo(b.name));
+            return students;
+          })
+          .handleError((error) {
+            log('Supabase realtime stream error (handled): $error');
+          });
+    } catch (e) {
+      log('Supabase realtime subscription failed: $e');
+    }
   }
 
   Future<PaginatedResult<EnrolledStudent>> getStudentsPaginated({

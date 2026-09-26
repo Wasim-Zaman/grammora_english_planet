@@ -1031,8 +1031,21 @@ class _InsightCard extends StatelessWidget {
   }
 }
 
-class _InsightCardView extends StatelessWidget {
+class _InsightCardView extends StatefulWidget {
   const _InsightCardView();
+
+  @override
+  State<_InsightCardView> createState() => _InsightCardViewState();
+}
+
+class _InsightCardViewState extends State<_InsightCardView> {
+  late final Stream<List<EnrolledStudent>> _studentsStream;
+
+  @override
+  void initState() {
+    super.initState();
+    _studentsStream = context.read<AdminCubit>().getEnrolledStudentsStream();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1066,7 +1079,7 @@ class _InsightCardView extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: StreamBuilder<List<EnrolledStudent>>(
-          stream: context.read<AdminCubit>().getEnrolledStudentsStream(),
+          stream: _studentsStream,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return _buildLoadingSkeleton(isDark);
