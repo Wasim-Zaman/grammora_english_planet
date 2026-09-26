@@ -810,7 +810,7 @@ class _FeaturedActionCard extends StatelessWidget {
             },
             child: Container(
               constraints: const BoxConstraints(minHeight: 100),
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(22),
                 border: Border.all(color: borderColor),
@@ -1046,22 +1046,25 @@ class _InsightCardView extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkCard : AppColors.lightCard,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+          color: isDark
+              ? AppColors.darkBorder.withValues(alpha: 0.6)
+              : AppColors.lightBorder,
+          width: 1,
         ),
         boxShadow: [
           BoxShadow(
             color: isDark
-                ? Colors.transparent
-                : AppColors.primary.withValues(alpha: 0.04),
-            blurRadius: 14,
-            offset: const Offset(0, 5),
+                ? Colors.black.withValues(alpha: 0.2)
+                : AppColors.primary.withValues(alpha: 0.03),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+        padding: const EdgeInsets.all(12),
         child: StreamBuilder<List<EnrolledStudent>>(
           stream: context.read<AdminCubit>().getEnrolledStudentsStream(),
           builder: (context, snapshot) {
@@ -1071,7 +1074,7 @@ class _InsightCardView extends StatelessWidget {
 
             if (snapshot.hasError) {
               return SizedBox(
-                height: 90,
+                height: 70,
                 child: Center(
                   child: Text(
                     'Unable to load enrollment data.',
@@ -1094,7 +1097,7 @@ class _InsightCardView extends StatelessWidget {
             final currentYear = now.year;
             final currentMonth = now.month;
 
-            // Accurate Month-over-Month (MoM) metrics
+            // Month-over-Month (MoM) metrics
             final thisMonthCount = students
                 .where(
                   (s) =>
@@ -1125,7 +1128,7 @@ class _InsightCardView extends StatelessWidget {
                   ? AppColors.darkBodyTextSecondary
                   : AppColors.lightBodyTextSecondary;
             } else if (lastMonthCount == 0) {
-              momText = '+$thisMonthCount new';
+              momText = '+$thisMonthCount';
               momIcon = Icons.arrow_upward_rounded;
               momColor = AppColors.success;
             } else {
@@ -1148,14 +1151,12 @@ class _InsightCardView extends StatelessWidget {
               }
             }
 
-            // Current year to date total
             final thisYearCount = students
                 .where((s) => s.enrollmentDate.year == currentYear)
                 .length;
 
             return BlocBuilder<EnrollmentTimeRangeCubit, EnrollmentTimeRange>(
               builder: (context, timeRange) {
-                // Generate slots for selected time range
                 final List<_MonthEnrollmentSlot> slots = [];
                 if (timeRange == EnrollmentTimeRange.rolling6Months) {
                   for (int i = 0; i < 6; i++) {
@@ -1221,7 +1222,6 @@ class _InsightCardView extends StatelessWidget {
                     ? 4.0
                     : (maxCountInWindow * 1.25).ceilToDouble();
 
-                // Monthly Average in range
                 final double avgPerMonth;
                 if (timeRange == EnrollmentTimeRange.rolling6Months) {
                   final totalInWindow = slots.fold<int>(
@@ -1237,7 +1237,6 @@ class _InsightCardView extends StatelessWidget {
                   avgPerMonth = totalElapsed / elapsedMonths;
                 }
 
-                // Demographics & Level Insights
                 int maleCount = 0;
                 int femaleCount = 0;
                 final levelCounts = <String, int>{};
@@ -1253,6 +1252,7 @@ class _InsightCardView extends StatelessWidget {
                     levelCounts[lvl] = (levelCounts[lvl] ?? 0) + 1;
                   }
                 }
+
                 String? topLevelName;
                 int topLevelCount = 0;
                 levelCounts.forEach((lvl, count) {
@@ -1262,24 +1262,24 @@ class _InsightCardView extends StatelessWidget {
                   }
                 });
 
+                final totalGender = maleCount + femaleCount;
+
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Compact Top Bar: Total + Trend Badge on left, 6M/Year switch on right
+                    // Header Row: Count + MoM Badge & Compact Switcher
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Row(
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
                           children: [
                             Text(
                               '${students.length}',
-                              style: theme.textTheme.headlineSmall?.copyWith(
+                              style: theme.textTheme.titleLarge?.copyWith(
                                 fontWeight: FontWeight.w900,
-                                fontSize: 24,
+                                fontSize: 22,
+                                height: 1.0,
                                 letterSpacing: -0.5,
                               ),
                             ),
@@ -1291,8 +1291,8 @@ class _InsightCardView extends StatelessWidget {
                                     ? AppColors.darkBodyTextSecondary
                                     : AppColors.lightBodyTextSecondary,
                                 fontWeight: FontWeight.w700,
-                                fontSize: 10,
-                                letterSpacing: 0.8,
+                                fontSize: 9,
+                                letterSpacing: 0.6,
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -1303,23 +1303,19 @@ class _InsightCardView extends StatelessWidget {
                               ),
                               decoration: BoxDecoration(
                                 color: momColor.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: momColor.withValues(alpha: 0.25),
-                                  width: 0.8,
-                                ),
+                                borderRadius: BorderRadius.circular(8),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(momIcon, size: 11, color: momColor),
+                                  Icon(momIcon, size: 10, color: momColor),
                                   const SizedBox(width: 2),
                                   Text(
                                     momText,
                                     style: TextStyle(
                                       color: momColor,
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 10,
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 9.5,
                                     ),
                                   ),
                                 ],
@@ -1330,11 +1326,12 @@ class _InsightCardView extends StatelessWidget {
                         _buildCompactRangeSelector(context, timeRange, isDark),
                       ],
                     ),
-                    const SizedBox(height: 10),
 
-                    // Compact Sparkline (74px height)
+                    const SizedBox(height: 8),
+
+                    // Ultra-Compact Sparkline (58px)
                     SizedBox(
-                      height: 74,
+                      height: 58,
                       child: LineChart(
                         LineChartData(
                           lineTouchData: LineTouchData(
@@ -1348,13 +1345,14 @@ class _InsightCardView extends StatelessWidget {
                                 color: isDark
                                     ? AppColors.darkBorder
                                     : AppColors.lightBorder,
+                                width: 0.8,
                               ),
-                              tooltipBorderRadius: BorderRadius.circular(8),
+                              tooltipBorderRadius: BorderRadius.circular(6),
                               fitInsideHorizontally: true,
                               fitInsideVertically: true,
                               tooltipPadding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
+                                horizontal: 6,
+                                vertical: 3,
                               ),
                               getTooltipItems: (touchedSpots) {
                                 return touchedSpots.map((spot) {
@@ -1369,7 +1367,7 @@ class _InsightCardView extends StatelessWidget {
                                       color: isDark
                                           ? AppColors.darkBodyTextSecondary
                                           : AppColors.lightBodyTextSecondary,
-                                      fontSize: 10,
+                                      fontSize: 9,
                                       fontWeight: FontWeight.w600,
                                     ),
                                     children: [
@@ -1378,7 +1376,7 @@ class _InsightCardView extends StatelessWidget {
                                         style: TextStyle(
                                           color: accentColor,
                                           fontWeight: FontWeight.w900,
-                                          fontSize: 11,
+                                          fontSize: 10,
                                         ),
                                       ),
                                     ],
@@ -1402,7 +1400,7 @@ class _InsightCardView extends StatelessWidget {
                             bottomTitles: AxisTitles(
                               sideTitles: SideTitles(
                                 showTitles: true,
-                                reservedSize: 18,
+                                reservedSize: 14,
                                 interval: 1,
                                 getTitlesWidget: (value, meta) {
                                   final index = value.toInt();
@@ -1414,7 +1412,6 @@ class _InsightCardView extends StatelessWidget {
                                       slot.year == currentYear &&
                                       slot.month == currentMonth;
 
-                                  // For 12-month view on mobile, skip alternate months to prevent overlapping text, preserving current month
                                   if (timeRange ==
                                           EnrollmentTimeRange.thisYear &&
                                       index.isOdd &&
@@ -1426,7 +1423,7 @@ class _InsightCardView extends StatelessWidget {
                                     slot.label,
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
-                                      fontSize: 9.5,
+                                      fontSize: 8.5,
                                       fontWeight: isCurrentMonth
                                           ? FontWeight.w800
                                           : FontWeight.w500,
@@ -1452,9 +1449,9 @@ class _InsightCardView extends StatelessWidget {
                             LineChartBarData(
                               spots: spots,
                               isCurved: true,
-                              curveSmoothness: 0.35,
+                              curveSmoothness: 0.3,
                               color: accentColor,
-                              barWidth: 2.5,
+                              barWidth: 2.0,
                               isStrokeCapRound: true,
                               dotData: FlDotData(
                                 show: true,
@@ -1464,13 +1461,13 @@ class _InsightCardView extends StatelessWidget {
                                       slots[index].year == currentYear &&
                                       slots[index].month == currentMonth;
                                   return FlDotCirclePainter(
-                                    radius: isCurrent ? 3.5 : 2.2,
+                                    radius: isCurrent ? 3.0 : 1.8,
                                     color: isCurrent
                                         ? accentColor
                                         : (isDark
                                               ? AppColors.darkCard
                                               : AppColors.lightCard),
-                                    strokeWidth: 1.5,
+                                    strokeWidth: 1.2,
                                     strokeColor: accentColor,
                                   );
                                 },
@@ -1479,7 +1476,7 @@ class _InsightCardView extends StatelessWidget {
                                 show: true,
                                 gradient: LinearGradient(
                                   colors: [
-                                    accentColor.withValues(alpha: 0.25),
+                                    accentColor.withValues(alpha: 0.18),
                                     accentColor.withValues(alpha: 0.0),
                                   ],
                                   begin: Alignment.topCenter,
@@ -1491,77 +1488,86 @@ class _InsightCardView extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 10),
 
-                    // Sleek Single-Row Micro-KPI Strip (Takes only ~42px)
+                    const SizedBox(height: 8),
+
+                    // Modern Pill KPI Strip
                     Row(
                       children: [
                         Expanded(
                           child: _CompactStatTile(
-                            label: 'This Mo',
+                            label: 'THIS MO',
                             value: '$thisMonthCount',
                             color: accentColor,
                             isDark: isDark,
                           ),
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 4),
                         Expanded(
                           child: _CompactStatTile(
-                            label: 'Year $currentYear',
+                            label: 'YTD',
                             value: '$thisYearCount',
                             color: AppColors.info,
                             isDark: isDark,
                           ),
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 4),
                         Expanded(
                           child: _CompactStatTile(
-                            label: 'Avg / Mo',
+                            label: 'AVG/MO',
                             value: avgPerMonth.toStringAsFixed(1),
                             color: AppColors.warning,
                             isDark: isDark,
                           ),
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 4),
                         Expanded(
                           child: _CompactStatTile(
-                            label: 'Peak',
+                            label: 'PEAK',
                             value: peakSlot.count == 0 ? '—' : peakSlot.label,
                             color: AppColors.accent,
                             isDark: isDark,
-                            badge: peakSlot.count > 0
-                                ? '${peakSlot.count}'
-                                : null,
                           ),
                         ),
                       ],
                     ),
 
-                    // Ultra-thin footnote for demographics (if available)
-                    if (maleCount > 0 ||
-                        femaleCount > 0 ||
-                        topLevelName != null) ...[
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.pie_chart_outline_rounded,
-                            size: 12,
-                            color: accentColor.withValues(alpha: 0.8),
-                          ),
-                          const SizedBox(width: 5),
-                          Flexible(
-                            child: Text(
+                    // Demographic Chip Footnote
+                    if (totalGender > 0 || topLevelName != null) ...[
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? AppColors.darkNeutral.withValues(alpha: 0.5)
+                              : AppColors.lightNeutral.withValues(alpha: 0.6),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.max,
+                          children: [
+                            Icon(
+                              Icons.pie_chart_outline_rounded,
+                              size: 10,
+                              color: isDark
+                                  ? AppColors.darkBodyTextSecondary
+                                  : AppColors.lightBodyTextSecondary,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
                               [
-                                if (maleCount > 0 || femaleCount > 0)
-                                  '${(maleCount / (maleCount + femaleCount) * 100).round()}% M • ${(femaleCount / (maleCount + femaleCount) * 100).round()}% F',
+                                if (totalGender > 0)
+                                  '${(maleCount / totalGender * 100).round()}% M • ${(femaleCount / totalGender * 100).round()}% F',
                                 if (topLevelName != null)
                                   'Top: $topLevelName ($topLevelCount)',
                               ].join('   |   '),
                               style: theme.textTheme.labelSmall?.copyWith(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w500,
+                                fontSize: 9,
+                                fontWeight: FontWeight.w600,
                                 color: isDark
                                     ? AppColors.darkBodyTextSecondary
                                     : AppColors.lightBodyTextSecondary,
@@ -1569,8 +1575,8 @@ class _InsightCardView extends StatelessWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ],
                   ],
@@ -1591,7 +1597,7 @@ class _InsightCardView extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: isDark ? AppColors.darkNeutral : AppColors.lightNeutral,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(10),
       ),
       padding: const EdgeInsets.all(2),
       child: Row(
@@ -1622,43 +1628,37 @@ class _InsightCardView extends StatelessWidget {
     required bool isDark,
     required VoidCallback onTap,
   }) {
-    return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
+    return InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? (isDark ? AppColors.darkCard : AppColors.lightCard)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 2,
+                    offset: const Offset(0, 1),
+                  ),
+                ]
+              : null,
+        ),
+        child: Text(
+          title,
+          style: TextStyle(
+            fontSize: 9.5,
+            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
             color: isSelected
-                ? (isDark ? AppColors.darkCard : AppColors.lightCard)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: isDark
-                          ? Colors.transparent
-                          : AppColors.primary.withValues(alpha: 0.05),
-                      blurRadius: 4,
-                      offset: const Offset(0, 1),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Text(
-            title,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-              color: isSelected
-                  ? AppColors.secondary
-                  : (isDark
-                        ? AppColors.darkBodyTextSecondary
-                        : AppColors.lightBodyTextSecondary),
-            ),
+                ? AppColors.secondary
+                : (isDark
+                      ? AppColors.darkBodyTextSecondary
+                      : AppColors.lightBodyTextSecondary),
           ),
         ),
       ),
@@ -1667,7 +1667,7 @@ class _InsightCardView extends StatelessWidget {
 
   Widget _buildLoadingSkeleton(bool isDark) {
     return SizedBox(
-      height: 120,
+      height: 100,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1675,33 +1675,33 @@ class _InsightCardView extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                width: 90,
-                height: 20,
+                width: 80,
+                height: 18,
                 decoration: BoxDecoration(
                   color: isDark
                       ? AppColors.darkNeutral
                       : AppColors.lightNeutral,
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(4),
                 ),
               ),
               Container(
-                width: 50,
-                height: 20,
+                width: 45,
+                height: 18,
                 decoration: BoxDecoration(
                   color: isDark
                       ? AppColors.darkNeutral
                       : AppColors.lightNeutral,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           Expanded(
             child: Container(
               decoration: BoxDecoration(
                 color: isDark ? AppColors.darkNeutral : AppColors.lightNeutral,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(8),
               ),
             ),
           ),
@@ -1712,21 +1712,22 @@ class _InsightCardView extends StatelessWidget {
 
   Widget _buildEmptyState(ThemeData theme, bool isDark) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12.0),
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
             Icons.insights_rounded,
-            size: 24,
+            size: 18,
             color: isDark
                 ? AppColors.darkBodyTextSecondary
                 : AppColors.lightBodyTextSecondary,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
           Text(
             'No enrollments yet',
             style: theme.textTheme.bodyMedium?.copyWith(
+              fontSize: 12,
               fontWeight: FontWeight.w600,
               color: isDark
                   ? AppColors.darkBodyTextSecondary
@@ -1740,88 +1741,50 @@ class _InsightCardView extends StatelessWidget {
 }
 
 class _CompactStatTile extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color color;
+  final bool isDark;
+
   const _CompactStatTile({
     required this.label,
     required this.value,
     required this.color,
     required this.isDark,
-    this.badge,
   });
-
-  final String label;
-  final String value;
-  final Color color;
-  final bool isDark;
-  final String? badge;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 7),
+      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 4),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            color.withValues(alpha: isDark ? 0.16 : 0.10),
-            isDark
-                ? AppColors.darkNeutral.withValues(alpha: 0.45)
-                : AppColors.lightNeutral,
-          ],
-        ),
-        borderRadius: BorderRadius.circular(13),
-        border: Border.all(
-          color: color.withValues(alpha: isDark ? 0.30 : 0.22),
-          width: 0.8,
-        ),
+        color: color.withValues(alpha: isDark ? 0.08 : 0.05),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withValues(alpha: 0.18), width: 0.8),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 13,
-                  ),
-                ),
-                if (badge != null) ...[
-                  const SizedBox(width: 3),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 3.5,
-                      vertical: 0.5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      badge!,
-                      style: TextStyle(
-                        fontSize: 8.5,
-                        fontWeight: FontWeight.w800,
-                        color: color,
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          const SizedBox(height: 2),
           Text(
             label,
             style: TextStyle(
-              fontSize: 9.5,
+              fontSize: 8,
+              fontWeight: FontWeight.w700,
               color: isDark
                   ? AppColors.darkBodyTextSecondary
                   : AppColors.lightBodyTextSecondary,
-              fontWeight: FontWeight.w600,
+              letterSpacing: 0.3,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 1),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w900,
+              color: color,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
