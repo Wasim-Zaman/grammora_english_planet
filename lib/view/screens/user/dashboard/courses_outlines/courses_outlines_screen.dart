@@ -1,14 +1,14 @@
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/core/constants/constants.dart';
-import 'package:gep/cubits/user_courses/user_courses_cubit.dart';
-import 'package:gep/cubits/user_courses/user_courses_state.dart';
-import 'package:gep/models/course_outline.dart';
-import 'package:gep/view/widgets/app_button.dart';
-import 'package:gep/view/widgets/app_scaffold.dart';
-import 'package:gep/view/widgets/app_search_field.dart';
-import 'package:gep/view/widgets/paginated_widget.dart';
-import 'package:gep/view/widgets/placeholder_widget.dart';
+import '../../../../../core/constants/constants.dart';
+import '../../../../../cubits/user_courses/user_courses_cubit.dart';
+import '../../../../../cubits/user_courses/user_courses_state.dart';
+import '../../../../../models/course_outline.dart';
+import '../../../../widgets/app_button.dart';
+import '../../../../widgets/app_scaffold.dart';
+import '../../../../widgets/app_search_field.dart';
+import '../../../../widgets/paginated_widget.dart';
+import '../../../../widgets/placeholder_widget.dart';
 import 'package:material_ui/material_ui.dart';
 
 class CoursesOutlinesScreen extends StatefulWidget {

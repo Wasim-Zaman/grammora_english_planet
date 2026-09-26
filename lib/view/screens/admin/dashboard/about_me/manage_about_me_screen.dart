@@ -1,17 +1,17 @@
 import 'dart:io';
 
-import 'package:gep/utils/file_picker_utils.dart';
+import '../../../../../utils/file_picker_utils.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/core/constants/constants.dart';
-import 'package:gep/cubits/admin/admin_cubit.dart';
-import 'package:gep/cubits/about_me_form/about_me_form_cubit.dart';
-import 'package:gep/cubits/about_me_form/about_me_form_state.dart';
-import 'package:gep/models/about_me.dart';
-import 'package:gep/utils/snackbars.dart';
-import 'package:gep/view/widgets/app_button.dart';
-import 'package:gep/view/widgets/app_scaffold.dart';
-import 'package:gep/view/widgets/text_field_widget.dart';
+import '../../../../../core/constants/constants.dart';
+import '../../../../../cubits/admin/admin_cubit.dart';
+import '../../../../../cubits/about_me_form/about_me_form_cubit.dart';
+import '../../../../../cubits/about_me_form/about_me_form_state.dart';
+import '../../../../../models/about_me.dart';
+import '../../../../../utils/snackbars.dart';
+import '../../../../widgets/app_button.dart';
+import '../../../../widgets/app_scaffold.dart';
+import '../../../../widgets/text_field_widget.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ManageAboutMeScreen extends StatefulWidget {

@@ -1,12 +1,12 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/core/constants/constants.dart';
-import 'package:gep/cubits/attendance_admin/attendance_admin_cubit.dart';
+import '../../../../../core/constants/constants.dart';
+import '../../../../../cubits/attendance_admin/attendance_admin_cubit.dart';
 
-import 'package:gep/utils/snackbars.dart';
-import 'package:gep/view/widgets/admin_list_tile.dart';
-import 'package:gep/view/widgets/app_scaffold.dart';
-import 'package:gep/view/widgets/paginated_widget.dart';
-import 'package:gep/view/widgets/placeholder_widget.dart';
+import '../../../../../utils/snackbars.dart';
+import '../../../../widgets/admin_list_tile.dart';
+import '../../../../widgets/app_scaffold.dart';
+import '../../../../widgets/paginated_widget.dart';
+import '../../../../widgets/placeholder_widget.dart';
 import 'package:material_ui/material_ui.dart';
 
 class AdminAttendanceRecordsScreen extends StatefulWidget {

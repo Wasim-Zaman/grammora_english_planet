@@ -1,14 +1,14 @@
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/core/constants/constants.dart';
-import 'package:gep/cubits/notes_categories/notes_categories_cubit.dart';
-import 'package:gep/cubits/notes_categories/notes_categories_state.dart';
-import 'package:gep/router/app_navigation.dart';
-import 'package:gep/router/app_routes.dart';
-import 'package:gep/view/widgets/app_scaffold.dart';
-import 'package:gep/view/widgets/app_search_field.dart';
-import 'package:gep/view/widgets/paginated_widget.dart';
-import 'package:gep/view/widgets/placeholder_widget.dart';
+import '../../../../../core/constants/constants.dart';
+import '../../../../../cubits/notes_categories/notes_categories_cubit.dart';
+import '../../../../../cubits/notes_categories/notes_categories_state.dart';
+import '../../../../../router/app_navigation.dart';
+import '../../../../../router/app_routes.dart';
+import '../../../../widgets/app_scaffold.dart';
+import '../../../../widgets/app_search_field.dart';
+import '../../../../widgets/paginated_widget.dart';
+import '../../../../widgets/placeholder_widget.dart';
 import 'package:material_ui/material_ui.dart';
 
 class NotesCategoriesScreen extends StatefulWidget {

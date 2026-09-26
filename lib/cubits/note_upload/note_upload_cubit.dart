@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/utils/file_picker_utils.dart';
+import '../../utils/file_picker_utils.dart';
 import 'note_upload_state.dart';
 
 class NoteUploadCubit extends Cubit<NoteUploadState> {

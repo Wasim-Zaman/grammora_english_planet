@@ -1,7 +1,7 @@
 import 'dart:developer';
 
-import 'package:gep/models/note.dart';
-import 'package:gep/models/paginated_result.dart';
+import '../../models/note.dart';
+import '../../models/paginated_result.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class NotesService {

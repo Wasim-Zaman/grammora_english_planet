@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:gep/models/course_outline.dart';
+import '../../models/course_outline.dart';
 
 class UserCoursesState extends Equatable {
   final List<Course> items;

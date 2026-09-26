@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/services/student_spotlight/student_spotlight_service.dart';
+import '../../services/student_spotlight/student_spotlight_service.dart';
 
 import 'user_student_spotlight_state.dart';
 

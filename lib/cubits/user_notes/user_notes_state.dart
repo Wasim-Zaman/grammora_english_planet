@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:gep/models/note.dart';
+import '../../models/note.dart';
 
 class UserNotesState extends Equatable {
   final List<Note> items;

@@ -1,8 +1,8 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:gep/router/app_navigation.dart';
-import 'package:gep/router/app_routes.dart';
-import 'package:gep/core/constants/constants.dart';
-import 'package:gep/view/widgets/app_scaffold.dart';
+import '../router/app_navigation.dart';
+import '../router/app_routes.dart';
+import '../core/constants/constants.dart';
+import 'widgets/app_scaffold.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

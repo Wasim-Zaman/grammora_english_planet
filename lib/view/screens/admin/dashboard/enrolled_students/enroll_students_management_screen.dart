@@ -1,7 +1,7 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:gep/view/screens/admin/dashboard/enrolled_students/students_list_tab_screen.dart';
-import 'package:gep/view/screens/admin/dashboard/enrolled_students/students_states_tab.dart';
-import 'package:gep/view/widgets/app_scaffold.dart';
+import 'students_list_tab_screen.dart';
+import 'students_states_tab.dart';
+import '../../../../widgets/app_scaffold.dart';
 
 class EnrollStudentsManagementScreen extends StatelessWidget {
   const EnrollStudentsManagementScreen({super.key});

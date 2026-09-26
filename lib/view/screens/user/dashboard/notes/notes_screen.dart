@@ -1,13 +1,13 @@
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/core/constants/constants.dart';
-import 'package:gep/cubits/user_notes/user_notes_cubit.dart';
-import 'package:gep/cubits/user_notes/user_notes_state.dart';
-import 'package:gep/view/widgets/app_scaffold.dart';
-import 'package:gep/view/widgets/app_search_field.dart';
-import 'package:gep/view/widgets/note_card.dart';
-import 'package:gep/view/widgets/paginated_widget.dart';
-import 'package:gep/view/widgets/placeholder_widget.dart';
+import '../../../../../core/constants/constants.dart';
+import '../../../../../cubits/user_notes/user_notes_cubit.dart';
+import '../../../../../cubits/user_notes/user_notes_state.dart';
+import '../../../../widgets/app_scaffold.dart';
+import '../../../../widgets/app_search_field.dart';
+import '../../../../widgets/note_card.dart';
+import '../../../../widgets/paginated_widget.dart';
+import '../../../../widgets/placeholder_widget.dart';
 import 'package:material_ui/material_ui.dart';
 
 class NotesScreen extends StatefulWidget {

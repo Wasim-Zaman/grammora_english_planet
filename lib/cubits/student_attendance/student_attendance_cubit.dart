@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/services/attendance/attendance_service.dart';
+import '../../services/attendance/attendance_service.dart';
 
 part 'student_attendance_state.dart';
 

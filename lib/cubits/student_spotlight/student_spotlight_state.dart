@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:gep/models/student_spotlight.dart';
+import '../../models/student_spotlight.dart';
 
 class StudentSpotlightState extends Equatable {
   final List<StudentSpotlightModel> items;

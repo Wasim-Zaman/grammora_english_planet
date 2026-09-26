@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/models/updates.dart';
-import 'package:gep/services/updates/updates_services.dart';
+import '../../models/updates.dart';
+import '../../services/updates/updates_services.dart';
 
 import 'updates_admin_state.dart';
 

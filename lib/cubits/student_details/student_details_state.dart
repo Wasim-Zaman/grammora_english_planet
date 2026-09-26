@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:gep/models/shift/shift.dart';
+import '../../models/shift/shift.dart';
 
 class StudentDetailsState extends Equatable {
   final Shift? shift;

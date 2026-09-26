@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/models/enrolled_students.dart';
-import 'package:gep/services/enrolled_students/enrolled_students_services.dart';
-import 'package:gep/services/shifts/shifts_service.dart';
+import '../../models/enrolled_students.dart';
+import '../../services/enrolled_students/enrolled_students_services.dart';
+import '../../services/shifts/shifts_service.dart';
 
 import 'student_form_state.dart';
 

@@ -1,6 +1,6 @@
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:gep/core/constants/constants.dart';
-import 'package:gep/view/widgets/app_scaffold.dart';
+import '../../../../core/constants/constants.dart';
+import '../../../widgets/app_scaffold.dart';
 import 'package:material_ui/material_ui.dart';
 
 class TermsAndConditionsScreen extends StatelessWidget {

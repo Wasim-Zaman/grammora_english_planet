@@ -1,7 +1,7 @@
 import 'dart:math';
 
-import 'package:gep/models/attendance/qr_code_data.dart';
-import 'package:gep/models/paginated_result.dart';
+import '../../models/attendance/qr_code_data.dart';
+import '../../models/paginated_result.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AttendanceService {

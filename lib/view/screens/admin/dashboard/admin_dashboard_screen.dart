@@ -1,13 +1,13 @@
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/core/constants/constants.dart';
-import 'package:gep/cubits/theme/theme_cubit.dart';
-import 'package:gep/router/app_navigation.dart';
-import 'package:gep/router/app_routes.dart';
-import 'package:gep/services/analytics/analytics_service.dart';
-import 'package:gep/view/widgets/app_drawer.dart';
-import 'package:gep/view/widgets/app_scaffold.dart';
-import 'package:gep/view/widgets/grid_item.dart';
+import '../../../../core/constants/constants.dart';
+import '../../../../cubits/theme/theme_cubit.dart';
+import '../../../../router/app_navigation.dart';
+import '../../../../router/app_routes.dart';
+import '../../../../services/analytics/analytics_service.dart';
+import '../../../widgets/app_drawer.dart';
+import '../../../widgets/app_scaffold.dart';
+import '../../../widgets/grid_item.dart';
 import 'package:material_ui/material_ui.dart';
 
 class AdminDashboardScreen extends StatelessWidget {

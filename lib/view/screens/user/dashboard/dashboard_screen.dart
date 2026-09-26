@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/view/widgets/app_scaffold.dart';
+import '../../../widgets/app_scaffold.dart';
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 

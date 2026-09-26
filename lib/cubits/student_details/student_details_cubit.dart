@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/services/shifts/shifts_service.dart';
+import '../../services/shifts/shifts_service.dart';
 
 import 'student_details_state.dart';
 

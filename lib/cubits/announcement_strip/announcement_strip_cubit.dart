@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/services/updates/updates_services.dart';
+import '../../services/updates/updates_services.dart';
 import 'announcement_strip_state.dart';
 
 class AnnouncementStripCubit extends Cubit<AnnouncementStripState> {

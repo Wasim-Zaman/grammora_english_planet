@@ -1,5 +1,5 @@
-import 'package:gep/models/paginated_result.dart';
-import 'package:gep/models/student_spotlight.dart';
+import '../../models/paginated_result.dart';
+import '../../models/student_spotlight.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class StudentSpotlightService {

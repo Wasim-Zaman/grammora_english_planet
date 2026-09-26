@@ -1,9 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/models/student_spotlight.dart';
-import 'package:gep/services/storage/storage_service.dart';
-import 'package:gep/services/student_spotlight/student_spotlight_service.dart';
+import '../../models/student_spotlight.dart';
+import '../../services/storage/storage_service.dart';
+import '../../services/student_spotlight/student_spotlight_service.dart';
 
 import 'student_spotlight_form_state.dart';
 

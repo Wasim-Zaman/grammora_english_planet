@@ -1,10 +1,10 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/core/constants/constants.dart';
-import 'package:gep/cubits/banner/banner_cubit.dart';
-import 'package:gep/cubits/banner/banner_state.dart';
-import 'package:gep/view/widgets/cached_image_widget.dart';
-import 'package:gep/view/widgets/placeholder_widget.dart';
+import '../../core/constants/constants.dart';
+import '../../cubits/banner/banner_cubit.dart';
+import '../../cubits/banner/banner_state.dart';
+import 'cached_image_widget.dart';
+import 'placeholder_widget.dart';
 import 'package:material_ui/material_ui.dart';
 
 class BannerSlider extends StatelessWidget {

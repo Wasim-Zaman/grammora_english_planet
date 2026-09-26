@@ -1,6 +1,6 @@
-import 'package:gep/core/constants/constants.dart';
-import 'package:gep/router/app_navigation.dart';
-import 'package:gep/services/analytics/analytics_service.dart';
+import '../../core/constants/constants.dart';
+import '../../router/app_navigation.dart';
+import '../../services/analytics/analytics_service.dart';
 import 'package:material_ui/material_ui.dart';
 
 class GridItem extends StatelessWidget {

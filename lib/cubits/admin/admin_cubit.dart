@@ -2,21 +2,21 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/models/about_me.dart';
-import 'package:gep/models/admission_announcement.dart';
-import 'package:gep/models/banner.dart';
-import 'package:gep/models/course_outline.dart';
-import 'package:gep/models/enrolled_students.dart';
-import 'package:gep/models/note.dart';
-import 'package:gep/models/updates.dart';
-import 'package:gep/services/about_me/about_me_service.dart';
-import 'package:gep/services/admissions/admissions_services.dart';
-import 'package:gep/services/banner/banner_service.dart';
-import 'package:gep/services/courses_outline/courses_outline_service.dart';
-import 'package:gep/services/enrolled_students/enrolled_students_services.dart';
-import 'package:gep/services/notes/notes_service.dart';
-import 'package:gep/services/storage/storage_service.dart';
-import 'package:gep/services/updates/updates_services.dart';
+import '../../models/about_me.dart';
+import '../../models/admission_announcement.dart';
+import '../../models/banner.dart';
+import '../../models/course_outline.dart';
+import '../../models/enrolled_students.dart';
+import '../../models/note.dart';
+import '../../models/updates.dart';
+import '../../services/about_me/about_me_service.dart';
+import '../../services/admissions/admissions_services.dart';
+import '../../services/banner/banner_service.dart';
+import '../../services/courses_outline/courses_outline_service.dart';
+import '../../services/enrolled_students/enrolled_students_services.dart';
+import '../../services/notes/notes_service.dart';
+import '../../services/storage/storage_service.dart';
+import '../../services/updates/updates_services.dart';
 
 part 'admin_states.dart';
 

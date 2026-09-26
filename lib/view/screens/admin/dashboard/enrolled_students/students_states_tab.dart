@@ -6,12 +6,12 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:intl/intl.dart';
-import 'package:gep/cubits/enrolled_students_admin/enrolled_students_cubit.dart';
-import 'package:gep/models/enrolled_students.dart';
-import 'package:gep/router/app_navigation.dart';
-import 'package:gep/router/app_routes.dart';
-import 'package:gep/view/widgets/admin_list_tile.dart';
-import 'package:gep/view/widgets/placeholder_widget.dart';
+import '../../../../../cubits/enrolled_students_admin/enrolled_students_cubit.dart';
+import '../../../../../models/enrolled_students.dart';
+import '../../../../../router/app_navigation.dart';
+import '../../../../../router/app_routes.dart';
+import '../../../../widgets/admin_list_tile.dart';
+import '../../../../widgets/placeholder_widget.dart';
 
 class StudentsStatsTab extends StatelessWidget {
   const StudentsStatsTab({super.key});

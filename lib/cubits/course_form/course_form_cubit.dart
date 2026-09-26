@@ -1,6 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:gep/models/course_outline.dart';
+import '../../models/course_outline.dart';
 import 'course_form_state.dart';
 
 class CourseFormCubit extends Cubit<CourseFormState> {

@@ -1,5 +1,5 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:gep/router/app_navigation.dart';
+import '../../router/app_navigation.dart';
 
 class LearningResourcesSection extends StatelessWidget {
   final List<Map<String, dynamic>> resources;

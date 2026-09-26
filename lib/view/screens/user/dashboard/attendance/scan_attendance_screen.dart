@@ -1,8 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/core/constants/constants.dart';
-import 'package:gep/cubits/scan_attendance/scan_attendance_cubit.dart';
-import 'package:gep/cubits/scan_attendance/scan_attendance_state.dart';
-import 'package:gep/view/widgets/app_scaffold.dart';
+import '../../../../../core/constants/constants.dart';
+import '../../../../../cubits/scan_attendance/scan_attendance_cubit.dart';
+import '../../../../../cubits/scan_attendance/scan_attendance_state.dart';
+import '../../../../widgets/app_scaffold.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 

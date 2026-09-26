@@ -1,5 +1,5 @@
-import 'package:gep/models/shift/shift.dart';
-import 'package:gep/models/paginated_result.dart';
+import '../../models/shift/shift.dart';
+import '../../models/paginated_result.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ShiftsService {

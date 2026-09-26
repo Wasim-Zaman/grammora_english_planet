@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/models/admission_announcement.dart';
-import 'package:gep/services/admissions/admissions_services.dart';
+import '../../models/admission_announcement.dart';
+import '../../services/admissions/admissions_services.dart';
 
 import 'admissions_state.dart';
 

@@ -1,13 +1,13 @@
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/core/constants/constants.dart';
-import 'package:gep/cubits/user_admissions/user_admissions_cubit.dart';
-import 'package:gep/cubits/user_admissions/user_admissions_state.dart';
-import 'package:gep/models/admission_announcement.dart';
-import 'package:gep/view/widgets/app_scaffold.dart';
-import 'package:gep/view/widgets/paginated_widget.dart';
-import 'package:gep/view/widgets/placeholder_widget.dart';
-import 'package:gep/view/widgets/text_field_widget.dart';
+import '../../../../../core/constants/constants.dart';
+import '../../../../../cubits/user_admissions/user_admissions_cubit.dart';
+import '../../../../../cubits/user_admissions/user_admissions_state.dart';
+import '../../../../../models/admission_announcement.dart';
+import '../../../../widgets/app_scaffold.dart';
+import '../../../../widgets/paginated_widget.dart';
+import '../../../../widgets/placeholder_widget.dart';
+import '../../../../widgets/text_field_widget.dart';
 import 'package:material_ui/material_ui.dart';
 
 class AdmissionsScreen extends StatefulWidget {

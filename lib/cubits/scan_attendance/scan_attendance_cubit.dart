@@ -1,6 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/services/attendance/attendance_service.dart';
-import 'package:gep/services/auth/auth_service.dart';
+import '../../services/attendance/attendance_service.dart';
+import '../../services/auth/auth_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'scan_attendance_state.dart';

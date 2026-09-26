@@ -1,8 +1,8 @@
 import 'dart:developer';
 
-import 'package:gep/models/enrolled_students.dart';
-import 'package:gep/models/paginated_result.dart';
-import 'package:gep/services/analytics/analytics_service.dart';
+import '../../models/enrolled_students.dart';
+import '../../models/paginated_result.dart';
+import '../analytics/analytics_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class EnrolledStudentsServices {

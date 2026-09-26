@@ -3,16 +3,16 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:intl/intl.dart';
-import 'package:gep/models/enrolled_students.dart';
-import 'package:gep/services/enrolled_students/enrolled_students_services.dart';
-import 'package:gep/core/constants/constants.dart';
-import 'package:gep/utils/snackbars.dart';
-import 'package:gep/view/widgets/placeholder_widget.dart';
-import 'package:gep/view/widgets/text_field_widget.dart';
-import 'package:gep/view/widgets/app_scaffold.dart';
-import 'package:gep/view/widgets/app_button.dart';
-import 'package:gep/cubits/student_form/student_form_cubit.dart';
-import 'package:gep/cubits/student_form/student_form_state.dart';
+import '../../../../../models/enrolled_students.dart';
+import '../../../../../services/enrolled_students/enrolled_students_services.dart';
+import '../../../../../core/constants/constants.dart';
+import '../../../../../utils/snackbars.dart';
+import '../../../../widgets/placeholder_widget.dart';
+import '../../../../widgets/text_field_widget.dart';
+import '../../../../widgets/app_scaffold.dart';
+import '../../../../widgets/app_button.dart';
+import '../../../../../cubits/student_form/student_form_cubit.dart';
+import '../../../../../cubits/student_form/student_form_state.dart';
 
 class AddStudentScreen extends StatefulWidget {
   final EnrolledStudentsServices enrolledStudentsServices;

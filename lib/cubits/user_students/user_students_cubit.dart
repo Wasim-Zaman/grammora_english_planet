@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/services/enrolled_students/enrolled_students_services.dart';
+import '../../services/enrolled_students/enrolled_students_services.dart';
 
 import 'user_students_state.dart';
 

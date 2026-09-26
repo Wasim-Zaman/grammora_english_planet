@@ -1,17 +1,17 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/core/constants/constants.dart';
-import 'package:gep/cubits/enrolled_students_admin/enrolled_students_cubit.dart';
-import 'package:gep/cubits/enrolled_students_admin/enrolled_students_state.dart';
-import 'package:gep/models/enrolled_students.dart';
-import 'package:gep/router/app_navigation.dart';
-import 'package:gep/router/app_routes.dart';
-import 'package:gep/utils/snackbars.dart';
-import 'package:gep/view/widgets/admin_list_tile.dart';
-import 'package:gep/view/widgets/app_button.dart';
-import 'package:gep/view/widgets/app_dialog.dart';
-import 'package:gep/view/widgets/paginated_widget.dart';
-import 'package:gep/view/widgets/placeholder_widget.dart';
-import 'package:gep/view/widgets/text_field_widget.dart';
+import '../../../../../core/constants/constants.dart';
+import '../../../../../cubits/enrolled_students_admin/enrolled_students_cubit.dart';
+import '../../../../../cubits/enrolled_students_admin/enrolled_students_state.dart';
+import '../../../../../models/enrolled_students.dart';
+import '../../../../../router/app_navigation.dart';
+import '../../../../../router/app_routes.dart';
+import '../../../../../utils/snackbars.dart';
+import '../../../../widgets/admin_list_tile.dart';
+import '../../../../widgets/app_button.dart';
+import '../../../../widgets/app_dialog.dart';
+import '../../../../widgets/paginated_widget.dart';
+import '../../../../widgets/placeholder_widget.dart';
+import '../../../../widgets/text_field_widget.dart';
 import 'package:material_ui/material_ui.dart';
 
 class StudentsListTab extends StatefulWidget {

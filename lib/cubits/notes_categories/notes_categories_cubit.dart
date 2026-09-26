@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/services/notes/notes_service.dart';
+import '../../services/notes/notes_service.dart';
 
 import 'notes_categories_state.dart';
 

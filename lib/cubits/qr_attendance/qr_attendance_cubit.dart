@@ -1,8 +1,8 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/models/shift/shift.dart';
-import 'package:gep/services/attendance/attendance_service.dart';
-import 'package:gep/services/shifts/shifts_service.dart';
+import '../../models/shift/shift.dart';
+import '../../services/attendance/attendance_service.dart';
+import '../../services/shifts/shifts_service.dart';
 
 part 'qr_attendance_state.dart';
 

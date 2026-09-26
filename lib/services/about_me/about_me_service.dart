@@ -1,4 +1,4 @@
-import 'package:gep/models/about_me.dart';
+import '../../models/about_me.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AboutMeService {

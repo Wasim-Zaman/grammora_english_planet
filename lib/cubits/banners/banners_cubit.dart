@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/models/banner.dart';
-import 'package:gep/services/banner/banner_service.dart';
+import '../../models/banner.dart';
+import '../../services/banner/banner_service.dart';
 
 import 'banners_state.dart';
 

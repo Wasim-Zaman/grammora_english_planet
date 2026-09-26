@@ -1,5 +1,5 @@
 import 'package:flutter/services.dart';
-import 'package:gep/core/constants/constants.dart';
+import '../../core/constants/constants.dart';
 import 'package:material_ui/material_ui.dart';
 
 class AppScaffold extends StatelessWidget {

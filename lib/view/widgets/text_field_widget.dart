@@ -1,4 +1,4 @@
-import 'package:gep/core/constants/constants.dart';
+import '../../core/constants/constants.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// Modern, consistent text field used throughout the app.

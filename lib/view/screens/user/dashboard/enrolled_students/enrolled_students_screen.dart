@@ -1,15 +1,15 @@
 import 'dart:math';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/core/constants/constants.dart';
-import 'package:gep/cubits/user_students/user_students_cubit.dart';
-import 'package:gep/cubits/user_students/user_students_state.dart';
-import 'package:gep/models/enrolled_students.dart';
-import 'package:gep/view/widgets/app_scaffold.dart';
-import 'package:gep/view/widgets/app_text_button.dart';
-import 'package:gep/view/widgets/paginated_widget.dart';
-import 'package:gep/view/widgets/placeholder_widget.dart';
-import 'package:gep/view/widgets/text_field_widget.dart';
+import '../../../../../core/constants/constants.dart';
+import '../../../../../cubits/user_students/user_students_cubit.dart';
+import '../../../../../cubits/user_students/user_students_state.dart';
+import '../../../../../models/enrolled_students.dart';
+import '../../../../widgets/app_scaffold.dart';
+import '../../../../widgets/app_text_button.dart';
+import '../../../../widgets/paginated_widget.dart';
+import '../../../../widgets/placeholder_widget.dart';
+import '../../../../widgets/text_field_widget.dart';
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 

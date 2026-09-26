@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/models/enrolled_students.dart';
+import '../../models/enrolled_students.dart';
 
 class SpotlightEditorState extends Equatable {
   final String awardTitle;

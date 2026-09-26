@@ -1,4 +1,4 @@
-import 'package:gep/core/constants/constants.dart';
+import '../../core/constants/constants.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// A modern, reusable list tile for admin screens.

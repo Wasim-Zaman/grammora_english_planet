@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/models/shift/shift.dart';
-import 'package:gep/services/shifts/shifts_service.dart';
+import '../../models/shift/shift.dart';
+import '../../services/shifts/shifts_service.dart';
 
 part 'shifts_state.dart';
 

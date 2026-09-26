@@ -1,14 +1,14 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/core/constants/constants.dart';
-import 'package:gep/cubits/user_student_spotlight/spotlight_carousel_cubit.dart';
-import 'package:gep/cubits/user_student_spotlight/user_student_spotlight_cubit.dart';
-import 'package:gep/cubits/user_student_spotlight/user_student_spotlight_state.dart';
-import 'package:gep/models/student_spotlight.dart';
-import 'package:gep/router/app_navigation.dart';
-import 'package:gep/router/app_routes.dart';
-import 'package:gep/view/widgets/cached_image_widget.dart';
+import '../../core/constants/constants.dart';
+import '../../cubits/user_student_spotlight/spotlight_carousel_cubit.dart';
+import '../../cubits/user_student_spotlight/user_student_spotlight_cubit.dart';
+import '../../cubits/user_student_spotlight/user_student_spotlight_state.dart';
+import '../../models/student_spotlight.dart';
+import '../../router/app_navigation.dart';
+import '../../router/app_routes.dart';
+import 'cached_image_widget.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:material_ui/material_ui.dart';
 

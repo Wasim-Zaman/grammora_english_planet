@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/cubits/auth/auth_cubit.dart';
+import '../auth/auth_cubit.dart';
 
 part 'dashboard_state.dart';
 

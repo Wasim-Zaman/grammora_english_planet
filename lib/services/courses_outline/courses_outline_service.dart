@@ -1,5 +1,5 @@
-import 'package:gep/models/course_outline.dart';
-import 'package:gep/models/paginated_result.dart';
+import '../../models/course_outline.dart';
+import '../../models/paginated_result.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CoursesOutlineService {

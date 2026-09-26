@@ -1,8 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/cubits/student_details/student_details_cubit.dart';
-import 'package:gep/cubits/student_details/student_details_state.dart';
-import 'package:gep/models/enrolled_students.dart';
-import 'package:gep/view/widgets/app_scaffold.dart';
+import '../../../../../cubits/student_details/student_details_cubit.dart';
+import '../../../../../cubits/student_details/student_details_state.dart';
+import '../../../../../models/enrolled_students.dart';
+import '../../../../widgets/app_scaffold.dart';
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 

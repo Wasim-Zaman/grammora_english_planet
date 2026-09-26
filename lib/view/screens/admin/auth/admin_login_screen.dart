@@ -1,12 +1,12 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/core/constants/constants.dart';
-import 'package:gep/cubits/auth/auth_cubit.dart';
-import 'package:gep/router/app_navigation.dart';
-import 'package:gep/router/app_routes.dart';
-import 'package:gep/utils/snackbars.dart';
-import 'package:gep/view/widgets/app_button.dart';
-import 'package:gep/view/widgets/app_scaffold.dart';
-import 'package:gep/view/widgets/text_field_widget.dart';
+import '../../../../core/constants/constants.dart';
+import '../../../../cubits/auth/auth_cubit.dart';
+import '../../../../router/app_navigation.dart';
+import '../../../../router/app_routes.dart';
+import '../../../../utils/snackbars.dart';
+import '../../../widgets/app_button.dart';
+import '../../../widgets/app_scaffold.dart';
+import '../../../widgets/text_field_widget.dart';
 import 'package:material_ui/material_ui.dart';
 
 class AdminLoginScreen extends StatelessWidget {
@@ -14,10 +14,9 @@ class AdminLoginScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     return Builder(
       builder: (context) {
+        final theme = Theme.of(context);
         final authCubit = context.read<AuthCubit>();
         return BlocListener<AuthCubit, AuthState>(
           listener: (context, state) {

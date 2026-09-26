@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:gep/models/updates.dart';
+import '../../models/updates.dart';
 
 class UpdatesAdminState extends Equatable {
   final List<Updates> items;

@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:gep/models/banner.dart';
+import '../../models/banner.dart';
 
 class BannersState extends Equatable {
   final List<BannerModel> items;

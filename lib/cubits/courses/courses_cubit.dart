@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/models/course_outline.dart';
-import 'package:gep/services/courses_outline/courses_outline_service.dart';
+import '../../models/course_outline.dart';
+import '../../services/courses_outline/courses_outline_service.dart';
 
 import 'courses_state.dart';
 

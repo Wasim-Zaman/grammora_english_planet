@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gep/models/updates.dart';
+import '../../models/updates.dart';
 import 'update_form_state.dart';
 
 class UpdateFormCubit extends Cubit<UpdateFormState> {

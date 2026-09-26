@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:gep/models/admission_announcement.dart';
+import '../../models/admission_announcement.dart';
 
 class UserAdmissionsState extends Equatable {
   final List<AdmissionAnnouncement> items;
