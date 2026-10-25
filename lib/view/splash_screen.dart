@@ -64,7 +64,7 @@ class SplashScreenState extends State<SplashScreen>
               ),
             ),
           ),
-          const Text("Version 2.0.0"),
+          const Text("Version 2.2.1"),
           const SizedBox(height: 16),
         ],
       ),

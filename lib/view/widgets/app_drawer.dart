@@ -112,6 +112,22 @@ class AppDrawer extends StatelessWidget {
                         }
                       },
                     ),
+                    if (isAdminLoggedIn) ...[
+                      const SizedBox(height: 6),
+                      _DrawerTile(
+                        icon: Icons.lock_reset_rounded,
+                        label: 'Exit Admin Session',
+                        subtitle: 'Revoke admin access on this device',
+                        index: 1,
+                        iconColor: AppColors.error,
+                        onTap: () async {
+                          Navigator.pop(context);
+                          await context.read<AuthCubit>().logoutAdmin();
+                          if (!context.mounted) return;
+                          TopSnackbar.info(context, 'Exited Admin session');
+                        },
+                      ),
+                    ],
 
                     const SizedBox(height: 14),
                     const _SectionHeader(label: 'Appearance'),
@@ -210,14 +226,32 @@ class AppDrawer extends StatelessWidget {
               child: Column(
                 children: [
                   _LogoutTile(
+                    label: isAdminDashboard ? 'Exit Admin Panel' : 'Sign Out',
+                    icon: isAdminDashboard
+                        ? Icons.exit_to_app_rounded
+                        : Icons.logout_rounded,
+                    color: isAdminDashboard
+                        ? (isDark ? AppColors.accent : AppColors.primary)
+                        : AppColors.error,
                     onTap: () async {
                       Navigator.pop(context);
-                      await context.read<AuthCubit>().logout();
-                      if (!context.mounted) return;
-                      AppNavigation.goAndClearStack(
-                        context,
-                        AppRoutes.kLoginRoute,
-                      );
+                      if (isAdminDashboard) {
+                        await context.read<AuthCubit>().logoutAdmin();
+                        if (!context.mounted) return;
+                        TopSnackbar.info(context, 'Exited Admin Panel');
+                        AppNavigation.goAndClearStack(
+                          context,
+                          AppRoutes.kDashboardRoute,
+                        );
+                      } else {
+                        await context.read<AuthCubit>().logout();
+                        if (!context.mounted) return;
+                        TopSnackbar.info(context, 'Signed out successfully');
+                        AppNavigation.goAndClearStack(
+                          context,
+                          AppRoutes.kLoginRoute,
+                        );
+                      }
                     },
                   ),
                   const SizedBox(height: 12),
@@ -225,7 +259,7 @@ class AppDrawer extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'GEP Portal • v2.0.0',
+                        'GEP Portal • v2.2.1',
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: isDark
                               ? AppColors.darkBodyTextSecondary
@@ -579,6 +613,7 @@ class _DrawerTile extends StatelessWidget {
     required this.subtitle,
     required this.index,
     required this.onTap,
+    this.iconColor,
   });
 
   final IconData icon;
@@ -586,6 +621,7 @@ class _DrawerTile extends StatelessWidget {
   final String subtitle;
   final int index;
   final VoidCallback onTap;
+  final Color? iconColor;
 
   @override
   Widget build(BuildContext context) {
@@ -593,7 +629,8 @@ class _DrawerTile extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final cardColor = isDark ? AppColors.darkCard : AppColors.lightCard;
     final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
-    final primaryAccent = isDark ? AppColors.secondary : AppColors.primary;
+    final primaryAccent =
+        iconColor ?? (isDark ? AppColors.secondary : AppColors.primary);
     final textPrimary =
         isDark ? AppColors.darkBodyText : AppColors.lightBodyText;
     final textSecondary = isDark
@@ -686,9 +723,17 @@ class _DrawerTile extends StatelessWidget {
 }
 
 class _LogoutTile extends StatelessWidget {
-  const _LogoutTile({required this.onTap});
+  const _LogoutTile({
+    required this.onTap,
+    this.label = 'Sign Out',
+    this.icon = Icons.logout_rounded,
+    this.color = AppColors.error,
+  });
 
   final VoidCallback onTap;
+  final String label;
+  final IconData icon;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -697,10 +742,10 @@ class _LogoutTile extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.error.withValues(alpha: isDark ? 0.15 : 0.08),
+        color: color.withValues(alpha: isDark ? 0.15 : 0.08),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.error.withValues(alpha: isDark ? 0.35 : 0.20),
+          color: color.withValues(alpha: isDark ? 0.35 : 0.20),
         ),
       ),
       child: Material(
@@ -714,17 +759,17 @@ class _LogoutTile extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(
-                  Icons.logout_rounded,
+                Icon(
+                  icon,
                   size: 18,
-                  color: AppColors.error,
+                  color: color,
                 ),
                 const SizedBox(width: 10),
                 Text(
-                  'Sign Out',
+                  label,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w800,
-                    color: AppColors.error,
+                    color: color,
                   ),
                 ),
               ],

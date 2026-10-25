@@ -1,10 +1,12 @@
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/constants.dart';
+import '../../../../cubits/auth/auth_cubit.dart';
 import '../../../../cubits/theme/theme_cubit.dart';
 import '../../../../router/app_navigation.dart';
 import '../../../../router/app_routes.dart';
 import '../../../../services/analytics/analytics_service.dart';
+import '../../../../utils/snackbars.dart';
 import '../../../widgets/app_drawer.dart';
 import '../../../widgets/app_scaffold.dart';
 import '../../../widgets/grid_item.dart';
@@ -279,6 +281,35 @@ class AdminDashboardScreen extends StatelessWidget {
                   Icons.admin_panel_settings_rounded,
                   size: 20,
                   color: AppColors.accent,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Tooltip(
+                message: 'Exit Admin Panel',
+                child: Material(
+                  color:
+                      AppColors.error.withValues(alpha: isDark ? 0.18 : 0.10),
+                  shape: const CircleBorder(),
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: () async {
+                      await context.read<AuthCubit>().logoutAdmin();
+                      if (!context.mounted) return;
+                      TopSnackbar.info(context, 'Exited Admin Panel');
+                      AppNavigation.goAndClearStack(
+                        context,
+                        AppRoutes.kDashboardRoute,
+                      );
+                    },
+                    child: const Padding(
+                      padding: EdgeInsets.all(8),
+                      child: Icon(
+                        Icons.logout_rounded,
+                        size: 18,
+                        color: AppColors.error,
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ],

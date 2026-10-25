@@ -73,15 +73,7 @@ class AdminLoginScreen extends StatelessWidget {
                         obscureText: true,
                       ),
                       const SizedBox(height: 24),
-                      BlocConsumer<AuthCubit, AuthState>(
-                        listener: (context, state) {
-                          if (state is AuthSuccess) {
-                            AppNavigation.push(
-                              context,
-                              AppRoutes.kAdminDashboardRoute,
-                            );
-                          }
-                        },
+                      BlocBuilder<AuthCubit, AuthState>(
                         builder: (context, state) {
                           if (state is AuthFailure) {
                             return Padding(
